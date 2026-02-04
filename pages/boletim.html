@@ -5,95 +5,194 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Boletim — picpay.de.i</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <script src="../assets/js/store.js"></script>
   <script src="../assets/js/components.js"></script>
 
+  <div id="app"></div>
+
   <script>
-    document.body.innerHTML = `
-      ${Components.sidebar('boletim')}
-      <div class="main-content">
-        ${Components.topbar('Boletim')}
-        <div class="page-container">
+    document.getElementById('app').innerHTML =
+      Components.sidebar('boletim') +
+      '<div class="main-content">' +
+        Components.topbar('Boletim') +
+        '<div class="page-container">' +
 
-          <!-- Stats -->
-          <div class="summary-grid" style="margin-bottom:24px;">
-            <div class="summary-card">
-              <div class="label">Total de Alunos</div>
-              <div class="value dark" id="stat-total">0</div>
-            </div>
-            <div class="summary-card">
-              <div class="label">Média da Turma</div>
-              <div class="value green" id="stat-media">0.0</div>
-            </div>
-            <div class="summary-card">
-              <div class="label">Aprovados</div>
-              <div class="value green" id="stat-aprov">0</div>
-            </div>
-            <div class="summary-card">
-              <div class="label">Reprovados</div>
-              <div class="value red" id="stat-reprov">0</div>
-            </div>
-          </div>
+          '<div class="summary-grid" style="margin-bottom:24px;">' +
+            '<div class="summary-card">' +
+              '<div class="label">Total de Alunos</div>' +
+              '<div class="value dark" id="stat-total">0</div>' +
+            '</div>' +
+            '<div class="summary-card">' +
+              '<div class="label">Média da Turma</div>' +
+              '<div class="value green" id="stat-media">0.0</div>' +
+            '</div>' +
+            '<div class="summary-card">' +
+              '<div class="label">Aprovados</div>' +
+              '<div class="value green" id="stat-aprov">0</div>' +
+            '</div>' +
+            '<div class="summary-card">' +
+              '<div class="label">Reprovados</div>' +
+              '<div class="value red" id="stat-reprov">0</div>' +
+            '</div>' +
+          '</div>' +
 
-          <!-- Table -->
-          <div class="card">
-            <div class="card-header">
-              <h3>Lançamento de Notas</h3>
-            </div>
-            <div class="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th style="text-align:left;">Nº</th>
-                    <th style="text-align:left;">Nome</th>
-                    <th style="text-align:center;">Qualitativa <span style="font-weight:400;opacity:0.7;">(P 3.0)</span></th>
-                    <th style="text-align:center;">PB <span style="font-weight:400;opacity:0.7;">(P 3.5)</span></th>
-                    <th style="text-align:center;">VA <span style="font-weight:400;opacity:0.7;">(P 3.5)</span></th>
-                    <th style="text-align:center;">Total</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyBoletim"></tbody>
-              </table>
-              <div id="emptyState" class="empty-state">Nenhum aluno cadastrado. Vá em <a href="alunos.html" style="color:var(--green);font-weight:600;">Alunos</a> para adicionar.</div>
-            </div>
-          </div>
+          '<!-- Formula Card -->' +
+          '<div class="card" style="margin-bottom:20px;">' +
+            '<div class="card-body" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">' +
+              '<div style="flex:1;min-width:200px;">' +
+                '<h4 style="font-size:0.8rem;font-weight:700;color:var(--dark);margin-bottom:8px;">Composição da Média</h4>' +
+                '<div style="display:flex;gap:16px;flex-wrap:wrap;">' +
+                  '<div style="text-align:center;padding:10px 16px;background:var(--light);border-radius:12px;">' +
+                    '<div style="font-size:0.65rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;">Prova Bim.</div>' +
+                    '<div style="font-size:1.5rem;font-weight:800;color:var(--dark);">35</div>' +
+                  '</div>' +
+                  '<div style="text-align:center;padding:10px 16px;background:#FEF2F2;border-radius:12px;">' +
+                    '<div style="font-size:0.65rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;">Qualitativa</div>' +
+                    '<div style="font-size:1.5rem;font-weight:800;color:var(--dark);">30</div>' +
+                  '</div>' +
+                  '<div style="text-align:center;padding:10px 16px;background:#FFF7ED;border-radius:12px;">' +
+                    '<div style="font-size:0.65rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;">VA</div>' +
+                    '<div style="font-size:1.5rem;font-weight:800;color:var(--dark);">35</div>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+              '<div style="min-width:220px;">' +
+                '<div style="background:var(--gray-50);border-radius:12px;padding:14px 18px;font-size:0.8rem;color:var(--gray-700);line-height:1.6;">' +
+                  '<strong>Fórmula:</strong><br>' +
+                  'M = (PB &times; 35 + Quali &times; 30 + VA &times; 35) / 100<br>' +
+                  '<span style="font-size:0.7rem;color:var(--red);">* Quali sofre desconto de -0.1 por negativo</span>' +
+                '</div>' +
+              '</div>' +
+              '<div style="min-width:200px;">' +
+                '<canvas id="chartPie" width="160" height="160"></canvas>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
 
-          <p style="margin-top:12px;font-size:0.75rem;color:var(--gray-400);">
-            * A nota Qualitativa é reduzida em 0.1 para cada negativo registrado na aba Negativos.
-          </p>
+          '<!-- Grade Table -->' +
+          '<div class="card">' +
+            '<div class="card-header">' +
+              '<h3>Lançamento de Notas</h3>' +
+              '<button class="btn btn-outline" onclick="copyFromPrevBim()" style="font-size:0.72rem;padding:5px 12px;">Copiar Alunos do Bim. Anterior</button>' +
+            '</div>' +
+            '<div class="table-container">' +
+              '<table>' +
+                '<thead>' +
+                  '<tr>' +
+                    '<th style="text-align:left;">Nº</th>' +
+                    '<th style="text-align:left;">Nome</th>' +
+                    '<th style="text-align:center;">Prova Bim. <span style="font-weight:400;opacity:0.7;">(P 35)</span></th>' +
+                    '<th style="text-align:center;">Qualitativa <span style="font-weight:400;opacity:0.7;">(P 30)</span></th>' +
+                    '<th style="text-align:center;">VA <span style="font-weight:400;opacity:0.7;">(P 35)</span></th>' +
+                    '<th style="text-align:center;">Média</th>' +
+                  '</tr>' +
+                '</thead>' +
+                '<tbody id="tbodyBoletim"></tbody>' +
+              '</table>' +
+              '<div id="emptyState" class="empty-state">Nenhum aluno cadastrado. Vá em <a href="alunos.html" style="color:var(--green);font-weight:600;">Alunos</a> para adicionar.</div>' +
+            '</div>' +
+          '</div>' +
 
-        </div>
-        ${Components.footer()}
-      </div>
-    `;
+          '<p style="margin-top:12px;font-size:0.75rem;color:var(--gray-400);">' +
+            '* A nota Qualitativa é reduzida em 0.1 para cada negativo registrado na aba Negativos do mesmo bimestre.' +
+          '</p>' +
+
+        '</div>' +
+        Components.footer() +
+      '</div>';
 
     initSelects();
+
+    var pieChart = null;
 
     function onContextChange() { render(); }
 
     function updateNota(numero, field, value) {
-      const { turma, materia } = getCurrentContext();
-      Store.updateNota(turma, materia, numero, field, value);
+      var ctx = getCurrentContext();
+      Store.updateNota(ctx.turma, ctx.materia, ctx.bimestre, numero, field, value);
       render();
     }
 
-    function render() {
-      const { turma, materia } = getCurrentContext();
-      const students = Store.getStudents(turma, materia);
-      const tbody = document.getElementById('tbodyBoletim');
-      const empty = document.getElementById('emptyState');
+    function copyFromPrevBim() {
+      var ctx = getCurrentContext();
+      var bimNum = parseInt(ctx.bimestre);
+      if (bimNum <= 1) return alert('Não há bimestre anterior ao 1º.');
+      var prevBim = String(bimNum - 1);
+      var count = Store.copyStudentsToBimestre(ctx.turma, ctx.materia, prevBim, ctx.bimestre);
+      if (count === 0) alert('Nenhum aluno novo para copiar (já existem ou o bimestre anterior está vazio).');
+      else alert(count + ' aluno(s) copiado(s) do ' + Store.BIMESTRE_LABELS[prevBim] + '.');
+      render();
+    }
 
-      const totals = students.map(s => Store.calcTotal(s));
-      const media = students.length > 0 ? (totals.reduce((a, b) => a + b, 0) / students.length) : 0;
-      const aprovados = totals.filter(t => t >= 6).length;
-      const reprovados = totals.filter(t => t < 6).length;
+    function buildRow(s) {
+      var qualiAjustada = Store.getQualiAjustada(s);
+      var media = Store.calcMedia(s);
+      var isApproved = media >= 6;
+      var badgeClass = isApproved ? 'badge-green' : 'badge-red';
+      var negLabel = s.negativos > 0
+        ? '<div style="font-size:0.62rem;color:var(--red);margin-top:2px;">-' + (s.negativos * 0.1).toFixed(1) + ' neg. (' + s.negativos + ')</div>'
+        : '';
+      var efetivaLabel = '<div style="font-size:0.62rem;color:var(--gray-400);margin-top:1px;">Efetiva: ' + qualiAjustada.toFixed(1) + '</div>';
+
+      return '<tr>' +
+        '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>' +
+        '<td>' + s.nome + '</td>' +
+        '<td style="text-align:center;">' +
+          '<input type="number" step="0.1" min="0" max="10" value="' + s.pb + '" onchange="updateNota(' + s.numero + ',\'pb\',this.value)" class="editable-input" />' +
+        '</td>' +
+        '<td style="text-align:center;">' +
+          '<input type="number" step="0.1" min="0" max="10" value="' + s.quali + '" onchange="updateNota(' + s.numero + ',\'quali\',this.value)" class="editable-input" />' +
+          negLabel + efetivaLabel +
+        '</td>' +
+        '<td style="text-align:center;">' +
+          '<input type="number" step="0.1" min="0" max="10" value="' + s.va + '" onchange="updateNota(' + s.numero + ',\'va\',this.value)" class="editable-input" />' +
+        '</td>' +
+        '<td style="text-align:center;">' +
+          '<span class="badge ' + badgeClass + '">' + media + '</span>' +
+        '</td>' +
+      '</tr>';
+    }
+
+    function render() {
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      var tbody = document.getElementById('tbodyBoletim');
+      var empty = document.getElementById('emptyState');
+
+      var medias = students.map(function(s) { return Store.calcMedia(s); });
+      var mediaGeral = students.length > 0 ? (medias.reduce(function(a, b) { return a + b; }, 0) / students.length) : 0;
+      var aprovados = medias.filter(function(m) { return m >= 6; }).length;
+      var reprovados = medias.filter(function(m) { return m < 6; }).length;
 
       document.getElementById('stat-total').textContent = students.length;
-      document.getElementById('stat-media').textContent = media.toFixed(1);
+      document.getElementById('stat-media').textContent = mediaGeral.toFixed(1);
       document.getElementById('stat-aprov').textContent = aprovados;
       document.getElementById('stat-reprov').textContent = reprovados;
+
+      // Pie chart
+      if (pieChart) pieChart.destroy();
+      pieChart = new Chart(document.getElementById('chartPie'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Prova Bim. (35)', 'Qualitativa (30)', 'VA (35)'],
+          datasets: [{
+            data: [35, 30, 35],
+            backgroundColor: ['#3B82F6', '#EF4444', '#F97316'],
+            borderWidth: 0,
+          }],
+        },
+        options: {
+          cutout: '50%',
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { position: 'right', labels: { font: { size: 11, family: 'Inter' }, boxWidth: 12, padding: 8 } },
+          },
+        },
+      });
 
       if (students.length === 0) {
         tbody.innerHTML = '';
@@ -102,37 +201,7 @@
       }
       empty.style.display = 'none';
 
-      tbody.innerHTML = students.map(s => {
-        const qualiAjustada = Math.max(0, +(s.quali - s.negativos * 0.1).toFixed(1));
-        const total = Store.calcTotal(s);
-        const isApproved = total >= 6;
-        const badgeClass = isApproved ? 'badge-green' : 'badge-red';
-        const negLabel = s.negativos > 0
-          ? `<div style="font-size:0.65rem;color:var(--red);margin-top:2px;">-${(s.negativos * 0.1).toFixed(1)} neg.</div>`
-          : '';
-        const efetiva = `<div style="font-size:0.65rem;color:var(--gray-400);margin-top:1px;">Efetiva: ${qualiAjustada}</div>`;
-
-        return `
-          <tr>
-            <td style="font-weight:700;color:var(--dark);">${s.numero}</td>
-            <td>${s.nome}</td>
-            <td style="text-align:center;">
-              <input type="number" step="0.1" min="0" max="10" value="${s.quali}" onchange="updateNota(${s.numero},'quali',this.value)" class="editable-input" />
-              ${negLabel}
-              ${efetiva}
-            </td>
-            <td style="text-align:center;">
-              <input type="number" step="0.1" min="0" max="10" value="${s.pb}" onchange="updateNota(${s.numero},'pb',this.value)" class="editable-input" />
-            </td>
-            <td style="text-align:center;">
-              <input type="number" step="0.1" min="0" max="10" value="${s.va}" onchange="updateNota(${s.numero},'va',this.value)" class="editable-input" />
-            </td>
-            <td style="text-align:center;">
-              <span class="badge ${badgeClass}">${total}</span>
-            </td>
-          </tr>
-        `;
-      }).join('');
+      tbody.innerHTML = students.map(buildRow).join('');
     }
 
     render();

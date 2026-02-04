@@ -10,83 +10,110 @@
   <script src="../assets/js/store.js"></script>
   <script src="../assets/js/components.js"></script>
 
+  <div id="app"></div>
+
   <script>
-    document.body.innerHTML = `
-      ${Components.sidebar('negativos')}
-      <div class="main-content">
-        ${Components.topbar('Negativos')}
-        <div class="page-container">
+    document.getElementById('app').innerHTML =
+      Components.sidebar('negativos') +
+      '<div class="main-content">' +
+        Components.topbar('Negativos') +
+        '<div class="page-container">' +
 
-          <!-- Stats -->
-          <div class="summary-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;" id="negStats">
-            <div class="summary-card">
-              <div class="label">Alunos na Turma</div>
-              <div class="value dark" id="stat-total">0</div>
-            </div>
-            <div class="summary-card">
-              <div class="label">Total de Negativos</div>
-              <div class="value red" id="stat-negs">0</div>
-            </div>
-            <div class="summary-card">
-              <div class="label">Alunos Limpos</div>
-              <div class="value green" id="stat-limpos">0</div>
-            </div>
-          </div>
+          '<div class="summary-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">' +
+            '<div class="summary-card">' +
+              '<div class="label">Alunos na Turma</div>' +
+              '<div class="value dark" id="stat-total">0</div>' +
+            '</div>' +
+            '<div class="summary-card">' +
+              '<div class="label">Total de Negativos</div>' +
+              '<div class="value red" id="stat-negs">0</div>' +
+            '</div>' +
+            '<div class="summary-card">' +
+              '<div class="label">Alunos Limpos</div>' +
+              '<div class="value green" id="stat-limpos">0</div>' +
+            '</div>' +
+          '</div>' +
 
-          <!-- Table -->
-          <div class="card">
-            <div class="card-header">
-              <h3>Gestão de Negativos</h3>
-              <button class="btn btn-outline" onclick="resetAll()" style="font-size:0.75rem;padding:6px 14px;">Zerar Todos</button>
-            </div>
-            <div class="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th style="text-align:left;">Nº</th>
-                    <th style="text-align:left;">Nome</th>
-                    <th style="text-align:center;">Negativos</th>
-                    <th style="text-align:center;">Ações</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyNegativos"></tbody>
-              </table>
-              <div id="emptyState" class="empty-state">Nenhum aluno cadastrado. Vá em <a href="alunos.html" style="color:var(--green);font-weight:600;">Alunos</a> para adicionar.</div>
-            </div>
-          </div>
+          '<div class="card">' +
+            '<div class="card-header">' +
+              '<h3>Gestão de Negativos</h3>' +
+              '<button class="btn btn-outline" onclick="resetAll()" style="font-size:0.75rem;padding:6px 14px;">Zerar Todos</button>' +
+            '</div>' +
+            '<div class="table-container">' +
+              '<table>' +
+                '<thead>' +
+                  '<tr>' +
+                    '<th style="text-align:left;">Nº</th>' +
+                    '<th style="text-align:left;">Nome</th>' +
+                    '<th style="text-align:center;">Negativos</th>' +
+                    '<th style="text-align:center;">Impacto na Quali</th>' +
+                    '<th style="text-align:center;">Ações</th>' +
+                  '</tr>' +
+                '</thead>' +
+                '<tbody id="tbodyNegativos"></tbody>' +
+              '</table>' +
+              '<div id="emptyState" class="empty-state">Nenhum aluno cadastrado. Vá em <a href="alunos.html" style="color:var(--green);font-weight:600;">Alunos</a> para adicionar.</div>' +
+            '</div>' +
+          '</div>' +
 
-        </div>
-        ${Components.footer()}
-      </div>
-    `;
+          '<p style="margin-top:12px;font-size:0.75rem;color:var(--gray-400);">' +
+            '* Cada negativo reduz 0.1 da nota Qualitativa no Boletim deste bimestre.' +
+          '</p>' +
+
+        '</div>' +
+        Components.footer() +
+      '</div>';
 
     initSelects();
 
     function onContextChange() { render(); }
 
     function changeNeg(numero, delta) {
-      const { turma, materia } = getCurrentContext();
-      Store.updateNegativo(turma, materia, numero, delta);
+      var ctx = getCurrentContext();
+      Store.updateNegativo(ctx.turma, ctx.materia, ctx.bimestre, numero, delta);
       render();
     }
 
     function resetAll() {
-      if (!confirm('Zerar todos os negativos desta turma?')) return;
-      const { turma, materia } = getCurrentContext();
-      const students = Store.getStudents(turma, materia);
-      students.forEach(s => s.negativos = 0);
-      Store.setStudents(turma, materia, students);
+      if (!confirm('Zerar todos os negativos desta turma neste bimestre?')) return;
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      students.forEach(function(s) { s.negativos = 0; });
+      Store.setStudents(ctx.turma, ctx.materia, ctx.bimestre, students);
       render();
     }
 
-    function render() {
-      const { turma, materia } = getCurrentContext();
-      const students = Store.getStudents(turma, materia);
-      const tbody = document.getElementById('tbodyNegativos');
-      const empty = document.getElementById('emptyState');
+    function buildRow(s) {
+      var impacto = (s.negativos * 0.1).toFixed(1);
+      var negColor = s.negativos > 0 ? 'var(--red)' : 'var(--gray-300)';
+      var impColor = s.negativos > 0 ? 'var(--red)' : 'var(--gray-400)';
 
-      const totalNegs = students.reduce((s, a) => s + a.negativos, 0);
-      const limpos = students.filter(s => s.negativos === 0).length;
+      return '<tr>' +
+        '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>' +
+        '<td>' + s.nome + '</td>' +
+        '<td style="text-align:center;">' +
+          '<span style="display:inline-block;min-width:2rem;font-weight:800;font-size:1.2rem;color:' + negColor + ';">' + s.negativos + '</span>' +
+        '</td>' +
+        '<td style="text-align:center;font-size:0.8rem;font-weight:600;color:' + impColor + ';">' +
+          '-' + impacto +
+        '</td>' +
+        '<td style="text-align:center;">' +
+          '<div style="display:inline-flex;gap:6px;">' +
+            '<button onclick="changeNeg(' + s.numero + ',-1)" class="btn-icon-sm" style="background:var(--gray-100);color:var(--gray-500);" title="Remover negativo">&minus;</button>' +
+            '<button onclick="changeNeg(' + s.numero + ',1)" class="btn-icon-sm" style="background:var(--light);color:var(--green);" title="Adicionar negativo">+</button>' +
+          '</div>' +
+        '</td>' +
+      '</tr>';
+    }
+
+    function render() {
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      var tbody = document.getElementById('tbodyNegativos');
+      var empty = document.getElementById('emptyState');
+
+      var totalNegs = students.reduce(function(sum, s) { return sum + s.negativos; }, 0);
+      var limpos = students.filter(function(s) { return s.negativos === 0; }).length;
       document.getElementById('stat-total').textContent = students.length;
       document.getElementById('stat-negs').textContent = totalNegs;
       document.getElementById('stat-limpos').textContent = limpos;
@@ -98,21 +125,7 @@
       }
       empty.style.display = 'none';
 
-      tbody.innerHTML = students.map(s => `
-        <tr>
-          <td style="font-weight:700;color:var(--dark);">${s.numero}</td>
-          <td>${s.nome}</td>
-          <td style="text-align:center;">
-            <span style="display:inline-block;min-width:2rem;font-weight:800;font-size:1.2rem;color:${s.negativos > 0 ? 'var(--red)' : 'var(--gray-300)'};">${s.negativos}</span>
-          </td>
-          <td style="text-align:center;">
-            <div style="display:inline-flex;gap:6px;">
-              <button onclick="changeNeg(${s.numero},-1)" class="btn-icon-sm" style="background:var(--gray-100);color:var(--gray-500);" title="Remover negativo">−</button>
-              <button onclick="changeNeg(${s.numero},1)" class="btn-icon-sm" style="background:var(--light);color:var(--green);" title="Adicionar negativo">+</button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = students.map(buildRow).join('');
     }
 
     render();

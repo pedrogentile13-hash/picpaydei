@@ -10,109 +10,115 @@
   <script src="assets/js/store.js"></script>
   <script src="assets/js/components.js"></script>
 
+  <div id="app"></div>
+
   <script>
-    document.body.innerHTML = `
-      ${Components.sidebar('home')}
-      <div class="main-content">
-        ${Components.topbar('Início', false)}
-        <div class="page-container">
+    document.getElementById('app').innerHTML =
+      Components.sidebar('home') +
+      '<div class="main-content">' +
+        '<header class="topbar">' +
+          '<div style="display:flex;align-items:center;gap:12px;">' +
+            '<button class="hamburger" onclick="toggleSidebar()">' +
+              '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>' +
+            '</button>' +
+            '<div><h2 class="topbar-title">Início</h2>' +
+            '<span style="font-size:0.65rem;color:var(--gray-400);font-weight:600;">Ano Letivo ' + Store.ANO_LETIVO + '</span></div>' +
+          '</div>' +
+        '</header>' +
+        '<div class="page-container">' +
 
-          <!-- Hero -->
-          <div style="text-align:center;padding:48px 20px 32px;">
-            <div style="width:80px;height:80px;background:var(--green);border-radius:24px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 30px rgba(17,199,111,0.3);">
-              <span style="font-size:2.2rem;font-weight:900;color:#fff;">P</span>
-            </div>
-            <h1 style="font-size:2.5rem;font-weight:900;color:var(--dark);letter-spacing:-0.03em;">picpay.de.i</h1>
-            <p style="font-size:1.1rem;color:var(--gray-500);margin-top:8px;font-weight:500;">Sistema de Gestão Escolar — Prof. Aladdin</p>
-          </div>
+          '<div style="text-align:center;padding:48px 20px 32px;">' +
+            '<div style="width:80px;height:80px;background:var(--green);border-radius:24px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 30px rgba(17,199,111,0.3);">' +
+              '<span style="font-size:2.2rem;font-weight:900;color:#fff;">P</span>' +
+            '</div>' +
+            '<h1 style="font-size:2.5rem;font-weight:900;color:var(--dark);letter-spacing:-0.03em;">picpay.de.i</h1>' +
+            '<p style="font-size:1.1rem;color:var(--gray-500);margin-top:8px;font-weight:500;">Sistema de Gestão Escolar — Prof. Aladdin</p>' +
+            '<p style="font-size:0.85rem;color:var(--green);margin-top:4px;font-weight:700;">Ano Letivo ' + Store.ANO_LETIVO + '</p>' +
+          '</div>' +
 
-          <!-- Quick Stats -->
-          <div class="summary-grid" id="quickStats" style="max-width:700px;margin:0 auto 40px;">
-            <div class="summary-card" style="cursor:pointer;" onclick="location.href='pages/alunos.html'">
-              <div class="label">Total de Alunos</div>
-              <div class="value dark" id="stat-alunos">0</div>
-            </div>
-            <div class="summary-card" style="cursor:pointer;" onclick="location.href='pages/negativos.html'">
-              <div class="label">Total de Negativos</div>
-              <div class="value red" id="stat-negativos">0</div>
-            </div>
-            <div class="summary-card" style="cursor:pointer;" onclick="location.href='pages/dashboard.html'">
-              <div class="label">Turmas Ativas</div>
-              <div class="value green" id="stat-turmas">0</div>
-            </div>
-            <div class="summary-card" style="cursor:pointer;" onclick="location.href='pages/relatorios.html'">
-              <div class="label">Relatórios</div>
-              <div class="value dark">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:32px;height:32px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              </div>
-            </div>
-          </div>
+          '<div class="summary-grid" style="max-width:700px;margin:0 auto 40px;">' +
+            '<div class="summary-card" style="cursor:pointer;" onclick="location.href=\'pages/alunos.html\'">' +
+              '<div class="label">Total de Alunos</div>' +
+              '<div class="value dark" id="stat-alunos">0</div>' +
+            '</div>' +
+            '<div class="summary-card" style="cursor:pointer;" onclick="location.href=\'pages/negativos.html\'">' +
+              '<div class="label">Total de Negativos</div>' +
+              '<div class="value red" id="stat-negativos">0</div>' +
+            '</div>' +
+            '<div class="summary-card" style="cursor:pointer;" onclick="location.href=\'pages/dashboard.html\'">' +
+              '<div class="label">Turmas Ativas</div>' +
+              '<div class="value green" id="stat-turmas">0</div>' +
+            '</div>' +
+            '<div class="summary-card" style="cursor:pointer;" onclick="location.href=\'pages/relatorios.html\'">' +
+              '<div class="label">Relatórios</div>' +
+              '<div class="value dark">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:32px;height:32px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
 
-          <!-- Quick Links -->
-          <div style="max-width:700px;margin:0 auto;">
-            <h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-400);margin-bottom:16px;">Acesso Rápido</h3>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+          '<div style="max-width:700px;margin:0 auto;">' +
+            '<h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-400);margin-bottom:16px;">Acesso Rápido</h3>' +
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">' +
 
-              <a href="pages/dashboard.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">
-                <div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                </div>
-                <div>
-                  <div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Dashboard</div>
-                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Visão geral da turma</div>
-                </div>
-              </a>
+              '<a href="pages/dashboard.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">' +
+                '<div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>' +
+                '</div>' +
+                '<div>' +
+                  '<div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Dashboard</div>' +
+                  '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Visão geral com filtros</div>' +
+                '</div>' +
+              '</a>' +
 
-              <a href="pages/alunos.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">
-                <div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                </div>
-                <div>
-                  <div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Alunos</div>
-                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Cadastro e importação</div>
-                </div>
-              </a>
+              '<a href="pages/alunos.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">' +
+                '<div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>' +
+                '</div>' +
+                '<div>' +
+                  '<div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Alunos</div>' +
+                  '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Cadastro e importação</div>' +
+                '</div>' +
+              '</a>' +
 
-              <a href="pages/negativos.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">
-                <div style="width:48px;height:48px;background:#FEF2F2;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#EF4444" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
-                </div>
-                <div>
-                  <div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Negativos</div>
-                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Gestão disciplinar</div>
-                </div>
-              </a>
+              '<a href="pages/negativos.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">' +
+                '<div style="width:48px;height:48px;background:#FEF2F2;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#EF4444" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>' +
+                '</div>' +
+                '<div>' +
+                  '<div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Negativos</div>' +
+                  '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Gestão disciplinar</div>' +
+                '</div>' +
+              '</a>' +
 
-              <a href="pages/boletim.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">
-                <div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                </div>
-                <div>
-                  <div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Boletim</div>
-                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Lançamento de notas</div>
-                </div>
-              </a>
+              '<a href="pages/boletim.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">' +
+                '<div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>' +
+                '</div>' +
+                '<div>' +
+                  '<div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Boletim</div>' +
+                  '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Lançamento de notas</div>' +
+                '</div>' +
+              '</a>' +
 
-              <a href="pages/relatorios.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">
-                <div style="width:48px;height:48px;background:#FFF7ED;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#F97316" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                </div>
-                <div>
-                  <div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Relatórios</div>
-                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Exportação e análise</div>
-                </div>
-              </a>
+              '<a href="pages/relatorios.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">' +
+                '<div style="width:48px;height:48px;background:#FFF7ED;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#F97316" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>' +
+                '</div>' +
+                '<div>' +
+                  '<div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Relatórios</div>' +
+                  '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Exportação e análise</div>' +
+                '</div>' +
+              '</a>' +
 
-            </div>
-          </div>
+            '</div>' +
+          '</div>' +
 
-        </div>
-        ${Components.footer()}
-      </div>
-    `;
+        '</div>' +
+        Components.footer() +
+      '</div>';
 
-    // Load quick stats
-    const stats = Store.getAllStats();
+    var stats = Store.getAllStats();
     document.getElementById('stat-alunos').textContent = stats.totalAlunos;
     document.getElementById('stat-negativos').textContent = stats.totalNegativos;
     document.getElementById('stat-turmas').textContent = stats.turmasCount;

@@ -14,69 +14,80 @@ const Components = (() => {
       { id: 'relatorios', label: 'Relatórios', href: 'relatorios.html', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>' },
     ];
 
-    return `
-      <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-      <aside class="sidebar" id="sidebar">
-        <div class="sidebar-logo">
-          <div class="icon">P</div>
-          <div class="text">
-            <h1>picpay.de.i</h1>
-            <p>Prof. Aladdin</p>
-          </div>
-        </div>
-        <nav class="sidebar-nav">
-          <span class="nav-section">Menu Principal</span>
-          ${pages.map(p => `
-            <a href="${p.href}" class="${p.id === activePage ? 'active' : ''}">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">${p.icon}</svg>
-              ${p.label}
-            </a>
-          `).join('')}
-        </nav>
-        <div class="sidebar-footer">
-          picpay.de.i &copy; 2026 — Prof. Aladdin
-        </div>
-      </aside>
-    `;
+    return '<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>' +
+      '<aside class="sidebar" id="sidebar">' +
+        '<div class="sidebar-logo">' +
+          '<div class="icon">P</div>' +
+          '<div class="text">' +
+            '<h1>picpay.de.i</h1>' +
+            '<p>Ano Letivo ' + Store.ANO_LETIVO + '</p>' +
+          '</div>' +
+        '</div>' +
+        '<nav class="sidebar-nav">' +
+          '<span class="nav-section">Menu Principal</span>' +
+          pages.map(function(p) {
+            return '<a href="' + p.href + '" class="' + (p.id === activePage ? 'active' : '') + '">' +
+              '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">' + p.icon + '</svg>' +
+              p.label +
+            '</a>';
+          }).join('') +
+        '</nav>' +
+        '<div class="sidebar-footer">' +
+          'picpay.de.i &copy; ' + Store.ANO_LETIVO + ' &mdash; Prof. Aladdin' +
+        '</div>' +
+      '</aside>';
   }
 
-  function topbar(title, showControls = true) {
-    const settings = Store.getSettings();
-    const controlsHTML = showControls ? `
-      <div class="topbar-controls">
-        <div class="topbar-select">
-          <label>Turma</label>
-          <select id="selectTurma" onchange="handleTurmaChange()">
-            ${['8A','8B','8C','8D','9A','9B','9C','9D'].map(t =>
-              `<option value="${t}" ${t === settings.turma ? 'selected' : ''}>${t.replace(/(\d)(\w)/, '$1º$2')}</option>`
-            ).join('')}
-          </select>
-        </div>
-        <div class="topbar-select">
-          <label>Matéria</label>
-          <select id="selectMateria" onchange="handleMateriaChange()"></select>
-        </div>
-      </div>
-    ` : '';
+  // showControls: true = turma+materia+bimestre, false = none, 'dashboard' = special dashboard filters
+  function topbar(title, showControls) {
+    if (showControls === undefined) showControls = true;
+    var settings = Store.getSettings();
+    var controlsHTML = '';
 
-    return `
-      <header class="topbar">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <button class="hamburger" onclick="toggleSidebar()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-          </button>
-          <h2 class="topbar-title">${title}</h2>
-        </div>
-        ${controlsHTML}
-      </header>
-    `;
+    if (showControls === true) {
+      var turmaOptions = Store.TURMAS.map(function(t) {
+        var label = t.replace(/(\d)(\w)/, '$1º$2');
+        return '<option value="' + t + '"' + (t === settings.turma ? ' selected' : '') + '>' + label + '</option>';
+      }).join('');
+
+      var bimOptions = Store.BIMESTRES.map(function(b) {
+        return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>';
+      }).join('');
+
+      controlsHTML =
+        '<div class="topbar-controls">' +
+          '<div class="topbar-select">' +
+            '<label>Bimestre</label>' +
+            '<select id="selectBimestre" onchange="handleBimestreChange()">' + bimOptions + '</select>' +
+          '</div>' +
+          '<div class="topbar-select">' +
+            '<label>Turma</label>' +
+            '<select id="selectTurma" onchange="handleTurmaChange()">' + turmaOptions + '</select>' +
+          '</div>' +
+          '<div class="topbar-select">' +
+            '<label>Matéria</label>' +
+            '<select id="selectMateria" onchange="handleMateriaChange()"></select>' +
+          '</div>' +
+        '</div>';
+    }
+
+    return '<header class="topbar">' +
+      '<div style="display:flex;align-items:center;gap:12px;">' +
+        '<button class="hamburger" onclick="toggleSidebar()">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>' +
+        '</button>' +
+        '<div><h2 class="topbar-title">' + title + '</h2>' +
+        '<span style="font-size:0.65rem;color:var(--gray-400);font-weight:600;">Ano Letivo ' + Store.ANO_LETIVO + '</span></div>' +
+      '</div>' +
+      controlsHTML +
+    '</header>';
   }
 
   function footer() {
-    return `<footer class="site-footer">picpay.de.i &mdash; Prof. Aladdin &copy; 2026</footer>`;
+    return '<footer class="site-footer">picpay.de.i &mdash; Prof. Aladdin &copy; ' + Store.ANO_LETIVO + '</footer>';
   }
 
-  return { sidebar, topbar, footer };
+  return { sidebar: sidebar, topbar: topbar, footer: footer };
 })();
 
 // ============================
@@ -88,37 +99,57 @@ function toggleSidebar() {
 }
 
 function handleTurmaChange() {
-  const turma = document.getElementById('selectTurma').value;
-  const materias = Store.getMaterias(turma);
-  const sel = document.getElementById('selectMateria');
-  sel.innerHTML = materias.map(m => `<option value="${m}">${m}</option>`).join('');
-  Store.saveSettings(turma, sel.value);
+  var turma = document.getElementById('selectTurma').value;
+  var materias = Store.getMaterias(turma);
+  var sel = document.getElementById('selectMateria');
+  sel.innerHTML = materias.map(function(m) { return '<option value="' + m + '">' + m + '</option>'; }).join('');
+  var bim = document.getElementById('selectBimestre');
+  Store.saveSettings(turma, sel.value, bim ? bim.value : '1');
   if (typeof onContextChange === 'function') onContextChange();
 }
 
 function handleMateriaChange() {
-  const turma = document.getElementById('selectTurma').value;
-  const materia = document.getElementById('selectMateria').value;
-  Store.saveSettings(turma, materia);
+  var turma = document.getElementById('selectTurma').value;
+  var materia = document.getElementById('selectMateria').value;
+  var bim = document.getElementById('selectBimestre');
+  Store.saveSettings(turma, materia, bim ? bim.value : '1');
+  if (typeof onContextChange === 'function') onContextChange();
+}
+
+function handleBimestreChange() {
+  var turma = document.getElementById('selectTurma').value;
+  var materia = document.getElementById('selectMateria').value;
+  var bimestre = document.getElementById('selectBimestre').value;
+  Store.saveSettings(turma, materia, bimestre);
   if (typeof onContextChange === 'function') onContextChange();
 }
 
 function initSelects() {
-  const settings = Store.getSettings();
-  const turmaEl = document.getElementById('selectTurma');
-  const materiaEl = document.getElementById('selectMateria');
+  var settings = Store.getSettings();
+  var turmaEl = document.getElementById('selectTurma');
+  var materiaEl = document.getElementById('selectMateria');
+  var bimEl = document.getElementById('selectBimestre');
   if (!turmaEl || !materiaEl) return;
 
   turmaEl.value = settings.turma;
-  const materias = Store.getMaterias(settings.turma);
-  materiaEl.innerHTML = materias.map(m => `<option value="${m}" ${m === settings.materia ? 'selected' : ''}>${m}</option>`).join('');
+  var materias = Store.getMaterias(settings.turma);
+  materiaEl.innerHTML = materias.map(function(m) {
+    return '<option value="' + m + '"' + (m === settings.materia ? ' selected' : '') + '>' + m + '</option>';
+  }).join('');
+
+  if (bimEl) {
+    bimEl.value = settings.bimestre || '1';
+  }
 }
 
 function getCurrentContext() {
-  const turmaEl = document.getElementById('selectTurma');
-  const materiaEl = document.getElementById('selectMateria');
+  var turmaEl = document.getElementById('selectTurma');
+  var materiaEl = document.getElementById('selectMateria');
+  var bimEl = document.getElementById('selectBimestre');
+  var settings = Store.getSettings();
   return {
-    turma: turmaEl ? turmaEl.value : Store.getSettings().turma,
-    materia: materiaEl ? materiaEl.value : Store.getSettings().materia,
+    turma: turmaEl ? turmaEl.value : settings.turma,
+    materia: materiaEl ? materiaEl.value : settings.materia,
+    bimestre: bimEl ? bimEl.value : (settings.bimestre || '1'),
   };
 }
