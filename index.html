@@ -4,533 +4,118 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>picpay.de.i — Gestão Escolar</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            picpay: {
-              green: '#11C76F',
-              dark: '#005542',
-              light: '#E8FAF0',
-              bg: '#F0FDF4',
-            },
-          },
-          fontFamily: {
-            inter: ['Inter', 'sans-serif'],
-          },
-        },
-      },
-    };
-  </script>
-  <style>
-    * { font-family: 'Inter', sans-serif; }
-    .tab-active {
-      background-color: #11C76F;
-      color: #fff;
-    }
-    .tab-inactive {
-      background-color: transparent;
-      color: #005542;
-    }
-    .tab-inactive:hover {
-      background-color: #E8FAF0;
-    }
-    .editable-input {
-      border: 1px solid transparent;
-      background: transparent;
-      text-align: center;
-      transition: all 0.2s;
-      border-radius: 0.375rem;
-      padding: 0.25rem 0.5rem;
-      width: 100%;
-    }
-    .editable-input:hover {
-      border-color: #d1d5db;
-    }
-    .editable-input:focus {
-      border-color: #11C76F;
-      background: #fff;
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(17,199,111,0.2);
-    }
-    tr:hover td { background-color: #F0FDF4; }
-    .btn-icon {
-      transition: transform 0.1s, background-color 0.15s;
-    }
-    .btn-icon:active {
-      transform: scale(0.9);
-    }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background: #11C76F; border-radius: 9999px; }
-  </style>
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
+<body>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/components.js"></script>
 
-  <!-- ===================== HEADER ===================== -->
-  <header class="bg-picpay-dark text-white sticky top-0 z-50 shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-      <!-- Logo + Title -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-picpay-green flex items-center justify-center text-white font-extrabold text-lg shadow">P</div>
-        <div>
-          <h1 class="text-lg font-bold leading-tight tracking-tight">picpay.de.i</h1>
-          <p class="text-xs text-green-300 font-medium">Prof. Aladdin — Gestão Escolar</p>
-        </div>
-      </div>
-
-      <!-- Selects -->
-      <div class="flex items-center gap-3 flex-wrap">
-        <div class="flex items-center gap-2">
-          <label class="text-xs font-semibold text-green-300">Turma</label>
-          <select id="selectTurma" onchange="handleTurmaChange()" class="bg-white/10 border border-white/20 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-picpay-green">
-            <option value="8A">8ºA</option>
-            <option value="8B">8ºB</option>
-            <option value="8C">8ºC</option>
-            <option value="8D">8ºD</option>
-            <option value="9A">9ºA</option>
-            <option value="9B">9ºB</option>
-            <option value="9C">9ºC</option>
-            <option value="9D">9ºD</option>
-          </select>
-        </div>
-        <div class="flex items-center gap-2">
-          <label class="text-xs font-semibold text-green-300">Matéria</label>
-          <select id="selectMateria" onchange="handleMateriaChange()" class="bg-white/10 border border-white/20 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-picpay-green">
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tabs -->
-    <nav class="max-w-7xl mx-auto px-4 pb-2 flex gap-2">
-      <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-active px-5 py-1.5 rounded-full text-sm font-semibold transition-all">Dashboard</button>
-      <button onclick="switchTab('negativos')" id="tab-negativos" class="tab-inactive px-5 py-1.5 rounded-full text-sm font-semibold transition-all">Negativos</button>
-      <button onclick="switchTab('boletim')" id="tab-boletim" class="tab-inactive px-5 py-1.5 rounded-full text-sm font-semibold transition-all">Boletim</button>
-    </nav>
-  </header>
-
-  <!-- ===================== MAIN CONTENT ===================== -->
-  <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
-
-    <!-- ============ DASHBOARD ============ -->
-    <section id="section-dashboard">
-      <!-- Summary Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
-          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Total de Alunos</p>
-          <p id="card-total" class="text-3xl font-extrabold text-picpay-dark mt-1">0</p>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
-          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Total de Negativos</p>
-          <p id="card-negativos" class="text-3xl font-extrabold text-red-500 mt-1">0</p>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
-          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Média da Turma</p>
-          <p id="card-media" class="text-3xl font-extrabold text-picpay-green mt-1">0.0</p>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
-          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Abaixo da Média</p>
-          <p id="card-abaixo" class="text-3xl font-extrabold text-orange-500 mt-1">0</p>
-        </div>
-      </div>
-
-      <!-- Chart + Ranking -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Doughnut Chart -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 class="text-sm font-bold text-picpay-dark mb-4">Aprovados vs Reprovados</h3>
-          <div class="relative mx-auto" style="max-width:280px;">
-            <canvas id="chartDoughnut"></canvas>
-          </div>
-          <div class="flex justify-center gap-6 mt-4 text-xs font-semibold">
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-picpay-green inline-block"></span>Aprovados: <span id="legend-aprovados">0</span></span>
-            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span>Reprovados: <span id="legend-reprovados">0</span></span>
-          </div>
-        </div>
-
-        <!-- Ranking -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 class="text-sm font-bold text-picpay-dark mb-4">Top 5 — Menos Negativos</h3>
-          <ol id="rankingList" class="space-y-3">
-            <li class="text-sm text-gray-400 italic">Nenhum aluno cadastrado.</li>
-          </ol>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ NEGATIVOS ============ -->
-    <section id="section-negativos" class="hidden">
-      <!-- Add student form -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
-        <h3 class="text-sm font-bold text-picpay-dark mb-3">Adicionar Aluno</h3>
-        <div class="flex flex-col sm:flex-row gap-3">
-          <input id="inputNumero" type="number" min="1" placeholder="Nº Chamada" class="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-picpay-green w-full sm:w-32" />
-          <input id="inputNome" type="text" placeholder="Nome do Aluno" class="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-picpay-green flex-1" />
-          <button onclick="addAluno()" class="bg-picpay-green hover:bg-green-500 text-white font-semibold text-sm px-6 py-2 rounded-xl transition-colors btn-icon">+ Adicionar</button>
-        </div>
-        <div class="mt-3 flex items-center gap-3">
-          <label class="cursor-pointer bg-picpay-dark hover:bg-green-900 text-white font-semibold text-sm px-5 py-2 rounded-xl transition-colors inline-flex items-center gap-2 btn-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12"/></svg>
-            Importar CSV
-            <input type="file" accept=".csv" onchange="importCSV(event)" class="hidden" />
-          </label>
-          <span class="text-xs text-gray-400">Formato: numero,nome,negativos</span>
-        </div>
-      </div>
-
-      <!-- Negativos table -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="bg-picpay-dark text-white text-xs uppercase tracking-wider">
-                <th class="px-4 py-3 text-left">Nº</th>
-                <th class="px-4 py-3 text-left">Nome</th>
-                <th class="px-4 py-3 text-center">Negativos</th>
-                <th class="px-4 py-3 text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyNegativos"></tbody>
-          </table>
-        </div>
-        <div id="emptyNegativos" class="py-10 text-center text-gray-400 text-sm italic">Nenhum aluno cadastrado nesta turma/matéria.</div>
-      </div>
-    </section>
-
-    <!-- ============ BOLETIM ============ -->
-    <section id="section-boletim" class="hidden">
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="bg-picpay-dark text-white text-xs uppercase tracking-wider">
-                <th class="px-4 py-3 text-left">Nº</th>
-                <th class="px-4 py-3 text-left">Nome</th>
-                <th class="px-4 py-3 text-center">Qualitativa <span class="font-normal opacity-70">(Peso 3.0)</span></th>
-                <th class="px-4 py-3 text-center">PB <span class="font-normal opacity-70">(Peso 3.5)</span></th>
-                <th class="px-4 py-3 text-center">VA <span class="font-normal opacity-70">(Peso 3.5)</span></th>
-                <th class="px-4 py-3 text-center">Total</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyBoletim"></tbody>
-          </table>
-        </div>
-        <div id="emptyBoletim" class="py-10 text-center text-gray-400 text-sm italic">Nenhum aluno cadastrado nesta turma/matéria.</div>
-      </div>
-      <p class="mt-3 text-xs text-gray-400">* A nota Qualitativa é reduzida em 0.1 para cada negativo registrado na aba Negativos.</p>
-    </section>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="text-center text-xs text-gray-400 py-4 border-t border-gray-100">
-    picpay.de.i &mdash; Prof. Aladdin &copy; 2026
-  </footer>
-
-  <!-- ===================== JAVASCRIPT ===================== -->
   <script>
-    // ==================== DATA STORE ====================
-    // Structure: data[turma][materia] = [ { numero, nome, negativos, quali, pb, va } ]
-    const data = {};
+    document.body.innerHTML = `
+      ${Components.sidebar('home')}
+      <div class="main-content">
+        ${Components.topbar('Início', false)}
+        <div class="page-container">
 
-    const materiasPor = {
-      '8': ['Português', 'Produção'],
-      '9': ['LEM'],
-    };
-
-    let currentTurma = '8A';
-    let currentMateria = 'Português';
-    let currentTab = 'dashboard';
-    let doughnutChart = null;
-
-    // ==================== HELPERS ====================
-    function getKey() {
-      return `${currentTurma}|${currentMateria}`;
-    }
-
-    function getStudents() {
-      const key = getKey();
-      if (!data[key]) data[key] = [];
-      return data[key];
-    }
-
-    function getSerie() {
-      return currentTurma.charAt(0);
-    }
-
-    // ==================== NAVIGATION ====================
-    function handleTurmaChange() {
-      currentTurma = document.getElementById('selectTurma').value;
-      populateMaterias();
-      currentMateria = document.getElementById('selectMateria').value;
-      render();
-    }
-
-    function handleMateriaChange() {
-      currentMateria = document.getElementById('selectMateria').value;
-      render();
-    }
-
-    function populateMaterias() {
-      const serie = getSerie();
-      const materias = materiasPor[serie] || [];
-      const sel = document.getElementById('selectMateria');
-      sel.innerHTML = materias.map(m => `<option value="${m}">${m}</option>`).join('');
-      // Style options for dark background readability
-      sel.querySelectorAll('option').forEach(opt => {
-        opt.style.color = '#000';
-      });
-    }
-
-    function switchTab(tab) {
-      currentTab = tab;
-      ['dashboard', 'negativos', 'boletim'].forEach(t => {
-        document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
-        document.getElementById(`tab-${t}`).className = t === tab
-          ? 'tab-active px-5 py-1.5 rounded-full text-sm font-semibold transition-all'
-          : 'tab-inactive px-5 py-1.5 rounded-full text-sm font-semibold transition-all';
-      });
-      render();
-    }
-
-    // ==================== NEGATIVOS ====================
-    function addAluno() {
-      const numEl = document.getElementById('inputNumero');
-      const nomeEl = document.getElementById('inputNome');
-      const numero = parseInt(numEl.value);
-      const nome = nomeEl.value.trim();
-      if (!numero || !nome) return alert('Preencha o número da chamada e o nome.');
-      const students = getStudents();
-      if (students.find(s => s.numero === numero)) return alert('Já existe um aluno com esse número nesta turma/matéria.');
-      students.push({ numero, nome, negativos: 0, quali: 0, pb: 0, va: 0 });
-      students.sort((a, b) => a.numero - b.numero);
-      numEl.value = '';
-      nomeEl.value = '';
-      render();
-    }
-
-    function changeNeg(numero, delta) {
-      const s = getStudents().find(s => s.numero === numero);
-      if (s) {
-        s.negativos = Math.max(0, s.negativos + delta);
-        render();
-      }
-    }
-
-    function removeAluno(numero) {
-      const students = getStudents();
-      const idx = students.findIndex(s => s.numero === numero);
-      if (idx !== -1) {
-        if (confirm(`Remover aluno nº ${numero}?`)) {
-          students.splice(idx, 1);
-          render();
-        }
-      }
-    }
-
-    function importCSV(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const lines = e.target.result.split('\n').filter(l => l.trim());
-        const students = getStudents();
-        lines.forEach(line => {
-          const parts = line.split(',');
-          if (parts.length >= 2) {
-            const numero = parseInt(parts[0].trim());
-            const nome = parts[1].trim();
-            const negativos = parts[2] ? parseInt(parts[2].trim()) || 0 : 0;
-            if (numero && nome && !students.find(s => s.numero === numero)) {
-              students.push({ numero, nome, negativos, quali: 0, pb: 0, va: 0 });
-            }
-          }
-        });
-        students.sort((a, b) => a.numero - b.numero);
-        render();
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-    }
-
-    function renderNegativos() {
-      const students = getStudents();
-      const tbody = document.getElementById('tbodyNegativos');
-      const empty = document.getElementById('emptyNegativos');
-
-      if (students.length === 0) {
-        tbody.innerHTML = '';
-        empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-
-      tbody.innerHTML = students.map(s => `
-        <tr class="border-b border-gray-50 transition-colors">
-          <td class="px-4 py-3 font-semibold text-picpay-dark">${s.numero}</td>
-          <td class="px-4 py-3">${s.nome}</td>
-          <td class="px-4 py-3 text-center">
-            <span class="inline-block min-w-[2rem] font-bold text-lg ${s.negativos > 0 ? 'text-red-500' : 'text-gray-400'}">${s.negativos}</span>
-          </td>
-          <td class="px-4 py-3 text-center">
-            <div class="inline-flex items-center gap-1">
-              <button onclick="changeNeg(${s.numero}, -1)" class="btn-icon w-8 h-8 rounded-lg bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 font-bold text-lg flex items-center justify-center">−</button>
-              <button onclick="changeNeg(${s.numero}, 1)" class="btn-icon w-8 h-8 rounded-lg bg-gray-100 hover:bg-picpay-light text-gray-600 hover:text-picpay-green font-bold text-lg flex items-center justify-center">+</button>
-              <button onclick="removeAluno(${s.numero})" class="btn-icon w-8 h-8 rounded-lg bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 ml-2 flex items-center justify-center" title="Remover aluno">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-              </button>
+          <!-- Hero -->
+          <div style="text-align:center;padding:48px 20px 32px;">
+            <div style="width:80px;height:80px;background:var(--green);border-radius:24px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 30px rgba(17,199,111,0.3);">
+              <span style="font-size:2.2rem;font-weight:900;color:#fff;">P</span>
             </div>
-          </td>
-        </tr>
-      `).join('');
-    }
+            <h1 style="font-size:2.5rem;font-weight:900;color:var(--dark);letter-spacing:-0.03em;">picpay.de.i</h1>
+            <p style="font-size:1.1rem;color:var(--gray-500);margin-top:8px;font-weight:500;">Sistema de Gestão Escolar — Prof. Aladdin</p>
+          </div>
 
-    // ==================== BOLETIM ====================
-    function calcTotal(s) {
-      const qualiAjustada = Math.max(0, s.quali - s.negativos * 0.1);
-      return qualiAjustada + s.pb + s.va;
-    }
-
-    function updateNota(numero, field, value) {
-      const s = getStudents().find(s => s.numero === numero);
-      if (s) {
-        const v = parseFloat(value);
-        s[field] = isNaN(v) ? 0 : Math.max(0, v);
-        render();
-      }
-    }
-
-    function renderBoletim() {
-      const students = getStudents();
-      const tbody = document.getElementById('tbodyBoletim');
-      const empty = document.getElementById('emptyBoletim');
-
-      if (students.length === 0) {
-        tbody.innerHTML = '';
-        empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-
-      tbody.innerHTML = students.map(s => {
-        const qualiAjustada = Math.max(0, +(s.quali - s.negativos * 0.1).toFixed(1));
-        const total = +(qualiAjustada + s.pb + s.va).toFixed(1);
-        const totalColor = total >= 6.0 ? 'text-picpay-green' : 'text-red-500';
-        const totalBg = total >= 6.0 ? 'bg-green-50' : 'bg-red-50';
-        const negLabel = s.negativos > 0 ? `<span class="text-[10px] text-red-400 block">(-${(s.negativos * 0.1).toFixed(1)})</span>` : '';
-
-        return `
-          <tr class="border-b border-gray-50 transition-colors">
-            <td class="px-4 py-3 font-semibold text-picpay-dark">${s.numero}</td>
-            <td class="px-4 py-3">${s.nome}</td>
-            <td class="px-4 py-3 text-center">
-              <input type="number" step="0.1" min="0" max="10" value="${s.quali}" onchange="updateNota(${s.numero},'quali',this.value)" class="editable-input w-20 text-sm" />
-              ${negLabel}
-              <span class="text-[10px] text-gray-400 block">Efetiva: ${qualiAjustada}</span>
-            </td>
-            <td class="px-4 py-3 text-center">
-              <input type="number" step="0.1" min="0" max="10" value="${s.pb}" onchange="updateNota(${s.numero},'pb',this.value)" class="editable-input w-20 text-sm" />
-            </td>
-            <td class="px-4 py-3 text-center">
-              <input type="number" step="0.1" min="0" max="10" value="${s.va}" onchange="updateNota(${s.numero},'va',this.value)" class="editable-input w-20 text-sm" />
-            </td>
-            <td class="px-4 py-3 text-center">
-              <span class="inline-block px-3 py-1 rounded-lg font-bold text-lg ${totalColor} ${totalBg}">${total}</span>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    // ==================== DASHBOARD ====================
-    function renderDashboard() {
-      const students = getStudents();
-      const total = students.length;
-      const totalNegs = students.reduce((sum, s) => sum + s.negativos, 0);
-      const totals = students.map(s => calcTotal(s));
-      const media = total > 0 ? (totals.reduce((a, b) => a + b, 0) / total) : 0;
-      const abaixo = totals.filter(t => t < 6.0).length;
-      const aprovados = total - abaixo;
-
-      document.getElementById('card-total').textContent = total;
-      document.getElementById('card-negativos').textContent = totalNegs;
-      document.getElementById('card-media').textContent = media.toFixed(1);
-      document.getElementById('card-abaixo').textContent = abaixo;
-      document.getElementById('legend-aprovados').textContent = aprovados;
-      document.getElementById('legend-reprovados').textContent = abaixo;
-
-      // Doughnut chart
-      const ctx = document.getElementById('chartDoughnut').getContext('2d');
-      if (doughnutChart) doughnutChart.destroy();
-      doughnutChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Aprovados', 'Reprovados'],
-          datasets: [{
-            data: [aprovados, abaixo],
-            backgroundColor: ['#11C76F', '#F87171'],
-            borderWidth: 0,
-            hoverOffset: 8,
-          }],
-        },
-        options: {
-          cutout: '65%',
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#005542',
-              titleFont: { family: 'Inter' },
-              bodyFont: { family: 'Inter' },
-            },
-          },
-        },
-      });
-
-      // Ranking
-      const rankList = document.getElementById('rankingList');
-      if (students.length === 0) {
-        rankList.innerHTML = '<li class="text-sm text-gray-400 italic">Nenhum aluno cadastrado.</li>';
-        return;
-      }
-      const sorted = [...students].sort((a, b) => a.negativos - b.negativos).slice(0, 5);
-      const medals = ['🥇', '🥈', '🥉', '4º', '5º'];
-      rankList.innerHTML = sorted.map((s, i) => `
-        <li class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2.5 hover:bg-picpay-light transition-colors">
-          <div class="flex items-center gap-3">
-            <span class="text-lg">${medals[i]}</span>
-            <div>
-              <p class="font-semibold text-picpay-dark text-sm">${s.nome}</p>
-              <p class="text-xs text-gray-400">Nº ${s.numero}</p>
+          <!-- Quick Stats -->
+          <div class="summary-grid" id="quickStats" style="max-width:700px;margin:0 auto 40px;">
+            <div class="summary-card" style="cursor:pointer;" onclick="location.href='pages/alunos.html'">
+              <div class="label">Total de Alunos</div>
+              <div class="value dark" id="stat-alunos">0</div>
+            </div>
+            <div class="summary-card" style="cursor:pointer;" onclick="location.href='pages/negativos.html'">
+              <div class="label">Total de Negativos</div>
+              <div class="value red" id="stat-negativos">0</div>
+            </div>
+            <div class="summary-card" style="cursor:pointer;" onclick="location.href='pages/dashboard.html'">
+              <div class="label">Turmas Ativas</div>
+              <div class="value green" id="stat-turmas">0</div>
+            </div>
+            <div class="summary-card" style="cursor:pointer;" onclick="location.href='pages/relatorios.html'">
+              <div class="label">Relatórios</div>
+              <div class="value dark">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:32px;height:32px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
             </div>
           </div>
-          <span class="font-bold text-sm ${s.negativos === 0 ? 'text-picpay-green' : 'text-orange-500'}">${s.negativos} neg.</span>
-        </li>
-      `).join('');
-    }
 
-    // ==================== RENDER ====================
-    function render() {
-      renderNegativos();
-      renderBoletim();
-      renderDashboard();
-    }
+          <!-- Quick Links -->
+          <div style="max-width:700px;margin:0 auto;">
+            <h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-400);margin-bottom:16px;">Acesso Rápido</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
 
-    // ==================== INIT ====================
-    function init() {
-      populateMaterias();
-      // Style option text for readability
-      document.getElementById('selectTurma').querySelectorAll('option').forEach(o => o.style.color = '#000');
-      render();
-    }
+              <a href="pages/dashboard.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">
+                <div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                </div>
+                <div>
+                  <div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Dashboard</div>
+                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Visão geral da turma</div>
+                </div>
+              </a>
 
-    init();
+              <a href="pages/alunos.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">
+                <div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                </div>
+                <div>
+                  <div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Alunos</div>
+                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Cadastro e importação</div>
+                </div>
+              </a>
+
+              <a href="pages/negativos.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">
+                <div style="width:48px;height:48px;background:#FEF2F2;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#EF4444" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                </div>
+                <div>
+                  <div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Negativos</div>
+                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Gestão disciplinar</div>
+                </div>
+              </a>
+
+              <a href="pages/boletim.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">
+                <div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                </div>
+                <div>
+                  <div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Boletim</div>
+                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Lançamento de notas</div>
+                </div>
+              </a>
+
+              <a href="pages/relatorios.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">
+                <div style="width:48px;height:48px;background:#FFF7ED;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#F97316" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div>
+                  <div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Relatórios</div>
+                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Exportação e análise</div>
+                </div>
+              </a>
+
+            </div>
+          </div>
+
+        </div>
+        ${Components.footer()}
+      </div>
+    `;
+
+    // Load quick stats
+    const stats = Store.getAllStats();
+    document.getElementById('stat-alunos').textContent = stats.totalAlunos;
+    document.getElementById('stat-negativos').textContent = stats.totalNegativos;
+    document.getElementById('stat-turmas').textContent = stats.turmasCount;
   </script>
 </body>
 </html>

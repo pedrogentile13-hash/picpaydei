@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boletim — picpay.de.i</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/components.js"></script>
+
+  <script>
+    document.body.innerHTML = `
+      ${Components.sidebar('boletim')}
+      <div class="main-content">
+        ${Components.topbar('Boletim')}
+        <div class="page-container">
+
+          <!-- Stats -->
+          <div class="summary-grid" style="margin-bottom:24px;">
+            <div class="summary-card">
+              <div class="label">Total de Alunos</div>
+              <div class="value dark" id="stat-total">0</div>
+            </div>
+            <div class="summary-card">
+              <div class="label">Média da Turma</div>
+              <div class="value green" id="stat-media">0.0</div>
+            </div>
+            <div class="summary-card">
+              <div class="label">Aprovados</div>
+              <div class="value green" id="stat-aprov">0</div>
+            </div>
+            <div class="summary-card">
+              <div class="label">Reprovados</div>
+              <div class="value red" id="stat-reprov">0</div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Lançamento de Notas</h3>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="text-align:left;">Nº</th>
+                    <th style="text-align:left;">Nome</th>
+                    <th style="text-align:center;">Qualitativa <span style="font-weight:400;opacity:0.7;">(P 3.0)</span></th>
+                    <th style="text-align:center;">PB <span style="font-weight:400;opacity:0.7;">(P 3.5)</span></th>
+                    <th style="text-align:center;">VA <span style="font-weight:400;opacity:0.7;">(P 3.5)</span></th>
+                    <th style="text-align:center;">Total</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyBoletim"></tbody>
+              </table>
+              <div id="emptyState" class="empty-state">Nenhum aluno cadastrado. Vá em <a href="alunos.html" style="color:var(--green);font-weight:600;">Alunos</a> para adicionar.</div>
+            </div>
+          </div>
+
+          <p style="margin-top:12px;font-size:0.75rem;color:var(--gray-400);">
+            * A nota Qualitativa é reduzida em 0.1 para cada negativo registrado na aba Negativos.
+          </p>
+
+        </div>
+        ${Components.footer()}
+      </div>
+    `;
+
+    initSelects();
+
+    function onContextChange() { render(); }
+
+    function updateNota(numero, field, value) {
+      const { turma, materia } = getCurrentContext();
+      Store.updateNota(turma, materia, numero, field, value);
+      render();
+    }
+
+    function render() {
+      const { turma, materia } = getCurrentContext();
+      const students = Store.getStudents(turma, materia);
+      const tbody = document.getElementById('tbodyBoletim');
+      const empty = document.getElementById('emptyState');
+
+      const totals = students.map(s => Store.calcTotal(s));
+      const media = students.length > 0 ? (totals.reduce((a, b) => a + b, 0) / students.length) : 0;
+      const aprovados = totals.filter(t => t >= 6).length;
+      const reprovados = totals.filter(t => t < 6).length;
+
+      document.getElementById('stat-total').textContent = students.length;
+      document.getElementById('stat-media').textContent = media.toFixed(1);
+      document.getElementById('stat-aprov').textContent = aprovados;
+      document.getElementById('stat-reprov').textContent = reprovados;
+
+      if (students.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+
+      tbody.innerHTML = students.map(s => {
+        const qualiAjustada = Math.max(0, +(s.quali - s.negativos * 0.1).toFixed(1));
+        const total = Store.calcTotal(s);
+        const isApproved = total >= 6;
+        const badgeClass = isApproved ? 'badge-green' : 'badge-red';
+        const negLabel = s.negativos > 0
+          ? `<div style="font-size:0.65rem;color:var(--red);margin-top:2px;">-${(s.negativos * 0.1).toFixed(1)} neg.</div>`
+          : '';
+        const efetiva = `<div style="font-size:0.65rem;color:var(--gray-400);margin-top:1px;">Efetiva: ${qualiAjustada}</div>`;
+
+        return `
+          <tr>
+            <td style="font-weight:700;color:var(--dark);">${s.numero}</td>
+            <td>${s.nome}</td>
+            <td style="text-align:center;">
+              <input type="number" step="0.1" min="0" max="10" value="${s.quali}" onchange="updateNota(${s.numero},'quali',this.value)" class="editable-input" />
+              ${negLabel}
+              ${efetiva}
+            </td>
+            <td style="text-align:center;">
+              <input type="number" step="0.1" min="0" max="10" value="${s.pb}" onchange="updateNota(${s.numero},'pb',this.value)" class="editable-input" />
+            </td>
+            <td style="text-align:center;">
+              <input type="number" step="0.1" min="0" max="10" value="${s.va}" onchange="updateNota(${s.numero},'va',this.value)" class="editable-input" />
+            </td>
+            <td style="text-align:center;">
+              <span class="badge ${badgeClass}">${total}</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    render();
+  </script>
+</body>
+</html>

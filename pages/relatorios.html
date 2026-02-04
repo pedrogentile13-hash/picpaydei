@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relatórios — picpay.de.i</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/components.js"></script>
+
+  <script>
+    document.body.innerHTML = `
+      ${Components.sidebar('relatorios')}
+      <div class="main-content">
+        ${Components.topbar('Relatórios')}
+        <div class="page-container">
+
+          <!-- Export Actions -->
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-header"><h3>Exportar Dados</h3></div>
+            <div class="card-body">
+              <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="exportCSV()">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  Exportar CSV (Boletim)
+                </button>
+                <button class="btn btn-dark" onclick="exportNegCSV()">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  Exportar CSV (Negativos)
+                </button>
+                <button class="btn btn-outline" onclick="exportJSON()">
+                  Exportar JSON Completo
+                </button>
+                <button class="btn btn-danger" onclick="clearAllData()">
+                  Limpar Todos os Dados
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comparative Charts -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;" id="chartsRow">
+            <div class="card">
+              <div class="card-header"><h3>Negativos por Aluno</h3></div>
+              <div class="card-body"><canvas id="chartNeg"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3>Notas Totais por Aluno</h3></div>
+              <div class="card-body"><canvas id="chartNotas"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Full Report Table -->
+          <div class="card">
+            <div class="card-header"><h3>Relatório Completo</h3></div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="text-align:left;">Nº</th>
+                    <th style="text-align:left;">Nome</th>
+                    <th style="text-align:center;">Negativos</th>
+                    <th style="text-align:center;">Quali (Efetiva)</th>
+                    <th style="text-align:center;">PB</th>
+                    <th style="text-align:center;">VA</th>
+                    <th style="text-align:center;">Total</th>
+                    <th style="text-align:center;">Situação</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyRelatorio"></tbody>
+              </table>
+              <div id="emptyState" class="empty-state">Nenhum dado disponível para esta turma/matéria.</div>
+            </div>
+          </div>
+
+        </div>
+        ${Components.footer()}
+      </div>
+    `;
+
+    initSelects();
+
+    let chartNeg = null;
+    let chartNotas = null;
+
+    function onContextChange() { render(); }
+
+    function exportCSV() {
+      const { turma, materia } = getCurrentContext();
+      const students = Store.getStudents(turma, materia);
+      if (students.length === 0) return alert('Nenhum dado para exportar.');
+      let csv = 'Numero,Nome,Qualitativa,Quali_Efetiva,PB,VA,Total,Situacao\n';
+      students.forEach(function(s) {
+        const qualiEf = Math.max(0, +(s.quali - s.negativos * 0.1).toFixed(1));
+        const total = Store.calcTotal(s);
+        const situacao = total >= 6 ? 'Aprovado' : 'Reprovado';
+        csv += s.numero + ',"' + s.nome + '",' + s.quali + ',' + qualiEf + ',' + s.pb + ',' + s.va + ',' + total + ',' + situacao + '\n';
+      });
+      download(csv, 'boletim_' + turma + '_' + materia + '.csv', 'text/csv');
+    }
+
+    function exportNegCSV() {
+      const { turma, materia } = getCurrentContext();
+      const students = Store.getStudents(turma, materia);
+      if (students.length === 0) return alert('Nenhum dado para exportar.');
+      let csv = 'Numero,Nome,Negativos\n';
+      students.forEach(function(s) {
+        csv += s.numero + ',"' + s.nome + '",' + s.negativos + '\n';
+      });
+      download(csv, 'negativos_' + turma + '_' + materia + '.csv', 'text/csv');
+    }
+
+    function exportJSON() {
+      const data = Store.exportData();
+      if (Object.keys(data).length === 0) return alert('Nenhum dado para exportar.');
+      download(JSON.stringify(data, null, 2), 'picpay_dei_dados.json', 'application/json');
+    }
+
+    function download(content, filename, type) {
+      const blob = new Blob([content], { type: type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAllData() {
+      if (!confirm('Tem certeza? Isso apagará TODOS os dados de TODAS as turmas!')) return;
+      if (!confirm('Esta ação é irreversível. Confirmar?')) return;
+      Store.clearAll();
+      render();
+      alert('Todos os dados foram apagados.');
+    }
+
+    function buildRow(s) {
+      const qualiEf = Math.max(0, +(s.quali - s.negativos * 0.1).toFixed(1));
+      const total = Store.calcTotal(s);
+      const approved = total >= 6;
+      const badgeClass = approved ? 'badge-green' : 'badge-red';
+      const negColor = s.negativos > 0 ? 'var(--red)' : 'var(--gray-400)';
+      const sitColor = approved ? 'var(--green)' : 'var(--red)';
+      const sitText = approved ? 'Aprovado' : 'Reprovado';
+
+      return '<tr>' +
+        '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>' +
+        '<td>' + s.nome + '</td>' +
+        '<td style="text-align:center;font-weight:600;color:' + negColor + ';">' + s.negativos + '</td>' +
+        '<td style="text-align:center;">' + s.quali + ' &rarr; ' + qualiEf + '</td>' +
+        '<td style="text-align:center;">' + s.pb + '</td>' +
+        '<td style="text-align:center;">' + s.va + '</td>' +
+        '<td style="text-align:center;"><span class="badge ' + badgeClass + '">' + total + '</span></td>' +
+        '<td style="text-align:center;"><span style="font-size:0.75rem;font-weight:700;color:' + sitColor + ';">' + sitText + '</span></td>' +
+        '</tr>';
+    }
+
+    function render() {
+      const { turma, materia } = getCurrentContext();
+      const students = Store.getStudents(turma, materia);
+      const tbody = document.getElementById('tbodyRelatorio');
+      const empty = document.getElementById('emptyState');
+
+      if (students.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = '';
+        if (chartNeg) { chartNeg.destroy(); chartNeg = null; }
+        if (chartNotas) { chartNotas.destroy(); chartNotas = null; }
+        return;
+      }
+      empty.style.display = 'none';
+
+      // Table
+      tbody.innerHTML = students.map(buildRow).join('');
+
+      // Charts
+      const labels = students.map(function(s) { return s.nome.split(' ')[0]; });
+
+      if (chartNeg) chartNeg.destroy();
+      chartNeg = new Chart(document.getElementById('chartNeg'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Negativos',
+            data: students.map(function(s) { return s.negativos; }),
+            backgroundColor: students.map(function(s) { return s.negativos > 3 ? '#FCA5A5' : s.negativos > 0 ? '#FDBA74' : '#86EFAC'; }),
+            borderRadius: 6,
+            borderSkipped: false,
+          }],
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } },
+        },
+      });
+
+      if (chartNotas) chartNotas.destroy();
+      chartNotas = new Chart(document.getElementById('chartNotas'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Total',
+            data: students.map(function(s) { return Store.calcTotal(s); }),
+            backgroundColor: students.map(function(s) { return Store.calcTotal(s) >= 6 ? '#11C76F' : '#F87171'; }),
+            borderRadius: 6,
+            borderSkipped: false,
+          }],
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, max: 10 },
+            x: { grid: { display: false } },
+          },
+        },
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>
