@@ -54,7 +54,10 @@
           '<div class="card">' +
             '<div class="card-header">' +
               '<h3>Lista de Alunos</h3>' +
-              '<span style="font-size:0.8rem;color:var(--gray-400);font-weight:600;" id="countLabel">0 alunos</span>' +
+              '<div style="display:flex;align-items:center;gap:12px;">' +
+                '<span style="font-size:0.8rem;color:var(--gray-400);font-weight:600;" id="countLabel">0 alunos</span>' +
+                '<button class="btn btn-danger" onclick="clearAllStudents()" style="font-size:0.75rem;padding:6px 12px;">Apagar Todos</button>' +
+              '</div>' +
             '</div>' +
             '<div class="table-container">' +
               '<table>' +
@@ -132,6 +135,15 @@
       var count = Store.copyStudentsToBimestre(ctx.turma, ctx.materia, prevBim, ctx.bimestre);
       if (count === 0) alert('Nenhum aluno novo para copiar.');
       else alert(count + ' aluno(s) copiado(s) do ' + Store.BIMESTRE_LABELS[prevBim] + '.');
+      render();
+    }
+
+    function clearAllStudents() {
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      if (students.length === 0) return alert('Não há alunos para apagar.');
+      if (!confirm('Apagar TODOS os ' + students.length + ' alunos da turma ' + ctx.turma + ' (' + ctx.materia + ', ' + Store.BIMESTRE_LABELS[ctx.bimestre] + ')?')) return;
+      Store.setStudents(ctx.turma, ctx.materia, ctx.bimestre, []);
       render();
     }
 
