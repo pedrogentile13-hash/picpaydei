@@ -13,6 +13,8 @@
     .stat-highlight { background:linear-gradient(135deg, var(--dark), #007755); color:#fff; }
     .stat-highlight .label { color:rgba(255,255,255,0.6); }
     .stat-highlight .value { color:#fff; }
+    .filter-select { padding:8px 12px; border-radius:10px; font-size:0.78rem; font-weight:600; border:1px solid var(--gray-200); background:#fff; color:var(--gray-700); cursor:pointer; outline:none; transition:all 0.15s; }
+    .filter-select:focus { border-color:var(--green); }
   </style>
 </head>
 <body>
@@ -26,6 +28,12 @@
     var bimOpts = Store.BIMESTRES.map(function(b) {
       return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>';
     }).join('');
+
+    // Build sala dropdown options
+    var salaOpts = '<option value="">Escolha a sala...</option>' +
+      Store.TURMAS.map(function(t) {
+        return '<option value="' + t + '">' + t.replace(/(\d)(\w)/, '$1\u00ba$2') + '</option>';
+      }).join('');
 
     document.getElementById('app').innerHTML =
       Components.sidebar('dashboard') +
@@ -52,9 +60,7 @@
               '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
                 '<span style="font-size:0.72rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-right:8px;">Filtro:</span>' +
                 '<button class="filter-btn active" onclick="setFilter(\'geral\',\'\')" id="fbtn-geral">Geral</button>' +
-                Store.TURMAS.map(function(t) {
-                  return '<button class="filter-btn" onclick="setFilter(\'sala\',\'' + t + '\')" id="fbtn-sala-' + t + '">' + t.replace(/(\d)(\w)/, '$1\u00ba$2') + '</button>';
-                }).join('') +
+                '<select class="filter-select" id="salaDropdown" onchange="onSalaDropdownChange()">' + salaOpts + '</select>' +
               '</div>' +
               '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;">' +
                 '<span style="font-size:0.72rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-right:8px;">Por Ano:</span>' +
@@ -108,14 +114,30 @@
     function setFilter(mode, value) {
       currentFilter.mode = mode;
       currentFilter.value = value;
+      // Reset all filter buttons
       document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      // Reset sala dropdown
+      document.getElementById('salaDropdown').value = '';
+
       var id = '';
       if (mode === 'geral') id = 'fbtn-geral';
-      else if (mode === 'sala') id = 'fbtn-sala-' + value;
       else if (mode === 'ano') id = 'fbtn-ano-' + value;
       else if (mode === 'materia') id = 'fbtn-materia-' + value.replace(/\s/g,'_');
       var el = document.getElementById(id);
       if (el) el.classList.add('active');
+      render();
+    }
+
+    function onSalaDropdownChange() {
+      var val = document.getElementById('salaDropdown').value;
+      if (!val) {
+        setFilter('geral', '');
+        return;
+      }
+      currentFilter.mode = 'sala';
+      currentFilter.value = val;
+      // Reset all filter buttons
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
       render();
     }
 
