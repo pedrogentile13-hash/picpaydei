@@ -7,6 +7,7 @@
 const Store = (() => {
   const STORAGE_KEY = 'picpay_dei_data';
   const SETTINGS_KEY = 'picpay_dei_settings';
+  const VA_KEY = 'picpay_dei_vas';
   const ANO_LETIVO = 2026;
 
   const BIMESTRES = ['1', '2', '3', '4'];
@@ -15,79 +16,80 @@ const Store = (() => {
   const PESOS = { pb: 35, quali: 30, va: 35 };
 
   const materiasPor = {
+    '6': ['LEM', 'Produção de Texto'],
     '8': ['Português', 'Produção'],
     '9': ['LEM'],
   };
 
-  const TURMAS = ['8A', '8B', '8C', '8D', '9A', '9B', '9C', '9D'];
+  const TURMAS = ['6A', '6B', '6C', '6D', '8A', '8B', '8C', '8D', '9A', '9B', '9C', '9D'];
 
-  function _loadData() {
+  const VA_TIPOS = ['Trabalho', 'Escrita', 'Caderno', 'Apresentação', 'Participação', 'Prova', 'Outro'];
+
+  function _load(key) {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      var raw = localStorage.getItem(key);
       return raw ? JSON.parse(raw) : {};
-    } catch { return {}; }
+    } catch(e) { return {}; }
   }
 
-  function _saveData(d) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+  function _save(key, d) {
+    localStorage.setItem(key, JSON.stringify(d));
   }
 
   function _loadSettings() {
     try {
-      const raw = localStorage.getItem(SETTINGS_KEY);
-      return raw ? JSON.parse(raw) : { turma: '8A', materia: 'Português', bimestre: '1' };
-    } catch { return { turma: '8A', materia: 'Português', bimestre: '1' }; }
+      var raw = localStorage.getItem(SETTINGS_KEY);
+      return raw ? JSON.parse(raw) : { turma: '6A', materia: 'LEM', bimestre: '1' };
+    } catch(e) { return { turma: '6A', materia: 'LEM', bimestre: '1' }; }
   }
 
-  function _saveSettings(s) {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  function _makeKey(turma, materia, bimestre) {
+    return turma + '|' + materia + '|' + bimestre;
   }
 
   return {
-    ANO_LETIVO,
-    BIMESTRES,
-    BIMESTRE_LABELS,
-    PESOS,
-    materiasPor,
-    TURMAS,
+    ANO_LETIVO: ANO_LETIVO,
+    BIMESTRES: BIMESTRES,
+    BIMESTRE_LABELS: BIMESTRE_LABELS,
+    PESOS: PESOS,
+    materiasPor: materiasPor,
+    TURMAS: TURMAS,
+    VA_TIPOS: VA_TIPOS,
 
-    getSettings() {
+    getSettings: function() {
       return _loadSettings();
     },
 
-    saveSettings(turma, materia, bimestre) {
-      _saveSettings({ turma, materia, bimestre });
+    saveSettings: function(turma, materia, bimestre) {
+      _save(SETTINGS_KEY, { turma: turma, materia: materia, bimestre: bimestre });
     },
 
-    getSerie(turma) {
+    getSerie: function(turma) {
       return turma.charAt(0);
     },
 
-    getMaterias(turma) {
-      const serie = turma.charAt(0);
+    getMaterias: function(turma) {
+      var serie = turma.charAt(0);
       return materiasPor[serie] || [];
     },
 
-    getKey(turma, materia, bimestre) {
-      return turma + '|' + materia + '|' + bimestre;
-    },
+    // =========== STUDENTS ===========
 
-    getStudents(turma, materia, bimestre) {
-      const data = _loadData();
-      const key = turma + '|' + materia + '|' + bimestre;
+    getStudents: function(turma, materia, bimestre) {
+      var data = _load(STORAGE_KEY);
+      var key = _makeKey(turma, materia, bimestre);
       if (!data[key]) data[key] = [];
       return data[key];
     },
 
-    setStudents(turma, materia, bimestre, students) {
-      const data = _loadData();
-      const key = turma + '|' + materia + '|' + bimestre;
-      data[key] = students;
-      _saveData(data);
+    setStudents: function(turma, materia, bimestre, students) {
+      var data = _load(STORAGE_KEY);
+      data[_makeKey(turma, materia, bimestre)] = students;
+      _save(STORAGE_KEY, data);
     },
 
-    addStudent(turma, materia, bimestre, numero, nome) {
-      const students = this.getStudents(turma, materia, bimestre);
+    addStudent: function(turma, materia, bimestre, numero, nome) {
+      var students = this.getStudents(turma, materia, bimestre);
       if (students.find(function(s) { return s.numero === numero; })) return false;
       students.push({ numero: numero, nome: nome, negativos: 0, quali: 0, pb: 0, va: 0 });
       students.sort(function(a, b) { return a.numero - b.numero; });
@@ -95,13 +97,13 @@ const Store = (() => {
       return true;
     },
 
-    removeStudent(turma, materia, bimestre, numero) {
+    removeStudent: function(turma, materia, bimestre, numero) {
       var students = this.getStudents(turma, materia, bimestre);
       students = students.filter(function(s) { return s.numero !== numero; });
       this.setStudents(turma, materia, bimestre, students);
     },
 
-    updateNegativo(turma, materia, bimestre, numero, delta) {
+    updateNegativo: function(turma, materia, bimestre, numero, delta) {
       var students = this.getStudents(turma, materia, bimestre);
       var s = students.find(function(st) { return st.numero === numero; });
       if (s) {
@@ -110,7 +112,7 @@ const Store = (() => {
       }
     },
 
-    updateNota(turma, materia, bimestre, numero, field, value) {
+    updateNota: function(turma, materia, bimestre, numero, field, value) {
       var students = this.getStudents(turma, materia, bimestre);
       var s = students.find(function(st) { return st.numero === numero; });
       if (s) {
@@ -120,18 +122,91 @@ const Store = (() => {
       }
     },
 
-    // Weighted average: M = (PB × 35 + QualiAjustada × 30 + VA × 35) / 100
-    calcMedia(student) {
-      var qualiAjustada = Math.max(0, student.quali - student.negativos * 0.1);
-      var media = (student.pb * PESOS.pb + qualiAjustada * PESOS.quali + student.va * PESOS.va) / (PESOS.pb + PESOS.quali + PESOS.va);
-      return +media.toFixed(1);
+    // =========== VA SYSTEM ===========
+
+    getVAs: function(turma, materia, bimestre) {
+      var data = _load(VA_KEY);
+      var key = _makeKey(turma, materia, bimestre);
+      if (!data[key]) data[key] = [];
+      return data[key];
     },
 
-    getQualiAjustada(student) {
+    setVAs: function(turma, materia, bimestre, vas) {
+      var data = _load(VA_KEY);
+      data[_makeKey(turma, materia, bimestre)] = vas;
+      _save(VA_KEY, data);
+    },
+
+    addVA: function(turma, materia, bimestre, nome, tipo, valorMax) {
+      var vas = this.getVAs(turma, materia, bimestre);
+      var id = vas.length > 0 ? Math.max.apply(null, vas.map(function(v) { return v.id; })) + 1 : 1;
+      vas.push({
+        id: id,
+        nome: nome,
+        tipo: tipo,
+        valorMax: valorMax,
+        notas: {}
+      });
+      this.setVAs(turma, materia, bimestre, vas);
+      return id;
+    },
+
+    removeVA: function(turma, materia, bimestre, vaId) {
+      var vas = this.getVAs(turma, materia, bimestre);
+      vas = vas.filter(function(v) { return v.id !== vaId; });
+      this.setVAs(turma, materia, bimestre, vas);
+    },
+
+    setVANota: function(turma, materia, bimestre, vaId, alunoNumero, nota) {
+      var vas = this.getVAs(turma, materia, bimestre);
+      var va = vas.find(function(v) { return v.id === vaId; });
+      if (va) {
+        var v = parseFloat(nota);
+        va.notas[alunoNumero] = isNaN(v) ? 0 : Math.min(va.valorMax, Math.max(0, v));
+        this.setVAs(turma, materia, bimestre, vas);
+      }
+    },
+
+    // Get normalized score (0-10) for a student on a specific VA
+    getVANormalizada: function(va, alunoNumero) {
+      var bruta = va.notas[alunoNumero] || 0;
+      if (va.valorMax === 0) return 0;
+      return +((bruta / va.valorMax) * 10).toFixed(2);
+    },
+
+    // Get VA average for a student (average of all normalized VA scores)
+    getVAMedia: function(turma, materia, bimestre, alunoNumero) {
+      var vas = this.getVAs(turma, materia, bimestre);
+      if (vas.length === 0) return 0;
+      var self = this;
+      var total = 0;
+      vas.forEach(function(va) {
+        total += self.getVANormalizada(va, alunoNumero);
+      });
+      return +(total / vas.length).toFixed(2);
+    },
+
+    // =========== GRADE CALCULATIONS ===========
+
+    getQualiAjustada: function(student) {
       return +Math.max(0, student.quali - student.negativos * 0.1).toFixed(2);
     },
 
-    importCSV(turma, materia, bimestre, csvText) {
+    // Weighted average: M = (PB × 35 + QualiAjustada × 30 + VA_media × 35) / 100
+    calcMedia: function(student, vaMedia) {
+      var qualiAjustada = Math.max(0, student.quali - student.negativos * 0.1);
+      var vaScore = (vaMedia !== undefined) ? vaMedia : student.va;
+      var media = (student.pb * PESOS.pb + qualiAjustada * PESOS.quali + vaScore * PESOS.va) / (PESOS.pb + PESOS.quali + PESOS.va);
+      return +media.toFixed(1);
+    },
+
+    // Full calc with VA from VA system
+    calcMediaFull: function(turma, materia, bimestre, student) {
+      var vaMedia = this.getVAMedia(turma, materia, bimestre, student.numero);
+      return this.calcMedia(student, vaMedia);
+    },
+
+    importCSV: function(turma, materia, bimestre, csvText) {
       var students = this.getStudents(turma, materia, bimestre);
       var lines = csvText.split('\n').filter(function(l) { return l.trim(); });
       var count = 0;
@@ -152,12 +227,10 @@ const Store = (() => {
       return count;
     },
 
-    // Copy students from one bimester to another (keeping names/numbers, resetting grades)
-    copyStudentsToBimestre(turma, materia, fromBim, toBim) {
+    copyStudentsToBimestre: function(turma, materia, fromBim, toBim) {
       var from = this.getStudents(turma, materia, fromBim);
       var to = this.getStudents(turma, materia, toBim);
       var count = 0;
-      var self = this;
       from.forEach(function(s) {
         if (!to.find(function(t) { return t.numero === s.numero; })) {
           to.push({ numero: s.numero, nome: s.nome, negativos: 0, quali: 0, pb: 0, va: 0 });
@@ -165,16 +238,14 @@ const Store = (() => {
         }
       });
       to.sort(function(a, b) { return a.numero - b.numero; });
-      self.setStudents(turma, materia, toBim, to);
+      this.setStudents(turma, materia, toBim, to);
       return count;
     },
 
-    // =========== AGGREGATION FOR DASHBOARD ===========
+    // =========== AGGREGATION ===========
 
-    // Get all students matching a filter
-    // filter: { mode: 'geral' | 'sala' | 'ano' | 'materia', value: string, bimestre: string }
-    getFilteredStudents(filter) {
-      var data = _loadData();
+    getFilteredStudents: function(filter) {
+      var data = _load(STORAGE_KEY);
       var results = [];
       var self = this;
 
@@ -184,27 +255,20 @@ const Store = (() => {
         var materia = parts[1];
         var bimestre = parts[2];
 
-        // Bimestre filter always applies
         if (filter.bimestre && bimestre !== filter.bimestre) return;
 
         var match = false;
         switch (filter.mode) {
-          case 'geral':
-            match = true;
-            break;
-          case 'sala':
-            match = (turma === filter.value);
-            break;
-          case 'ano':
-            match = (turma.charAt(0) === filter.value);
-            break;
-          case 'materia':
-            match = (materia === filter.value);
-            break;
+          case 'geral': match = true; break;
+          case 'sala': match = (turma === filter.value); break;
+          case 'ano': match = (turma.charAt(0) === filter.value); break;
+          case 'materia': match = (materia === filter.value); break;
         }
 
         if (match) {
           data[key].forEach(function(s) {
+            var vaMedia = self.getVAMedia(turma, materia, bimestre, s.numero);
+            var media = self.calcMedia(s, vaMedia);
             results.push({
               turma: turma,
               materia: materia,
@@ -214,8 +278,8 @@ const Store = (() => {
               negativos: s.negativos,
               quali: s.quali,
               pb: s.pb,
-              va: s.va,
-              media: self.calcMedia(s)
+              va: vaMedia,
+              media: media
             });
           });
         }
@@ -224,45 +288,60 @@ const Store = (() => {
       return results;
     },
 
-    // Get aggregated stats
-    getFilteredStats(filter) {
+    getFilteredStats: function(filter) {
       var students = this.getFilteredStudents(filter);
       var totalAlunos = students.length;
       var totalNegs = 0;
       var totalMedia = 0;
       var abaixo = 0;
       var aprovados = 0;
+      var melhorNota = 0;
+      var melhorAluno = null;
+      var topNotas = [];
 
       students.forEach(function(s) {
         totalNegs += s.negativos;
         totalMedia += s.media;
         if (s.media < 6) abaixo++;
         else aprovados++;
+        topNotas.push({ nome: s.nome, turma: s.turma, materia: s.materia, media: s.media, negativos: s.negativos });
+        if (s.media > melhorNota) {
+          melhorNota = s.media;
+          melhorAluno = s;
+        }
       });
 
       var media = totalAlunos > 0 ? (totalMedia / totalAlunos) : 0;
+
+      // Sort for rankings
+      topNotas.sort(function(a, b) { return b.media - a.media; });
+      var topMelhores = topNotas.slice(0, 5);
+
+      var topMenosNegativos = topNotas.slice().sort(function(a, b) { return a.negativos - b.negativos; }).slice(0, 5);
 
       return {
         totalAlunos: totalAlunos,
         totalNegativos: totalNegs,
         media: +media.toFixed(1),
         abaixo: abaixo,
-        aprovados: aprovados
+        aprovados: aprovados,
+        melhorNota: melhorNota,
+        melhorAluno: melhorAluno,
+        topMelhores: topMelhores,
+        topMenosNegativos: topMenosNegativos
       };
     },
 
-    getAllStats() {
-      var data = _loadData();
+    getAllStats: function() {
+      var data = _load(STORAGE_KEY);
       var totalAlunos = 0;
       var totalNegativos = 0;
       var turmasSet = {};
 
       Object.keys(data).forEach(function(key) {
-        var parts = key.split('|');
-        var turma = parts[0];
-        var students = data[key];
+        var turma = key.split('|')[0];
         turmasSet[turma] = true;
-        students.forEach(function(s) {
+        data[key].forEach(function(s) {
           totalAlunos++;
           totalNegativos += s.negativos;
         });
@@ -271,23 +350,30 @@ const Store = (() => {
       return { totalAlunos: totalAlunos, totalNegativos: totalNegativos, turmasCount: Object.keys(turmasSet).length };
     },
 
-    // Get all unique materias that have data
-    getAllMateriasWithData() {
-      var data = _loadData();
+    getAllMateriasWithData: function() {
+      var data = _load(STORAGE_KEY);
       var materias = {};
       Object.keys(data).forEach(function(key) {
-        var parts = key.split('|');
-        if (data[key].length > 0) materias[parts[1]] = true;
+        if (data[key].length > 0) materias[key.split('|')[1]] = true;
       });
       return Object.keys(materias);
     },
 
-    exportData() {
-      return _loadData();
+    getAllMaterias: function() {
+      var all = {};
+      Object.keys(materiasPor).forEach(function(serie) {
+        materiasPor[serie].forEach(function(m) { all[m] = true; });
+      });
+      return Object.keys(all);
     },
 
-    clearAll() {
+    exportData: function() {
+      return { students: _load(STORAGE_KEY), vas: _load(VA_KEY) };
+    },
+
+    clearAll: function() {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(VA_KEY);
     }
   };
 })();

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VA — picpay.de.i</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .va-card { background:#fff; border-radius:1.25rem; border:1px solid var(--gray-100); margin-bottom:16px; overflow:hidden; }
+    .va-card-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--gray-50); border-bottom:1px solid var(--gray-100); cursor:pointer; }
+    .va-card-head:hover { background:var(--light); }
+    .va-card-body { padding:16px 20px; }
+    .va-tipo-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; }
+    .norm-cell { font-size:0.7rem; color:var(--gray-400); margin-top:2px; }
+  </style>
+</head>
+<body>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/components.js"></script>
+
+  <div id="app"></div>
+
+  <script>
+    document.getElementById('app').innerHTML =
+      Components.sidebar('va') +
+      '<div class="main-content">' +
+        Components.topbar('Verificações de Aprendizagem') +
+        '<div class="page-container">' +
+
+          // Create VA form
+          '<div class="card" style="margin-bottom:20px;">' +
+            '<div class="card-header"><h3>Cadastrar Nova VA</h3></div>' +
+            '<div class="card-body">' +
+              '<div class="form-row">' +
+                '<div class="form-group" style="flex:1;min-width:180px;">' +
+                  '<label>Nome da VA</label>' +
+                  '<input type="text" id="inputVANome" placeholder="Ex: Trabalho sobre verbos" />' +
+                '</div>' +
+                '<div class="form-group" style="width:160px;">' +
+                  '<label>Tipo</label>' +
+                  '<select id="inputVATipo">' +
+                    Store.VA_TIPOS.map(function(t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') +
+                  '</select>' +
+                '</div>' +
+                '<div class="form-group" style="width:120px;">' +
+                  '<label>Valor (0 a X)</label>' +
+                  '<input type="number" id="inputVAValor" min="0.1" max="100" step="0.1" placeholder="10" />' +
+                '</div>' +
+                '<button class="btn btn-primary" onclick="addVA()" style="align-self:flex-end;">+ Criar VA</button>' +
+              '</div>' +
+              '<p style="margin-top:8px;font-size:0.72rem;color:var(--gray-400);">A nota de cada aluno será normalizada para 0-10. No boletim, VA = média de todas as VAs normalizadas.</p>' +
+            '</div>' +
+          '</div>' +
+
+          // VA summary
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">' +
+            '<h3 style="font-size:0.9rem;font-weight:700;color:var(--dark);">VAs Cadastradas</h3>' +
+            '<span id="vaCount" style="font-size:0.8rem;color:var(--gray-400);font-weight:600;">0 VA(s)</span>' +
+          '</div>' +
+
+          '<div id="vaList"></div>' +
+          '<div id="emptyState" class="card" style="padding:40px;text-align:center;color:var(--gray-400);font-style:italic;">Nenhuma VA cadastrada neste bimestre.</div>' +
+
+        '</div>' +
+        Components.footer() +
+      '</div>';
+
+    initSelects();
+
+    function onContextChange() { render(); }
+
+    function addVA() {
+      var ctx = getCurrentContext();
+      var nome = document.getElementById('inputVANome').value.trim();
+      var tipo = document.getElementById('inputVATipo').value;
+      var valor = parseFloat(document.getElementById('inputVAValor').value);
+      if (!nome) return alert('Informe o nome da VA.');
+      if (!valor || valor <= 0) return alert('Informe o valor máximo da VA (maior que 0).');
+      Store.addVA(ctx.turma, ctx.materia, ctx.bimestre, nome, tipo, valor);
+      document.getElementById('inputVANome').value = '';
+      document.getElementById('inputVAValor').value = '';
+      render();
+    }
+
+    function removeVA(vaId) {
+      if (!confirm('Remover esta VA e todas as notas?')) return;
+      var ctx = getCurrentContext();
+      Store.removeVA(ctx.turma, ctx.materia, ctx.bimestre, vaId);
+      render();
+    }
+
+    function onNotaChange(vaId, alunoNumero, value) {
+      var ctx = getCurrentContext();
+      Store.setVANota(ctx.turma, ctx.materia, ctx.bimestre, vaId, alunoNumero, value);
+      render();
+    }
+
+    function toggleVA(vaId) {
+      var el = document.getElementById('va-body-' + vaId);
+      var icon = document.getElementById('va-icon-' + vaId);
+      if (el.style.display === 'none') {
+        el.style.display = '';
+        icon.textContent = '\u25B2';
+      } else {
+        el.style.display = 'none';
+        icon.textContent = '\u25BC';
+      }
+    }
+
+    function getTipoBg(tipo) {
+      switch(tipo) {
+        case 'Trabalho': return 'background:#DBEAFE;color:#1D4ED8;';
+        case 'Escrita': return 'background:#FEF3C7;color:#92400E;';
+        case 'Caderno': return 'background:#D1FAE5;color:#065F46;';
+        case 'Apresentação': return 'background:#EDE9FE;color:#5B21B6;';
+        case 'Participação': return 'background:#FCE7F3;color:#9D174D;';
+        case 'Prova': return 'background:#FEE2E2;color:#991B1B;';
+        default: return 'background:#F3F4F6;color:#374151;';
+      }
+    }
+
+    function render() {
+      var ctx = getCurrentContext();
+      var vas = Store.getVAs(ctx.turma, ctx.materia, ctx.bimestre);
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      var container = document.getElementById('vaList');
+      var empty = document.getElementById('emptyState');
+      document.getElementById('vaCount').textContent = vas.length + ' VA(s)';
+
+      if (vas.length === 0) {
+        container.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+
+      var html = '';
+      vas.forEach(function(va) {
+        html += '<div class="va-card">';
+
+        // Header
+        html += '<div class="va-card-head" onclick="toggleVA(' + va.id + ')">';
+        html += '<div style="display:flex;align-items:center;gap:12px;">';
+        html += '<span id="va-icon-' + va.id + '" style="font-size:0.7rem;color:var(--gray-400);">\u25BC</span>';
+        html += '<div>';
+        html += '<span style="font-weight:700;color:var(--dark);">' + va.nome + '</span>';
+        html += ' <span class="va-tipo-badge" style="' + getTipoBg(va.tipo) + '">' + va.tipo + '</span>';
+        html += '</div>';
+        html += '</div>';
+        html += '<div style="display:flex;align-items:center;gap:12px;">';
+        html += '<span style="font-size:0.8rem;font-weight:600;color:var(--gray-500);">Valor: 0 a ' + va.valorMax + '</span>';
+        html += '<button onclick="event.stopPropagation();removeVA(' + va.id + ')" class="btn-icon-sm" style="background:#FEE2E2;color:var(--red);" title="Remover VA">';
+        html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
+        html += '</button>';
+        html += '</div>';
+        html += '</div>';
+
+        // Body (collapsed by default)
+        html += '<div class="va-card-body" id="va-body-' + va.id + '" style="display:none;">';
+
+        if (students.length === 0) {
+          html += '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Nenhum aluno cadastrado. Adicione alunos na aba Alunos.</p>';
+        } else {
+          html += '<div class="table-container"><table>';
+          html += '<thead><tr>';
+          html += '<th style="text-align:left;">Nº</th>';
+          html += '<th style="text-align:left;">Nome</th>';
+          html += '<th style="text-align:center;">Nota (0 a ' + va.valorMax + ')</th>';
+          html += '<th style="text-align:center;">Normalizada (0-10)</th>';
+          html += '</tr></thead><tbody>';
+
+          students.forEach(function(s) {
+            var bruta = va.notas[s.numero] || 0;
+            var normalizada = Store.getVANormalizada(va, s.numero);
+            var normColor = normalizada >= 6 ? 'color:var(--green);' : normalizada > 0 ? 'color:var(--red);' : 'color:var(--gray-400);';
+
+            html += '<tr>';
+            html += '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>';
+            html += '<td>' + s.nome + '</td>';
+            html += '<td style="text-align:center;">';
+            html += '<input type="number" step="0.1" min="0" max="' + va.valorMax + '" value="' + bruta + '" ';
+            html += 'onchange="onNotaChange(' + va.id + ',' + s.numero + ',this.value)" ';
+            html += 'class="editable-input" style="width:80px;" />';
+            html += '</td>';
+            html += '<td style="text-align:center;">';
+            html += '<span style="font-weight:700;font-size:0.95rem;' + normColor + '">' + normalizada.toFixed(1) + '</span>';
+            html += '</td>';
+            html += '</tr>';
+          });
+
+          html += '</tbody></table></div>';
+        }
+
+        html += '</div>'; // va-card-body
+        html += '</div>'; // va-card
+      });
+
+      // Show VA average summary for each student
+      if (students.length > 0 && vas.length > 0) {
+        html += '<div class="card" style="margin-top:20px;">';
+        html += '<div class="card-header"><h3>Resumo — Média VA por Aluno</h3></div>';
+        html += '<div class="table-container"><table>';
+        html += '<thead><tr>';
+        html += '<th style="text-align:left;">Nº</th>';
+        html += '<th style="text-align:left;">Nome</th>';
+
+        vas.forEach(function(va) {
+          html += '<th style="text-align:center;font-size:0.65rem;">' + va.nome + '<br>(norm.)</th>';
+        });
+
+        html += '<th style="text-align:center;background:var(--dark);">Média VA</th>';
+        html += '</tr></thead><tbody>';
+
+        students.forEach(function(s) {
+          html += '<tr>';
+          html += '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>';
+          html += '<td>' + s.nome + '</td>';
+
+          vas.forEach(function(va) {
+            var norm = Store.getVANormalizada(va, s.numero);
+            html += '<td style="text-align:center;font-size:0.85rem;">' + norm.toFixed(1) + '</td>';
+          });
+
+          var vaMedia = Store.getVAMedia(ctx.turma, ctx.materia, ctx.bimestre, s.numero);
+          var vmColor = vaMedia >= 6 ? 'badge-green' : 'badge-red';
+          html += '<td style="text-align:center;"><span class="badge ' + vmColor + '">' + vaMedia.toFixed(1) + '</span></td>';
+          html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+        html += '<p style="padding:12px 20px;font-size:0.72rem;color:var(--gray-400);">Média VA = (' +
+          vas.map(function(va) { return 'Norm. ' + va.nome; }).join(' + ') +
+          ') / ' + vas.length + '</p>';
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    document.getElementById('inputVANome').addEventListener('keydown', function(e) { if (e.key === 'Enter') addVA(); });
+
+    render();
+  </script>
+</body>
+</html>

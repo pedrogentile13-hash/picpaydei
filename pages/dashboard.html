@@ -7,33 +7,12 @@
   <link rel="stylesheet" href="../assets/css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    .filter-btn {
-      padding: 7px 16px;
-      border-radius: 10px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border: 1px solid var(--gray-200);
-      background: #fff;
-      color: var(--gray-700);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .filter-btn:hover { background: var(--gray-50); border-color: var(--gray-300); }
-    .filter-btn.active {
-      background: var(--green);
-      color: #fff;
-      border-color: var(--green);
-    }
-    .filter-sub select {
-      border: 1px solid var(--gray-200);
-      border-radius: 10px;
-      padding: 7px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--dark);
-      cursor: pointer;
-    }
-    .filter-sub select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(17,199,111,0.15); }
+    .filter-btn { padding:8px 16px; border-radius:10px; font-size:0.78rem; font-weight:600; border:1px solid var(--gray-200); background:#fff; color:var(--gray-700); cursor:pointer; transition:all 0.15s; }
+    .filter-btn:hover { border-color:var(--green); color:var(--green); }
+    .filter-btn.active { background:var(--green); color:#fff; border-color:var(--green); }
+    .stat-highlight { background:linear-gradient(135deg, var(--dark), #007755); color:#fff; }
+    .stat-highlight .label { color:rgba(255,255,255,0.6); }
+    .stat-highlight .value { color:#fff; }
   </style>
 </head>
 <body>
@@ -44,7 +23,7 @@
 
   <script>
     var settings = Store.getSettings();
-    var bimOptions = Store.BIMESTRES.map(function(b) {
+    var bimOpts = Store.BIMESTRES.map(function(b) {
       return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>';
     }).join('');
 
@@ -59,204 +38,149 @@
             '<div><h2 class="topbar-title">Dashboard</h2>' +
             '<span style="font-size:0.65rem;color:var(--gray-400);font-weight:600;">Ano Letivo ' + Store.ANO_LETIVO + '</span></div>' +
           '</div>' +
+          '<div class="topbar-controls">' +
+            '<div class="topbar-select">' +
+              '<label>Bimestre</label>' +
+              '<select id="dashBimestre" onchange="onFilterChange()">' + bimOpts + '</select>' +
+            '</div>' +
+          '</div>' +
         '</header>' +
         '<div class="page-container">' +
 
-          '<!-- Filters -->' +
           '<div class="card" style="margin-bottom:20px;">' +
-            '<div class="card-body" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">' +
-              '<span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--gray-400);">Visualizar:</span>' +
-              '<button class="filter-btn active" onclick="setFilter(\'geral\')" id="fbtn-geral">Geral</button>' +
-              '<button class="filter-btn" onclick="setFilter(\'sala\')" id="fbtn-sala">Por Sala</button>' +
-              '<button class="filter-btn" onclick="setFilter(\'ano\')" id="fbtn-ano">Por Ano</button>' +
-              '<button class="filter-btn" onclick="setFilter(\'materia\')" id="fbtn-materia">Por Matéria</button>' +
-
-              '<div class="filter-sub" id="filterSub" style="display:none;margin-left:8px;">' +
-                '<select id="filterValue" onchange="render()"></select>' +
+            '<div class="card-body" style="padding:16px 20px;">' +
+              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                '<span style="font-size:0.72rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-right:8px;">Filtro:</span>' +
+                '<button class="filter-btn active" onclick="setFilter(\'geral\',\'\')" id="fbtn-geral">Geral</button>' +
+                Store.TURMAS.map(function(t) {
+                  return '<button class="filter-btn" onclick="setFilter(\'sala\',\'' + t + '\')" id="fbtn-sala-' + t + '">' + t.replace(/(\d)(\w)/, '$1\u00ba$2') + '</button>';
+                }).join('') +
               '</div>' +
-
-              '<div style="margin-left:auto;">' +
-                '<select id="dashBimestre" onchange="render()" style="border:1px solid var(--gray-200);border-radius:10px;padding:7px 12px;font-size:0.8rem;font-weight:600;color:var(--dark);cursor:pointer;">' +
-                  bimOptions +
-                '</select>' +
+              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;">' +
+                '<span style="font-size:0.72rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-right:8px;">Por Ano:</span>' +
+                '<button class="filter-btn" onclick="setFilter(\'ano\',\'6\')" id="fbtn-ano-6">6\u00ba Ano</button>' +
+                '<button class="filter-btn" onclick="setFilter(\'ano\',\'8\')" id="fbtn-ano-8">8\u00ba Ano</button>' +
+                '<button class="filter-btn" onclick="setFilter(\'ano\',\'9\')" id="fbtn-ano-9">9\u00ba Ano</button>' +
+                '<span style="font-size:0.72rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-left:16px;margin-right:8px;">Por Mat\u00e9ria:</span>' +
+                Store.getAllMaterias().map(function(m) {
+                  return '<button class="filter-btn" onclick="setFilter(\'materia\',\'' + m + '\')" id="fbtn-materia-' + m.replace(/\s/g,'_') + '">' + m + '</button>';
+                }).join('') +
               '</div>' +
             '</div>' +
           '</div>' +
 
-          '<!-- Summary Cards -->' +
-          '<div class="summary-grid" id="summaryGrid">' +
-            '<div class="summary-card">' +
-              '<div class="label">Total de Alunos</div>' +
-              '<div class="value dark" id="card-total">0</div>' +
-            '</div>' +
-            '<div class="summary-card">' +
-              '<div class="label">Total de Negativos</div>' +
-              '<div class="value red" id="card-negativos">0</div>' +
-            '</div>' +
-            '<div class="summary-card">' +
-              '<div class="label">Média Geral</div>' +
-              '<div class="value green" id="card-media">0.0</div>' +
-            '</div>' +
-            '<div class="summary-card">' +
-              '<div class="label">Abaixo da Média (6.0)</div>' +
-              '<div class="value orange" id="card-abaixo">0</div>' +
-            '</div>' +
+          '<div class="summary-grid" style="grid-template-columns:repeat(5,1fr);">' +
+            '<div class="summary-card"><div class="label">Total de Alunos</div><div class="value dark" id="c-total">0</div></div>' +
+            '<div class="summary-card"><div class="label">Total Negativos</div><div class="value red" id="c-negs">0</div></div>' +
+            '<div class="summary-card"><div class="label">M\u00e9dia Geral</div><div class="value green" id="c-media">0.0</div></div>' +
+            '<div class="summary-card"><div class="label">Abaixo da M\u00e9dia</div><div class="value orange" id="c-abaixo">0</div></div>' +
+            '<div class="summary-card stat-highlight"><div class="label">Melhor Nota</div><div class="value" id="c-melhor">0.0</div><div style="font-size:0.7rem;opacity:0.7;margin-top:2px;" id="c-melhor-nome">\u2014</div></div>' +
           '</div>' +
 
-          '<!-- Charts Row -->' +
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;" id="chartsRow">' +
-            '<div class="card">' +
-              '<div class="card-header"><h3>Aprovados vs Reprovados</h3></div>' +
-              '<div class="card-body" style="display:flex;flex-direction:column;align-items:center;">' +
-                '<div style="max-width:260px;width:100%;"><canvas id="chartDoughnut"></canvas></div>' +
-                '<div style="display:flex;gap:24px;margin-top:16px;font-size:0.75rem;font-weight:600;">' +
-                  '<span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:var(--green);display:inline-block;"></span>Aprovados: <span id="leg-a">0</span></span>' +
-                  '<span style="display:flex;align-items:center;gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#F87171;display:inline-block;"></span>Reprovados: <span id="leg-r">0</span></span>' +
-                '</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">' +
+            '<div class="card"><div class="card-header"><h3>Aprovados vs Reprovados</h3></div>' +
+              '<div class="card-body" style="display:flex;justify-content:center;"><div style="max-width:260px;width:100%;"><canvas id="chartDoughnut"></canvas></div></div>' +
+              '<div style="display:flex;justify-content:center;gap:24px;padding:0 20px 16px;font-size:0.75rem;font-weight:600;">' +
+                '<span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block;"></span>Aprovados: <span id="leg-ap">0</span></span>' +
+                '<span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#F87171;display:inline-block;"></span>Reprovados: <span id="leg-rp">0</span></span>' +
               '</div>' +
             '</div>' +
-            '<div class="card">' +
-              '<div class="card-header"><h3>Distribuição de Notas</h3></div>' +
+            '<div class="card"><div class="card-header"><h3>Distribui\u00e7\u00e3o de M\u00e9dias</h3></div>' +
               '<div class="card-body"><canvas id="chartBar"></canvas></div>' +
             '</div>' +
           '</div>' +
 
-          '<!-- Ranking -->' +
-          '<div class="card">' +
-            '<div class="card-header"><h3>Ranking — Top 5 Menos Negativos</h3></div>' +
-            '<div class="card-body">' +
-              '<div id="rankingList" style="display:flex;flex-direction:column;gap:10px;">' +
-                '<div class="empty-state">Nenhum dado disponível.</div>' +
-              '</div>' +
-            '</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">' +
+            '<div class="card"><div class="card-header"><h3>Top 5 \u2014 Melhores Notas</h3></div>' +
+              '<div class="card-body" id="rankMelhores"><p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p></div></div>' +
+            '<div class="card"><div class="card-header"><h3>Top 5 \u2014 Menos Negativos</h3></div>' +
+              '<div class="card-body" id="rankNegativos"><p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p></div></div>' +
           '</div>' +
 
         '</div>' +
         Components.footer() +
       '</div>';
 
-    var currentFilterMode = 'geral';
-    var doughnutChart = null;
-    var barChart = null;
+    var currentFilter = { mode: 'geral', value: '', bimestre: settings.bimestre || '1' };
+    var chartDoughnut = null;
+    var chartBar = null;
 
-    function setFilter(mode) {
-      currentFilterMode = mode;
-      // Update button states
-      ['geral', 'sala', 'ano', 'materia'].forEach(function(m) {
-        document.getElementById('fbtn-' + m).className = 'filter-btn' + (m === mode ? ' active' : '');
-      });
-
-      var sub = document.getElementById('filterSub');
-      var sel = document.getElementById('filterValue');
-
-      if (mode === 'geral') {
-        sub.style.display = 'none';
-      } else {
-        sub.style.display = '';
-        var options = '';
-        if (mode === 'sala') {
-          options = Store.TURMAS.map(function(t) {
-            return '<option value="' + t + '">' + t.replace(/(\d)(\w)/, '$1º$2') + '</option>';
-          }).join('');
-        } else if (mode === 'ano') {
-          options = '<option value="8">8º Ano</option><option value="9">9º Ano</option>';
-        } else if (mode === 'materia') {
-          var all = ['Português', 'Produção', 'LEM'];
-          options = all.map(function(m) {
-            return '<option value="' + m + '">' + m + '</option>';
-          }).join('');
-        }
-        sel.innerHTML = options;
-      }
+    function setFilter(mode, value) {
+      currentFilter.mode = mode;
+      currentFilter.value = value;
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      var id = '';
+      if (mode === 'geral') id = 'fbtn-geral';
+      else if (mode === 'sala') id = 'fbtn-sala-' + value;
+      else if (mode === 'ano') id = 'fbtn-ano-' + value;
+      else if (mode === 'materia') id = 'fbtn-materia-' + value.replace(/\s/g,'_');
+      var el = document.getElementById(id);
+      if (el) el.classList.add('active');
       render();
     }
 
-    function getFilter() {
-      var bim = document.getElementById('dashBimestre').value;
-      var val = '';
-      if (currentFilterMode !== 'geral') {
-        val = document.getElementById('filterValue').value;
-      }
-      return { mode: currentFilterMode, value: val, bimestre: bim };
+    function onFilterChange() {
+      currentFilter.bimestre = document.getElementById('dashBimestre').value;
+      render();
+    }
+
+    function buildRankItem(item, idx, field) {
+      var medals = ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49', '4\u00ba', '5\u00ba'];
+      var valueText = field === 'media' ? item.media.toFixed(1) : item.negativos + ' neg.';
+      var valueColor = field === 'media'
+        ? (item.media >= 6 ? 'color:var(--green);' : 'color:var(--red);')
+        : (item.negativos === 0 ? 'color:var(--green);' : 'color:var(--orange);');
+      return '<div class="ranking-item" style="margin-bottom:8px;">' +
+        '<div class="left"><span class="medal">' + medals[idx] + '</span>' +
+          '<div><div class="name">' + item.nome + '</div><div class="sub">' + (item.turma || '') + ' \u2014 ' + (item.materia || '') + '</div></div>' +
+        '</div>' +
+        '<span style="font-weight:700;font-size:0.85rem;' + valueColor + '">' + valueText + '</span></div>';
     }
 
     function render() {
-      var filter = getFilter();
-      var stats = Store.getFilteredStats(filter);
-      var students = Store.getFilteredStudents(filter);
+      var stats = Store.getFilteredStats(currentFilter);
+      document.getElementById('c-total').textContent = stats.totalAlunos;
+      document.getElementById('c-negs').textContent = stats.totalNegativos;
+      document.getElementById('c-media').textContent = stats.media;
+      document.getElementById('c-abaixo').textContent = stats.abaixo;
+      document.getElementById('c-melhor').textContent = stats.melhorNota.toFixed(1);
+      document.getElementById('c-melhor-nome').textContent = stats.melhorAluno ? stats.melhorAluno.nome : '\u2014';
+      document.getElementById('leg-ap').textContent = stats.aprovados;
+      document.getElementById('leg-rp').textContent = stats.abaixo;
 
-      document.getElementById('card-total').textContent = stats.totalAlunos;
-      document.getElementById('card-negativos').textContent = stats.totalNegativos;
-      document.getElementById('card-media').textContent = stats.media;
-      document.getElementById('card-abaixo').textContent = stats.abaixo;
-      document.getElementById('leg-a').textContent = stats.aprovados;
-      document.getElementById('leg-r').textContent = stats.abaixo;
-
-      // Doughnut
-      if (doughnutChart) doughnutChart.destroy();
-      doughnutChart = new Chart(document.getElementById('chartDoughnut'), {
+      if (chartDoughnut) chartDoughnut.destroy();
+      chartDoughnut = new Chart(document.getElementById('chartDoughnut'), {
         type: 'doughnut',
-        data: {
-          labels: ['Aprovados', 'Reprovados'],
-          datasets: [{ data: [stats.aprovados, stats.abaixo], backgroundColor: ['#11C76F', '#F87171'], borderWidth: 0, hoverOffset: 8 }],
-        },
+        data: { labels: ['Aprovados', 'Reprovados'], datasets: [{ data: [stats.aprovados, stats.abaixo], backgroundColor: ['#11C76F', '#F87171'], borderWidth: 0, hoverOffset: 8 }] },
         options: { cutout: '65%', responsive: true, plugins: { legend: { display: false } } },
       });
 
-      // Bar chart
-      var ranges = ['0-2', '2-4', '4-6', '6-8', '8-10'];
-      var counts = [0, 0, 0, 0, 0];
-      students.forEach(function(s) {
-        if (s.media < 2) counts[0]++;
-        else if (s.media < 4) counts[1]++;
-        else if (s.media < 6) counts[2]++;
-        else if (s.media < 8) counts[3]++;
-        else counts[4]++;
-      });
-      if (barChart) barChart.destroy();
-      barChart = new Chart(document.getElementById('chartBar'), {
-        type: 'bar',
-        data: {
-          labels: ranges,
-          datasets: [{
-            label: 'Alunos',
-            data: counts,
-            backgroundColor: ['#FCA5A5', '#FDBA74', '#FCD34D', '#86EFAC', '#11C76F'],
-            borderRadius: 8,
-            borderSkipped: false,
-          }],
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 } },
-            x: { grid: { display: false } },
-          },
-        },
+      var filtered = Store.getFilteredStudents(currentFilter);
+      var ranges = { '0-2': 0, '2-4': 0, '4-6': 0, '6-8': 0, '8-10': 0 };
+      filtered.forEach(function(s) {
+        if (s.media < 2) ranges['0-2']++;
+        else if (s.media < 4) ranges['2-4']++;
+        else if (s.media < 6) ranges['4-6']++;
+        else if (s.media < 8) ranges['6-8']++;
+        else ranges['8-10']++;
       });
 
-      // Ranking
-      var list = document.getElementById('rankingList');
-      if (students.length === 0) {
-        list.innerHTML = '<div class="empty-state">Nenhum dado disponível para este filtro.</div>';
-        return;
-      }
-      var sorted = students.slice().sort(function(a, b) { return a.negativos - b.negativos; }).slice(0, 5);
-      var medals = ['\u{1F947}', '\u{1F948}', '\u{1F949}', '4\u00BA', '5\u00BA'];
-      list.innerHTML = sorted.map(function(s, i) {
-        var turmaLabel = s.turma.replace(/(\d)(\w)/, '$1\u00BA$2');
-        return '<div class="ranking-item">' +
-          '<div class="left">' +
-            '<span class="medal">' + medals[i] + '</span>' +
-            '<div>' +
-              '<div class="name">' + s.nome + '</div>' +
-              '<div class="sub">N\u00BA ' + s.numero + ' &mdash; ' + turmaLabel + ' &mdash; ' + s.materia + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<span class="neg-count" style="color:' + (s.negativos === 0 ? 'var(--green)' : 'var(--orange)') + '">' + s.negativos + ' neg.</span>' +
-        '</div>';
-      }).join('');
+      if (chartBar) chartBar.destroy();
+      chartBar = new Chart(document.getElementById('chartBar'), {
+        type: 'bar',
+        data: { labels: Object.keys(ranges), datasets: [{ label: 'Alunos', data: Object.values(ranges), backgroundColor: ['#FCA5A5', '#FDBA74', '#FDE68A', '#86EFAC', '#11C76F'], borderRadius: 6, borderSkipped: false }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } },
+      });
+
+      var rm = document.getElementById('rankMelhores');
+      rm.innerHTML = stats.topMelhores.length > 0
+        ? stats.topMelhores.map(function(item, i) { return buildRankItem(item, i, 'media'); }).join('')
+        : '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p>';
+
+      var rn = document.getElementById('rankNegativos');
+      rn.innerHTML = stats.topMenosNegativos.length > 0
+        ? stats.topMenosNegativos.map(function(item, i) { return buildRankItem(item, i, 'negativos'); }).join('')
+        : '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p>';
     }
 
     render();
