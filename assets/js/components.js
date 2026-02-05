@@ -63,7 +63,10 @@ const Components = (() => {
   }
 
   function footer() {
-    return '<footer class="site-footer">picpay.de.i &mdash; Prof. Aladdin &copy; ' + Store.ANO_LETIVO + '</footer>';
+    var syncIndicator = Store.isSyncEnabled()
+      ? '<span id="syncIndicator" style="display:inline-flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);"></span> Nuvem</span>'
+      : '<span style="color:var(--gray-400);">Offline</span>';
+    return '<footer class="site-footer"><span>picpay.de.i &mdash; Prof. Aladdin &copy; ' + Store.ANO_LETIVO + '</span>' + syncIndicator + '</footer>';
   }
 
   return { sidebar: sidebar, topbar: topbar, footer: footer };

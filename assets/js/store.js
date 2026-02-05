@@ -1,6 +1,6 @@
 /* ============================
    picpay.de.i — Data Store
-   Shared across all pages via localStorage
+   Shared across all pages via localStorage + Firebase
    Ano Letivo 2026
    ============================ */
 
@@ -34,6 +34,8 @@ const Store = (() => {
   // PB weights: Anglo peso 1, Prova Bimestral peso 5
   const PB_PESOS = { anglo: 1, prova: 5 };
 
+  // =========== LOCAL STORAGE ===========
+
   function _load(key) {
     try {
       var raw = localStorage.getItem(key);
@@ -55,6 +57,73 @@ const Store = (() => {
   function _makeKey(turma, materia, bimestre) {
     return turma + '|' + materia + '|' + bimestre;
   }
+
+  // =========== FIREBASE SYNC ===========
+
+  var _syncEnabled = typeof firebase !== 'undefined' && typeof db !== 'undefined';
+  var _syncStatus = 'idle'; // idle, syncing, error, success
+  var _onSyncCallbacks = [];
+
+  function _notifySync(status, msg) {
+    _syncStatus = status;
+    _onSyncCallbacks.forEach(function(cb) { cb(status, msg); });
+  }
+
+  function _firestoreSave(collection, docId, data) {
+    if (!_syncEnabled) return Promise.resolve();
+    _notifySync('syncing', 'Salvando...');
+    return db.collection(collection).doc(docId).set(data)
+      .then(function() { _notifySync('success', 'Salvo na nuvem'); })
+      .catch(function(err) {
+        console.error('Firestore save error:', err);
+        _notifySync('error', 'Erro ao salvar');
+      });
+  }
+
+  function _firestoreLoad(collection, docId) {
+    if (!_syncEnabled) return Promise.resolve(null);
+    return db.collection(collection).doc(docId).get()
+      .then(function(doc) { return doc.exists ? doc.data() : null; })
+      .catch(function(err) {
+        console.error('Firestore load error:', err);
+        return null;
+      });
+  }
+
+  function _firestoreLoadAll(collection) {
+    if (!_syncEnabled) return Promise.resolve({});
+    return db.collection(collection).get()
+      .then(function(snapshot) {
+        var result = {};
+        snapshot.forEach(function(doc) {
+          result[doc.id] = doc.data();
+        });
+        return result;
+      })
+      .catch(function(err) {
+        console.error('Firestore loadAll error:', err);
+        return {};
+      });
+  }
+
+  // =========== SYNC FUNCTIONS ===========
+
+  function syncStudentsToCloud(turma, materia, bimestre, students) {
+    var docId = _makeKey(turma, materia, bimestre).replace(/\|/g, '_');
+    _firestoreSave('students', docId, { students: students, updatedAt: new Date().toISOString() });
+  }
+
+  function syncVAsToCloud(turma, materia, bimestre, vas) {
+    var docId = _makeKey(turma, materia, bimestre).replace(/\|/g, '_');
+    _firestoreSave('vas', docId, { vas: vas, updatedAt: new Date().toISOString() });
+  }
+
+  function syncPBsToCloud(turma, materia, bimestre, pbData) {
+    var docId = _makeKey(turma, materia, bimestre).replace(/\|/g, '_');
+    _firestoreSave('pbs', docId, { pb: pbData, updatedAt: new Date().toISOString() });
+  }
+
+  // =========== PUBLIC API ===========
 
   return {
     ANO_LETIVO: ANO_LETIVO,
@@ -86,6 +155,72 @@ const Store = (() => {
       return materiasPor[serie] || [];
     },
 
+    // =========== SYNC STATUS ===========
+
+    onSyncStatus: function(callback) {
+      _onSyncCallbacks.push(callback);
+    },
+
+    getSyncStatus: function() {
+      return _syncStatus;
+    },
+
+    isSyncEnabled: function() {
+      return _syncEnabled;
+    },
+
+    // =========== CLOUD SYNC ===========
+
+    loadFromCloud: function(callback) {
+      if (!_syncEnabled) {
+        if (callback) callback(false);
+        return;
+      }
+      _notifySync('syncing', 'Carregando da nuvem...');
+
+      Promise.all([
+        _firestoreLoadAll('students'),
+        _firestoreLoadAll('vas'),
+        _firestoreLoadAll('pbs')
+      ]).then(function(results) {
+        var studentsCloud = results[0];
+        var vasCloud = results[1];
+        var pbsCloud = results[2];
+
+        // Merge cloud data into localStorage
+        var localStudents = _load(STORAGE_KEY);
+        var localVas = _load(VA_KEY);
+        var localPbs = _load(PB_KEY);
+
+        // Cloud takes precedence (or merge by updatedAt if needed)
+        Object.keys(studentsCloud).forEach(function(docId) {
+          var key = docId.replace(/_/g, '|');
+          localStudents[key] = studentsCloud[docId].students || [];
+        });
+
+        Object.keys(vasCloud).forEach(function(docId) {
+          var key = docId.replace(/_/g, '|');
+          localVas[key] = vasCloud[docId].vas || [];
+        });
+
+        Object.keys(pbsCloud).forEach(function(docId) {
+          var key = docId.replace(/_/g, '|');
+          localPbs[key] = pbsCloud[docId].pb || { anglo: { valorMax: 10, notas: {} }, prova: { valorMax: 10, notas: {} } };
+        });
+
+        _save(STORAGE_KEY, localStudents);
+        _save(VA_KEY, localVas);
+        _save(PB_KEY, localPbs);
+
+        _notifySync('success', 'Sincronizado!');
+        if (callback) callback(true);
+      }).catch(function(err) {
+        console.error('Cloud load error:', err);
+        _notifySync('error', 'Erro ao carregar');
+        if (callback) callback(false);
+      });
+    },
+
     // =========== STUDENTS ===========
 
     getStudents: function(turma, materia, bimestre) {
@@ -99,6 +234,7 @@ const Store = (() => {
       var data = _load(STORAGE_KEY);
       data[_makeKey(turma, materia, bimestre)] = students;
       _save(STORAGE_KEY, data);
+      syncStudentsToCloud(turma, materia, bimestre, students);
     },
 
     addStudent: function(turma, materia, bimestre, numero, nome) {
@@ -148,6 +284,7 @@ const Store = (() => {
       var data = _load(VA_KEY);
       data[_makeKey(turma, materia, bimestre)] = vas;
       _save(VA_KEY, data);
+      syncVAsToCloud(turma, materia, bimestre, vas);
     },
 
     addVA: function(turma, materia, bimestre, nome, tipo, valorMax) {
@@ -227,6 +364,7 @@ const Store = (() => {
       var data = _load(PB_KEY);
       data[_makeKey(turma, materia, bimestre)] = pbData;
       _save(PB_KEY, data);
+      syncPBsToCloud(turma, materia, bimestre, pbData);
     },
 
     setPBValorMax: function(turma, materia, bimestre, tipo, valorMax) {
@@ -420,6 +558,12 @@ const Store = (() => {
 
     exportData: function() {
       return { students: _load(STORAGE_KEY), vas: _load(VA_KEY), pbs: _load(PB_KEY) };
+    },
+
+    importData: function(data) {
+      if (data.students) _save(STORAGE_KEY, data.students);
+      if (data.vas) _save(VA_KEY, data.vas);
+      if (data.pbs) _save(PB_KEY, data.pbs);
     },
 
     clearAll: function() {
