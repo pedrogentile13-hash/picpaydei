@@ -16,13 +16,10 @@ const Components = (() => {
       { id: 'relatorios', label: 'Relatórios', href: 'relatorios.html', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>' },
     ];
 
-    // Determine logo path based on whether we're on root or in pages folder
-    var logoPath = (activePage === 'home') ? 'assets/img/logo.png' : '../assets/img/logo.png';
-
     return '<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>' +
       '<aside class="sidebar" id="sidebar">' +
         '<div class="sidebar-logo">' +
-          '<img src="' + logoPath + '" alt="picpay.de.i" class="logo-img" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" />' +
+          '<div class="icon">P</div>' +
           '<div class="text">' +
             '<h1>picpay.de.i</h1>' +
             '<p>Ano Letivo ' + Store.ANO_LETIVO + '</p>' +
