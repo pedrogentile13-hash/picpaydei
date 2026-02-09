@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard PB — picpay.de.i</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    .dashboard-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; margin-bottom:24px; }
+    .ranking-item { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--gray-50); border-radius:12px; margin-bottom:8px; }
+    .ranking-item .medal { font-size:1.3rem; width:32px; text-align:center; }
+    .ranking-item .info { flex:1; }
+    .ranking-item .info .name { font-weight:700; font-size:0.9rem; color:var(--dark); }
+    .ranking-item .info .sub { font-size:0.72rem; color:var(--gray-400); }
+    .ranking-item .score { font-weight:800; font-size:1.1rem; }
+    .filter-bar { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
+    .filter-bar select { padding:8px 14px; border-radius:10px; border:1px solid var(--gray-200); font-size:0.85rem; }
+    .section-title { font-size:0.75rem; font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+    .warning-box { background:#FEF3C7; border:1px solid #FDE68A; border-radius:12px; padding:20px; text-align:center; color:#92400E; }
+  </style>
+</head>
+<body>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/components.js"></script>
+
+  <div id="app"></div>
+
+  <script>
+    document.getElementById('app').innerHTML =
+      Components.sidebar('pb-dashboard') +
+      '<div class="main-content">' +
+        Components.topbar('Dashboard PB', false) +
+        '<div class="page-container">' +
+          '<p style="color:var(--gray-500);margin-bottom:20px;">Comparativo de desempenho nas Provas Bimestrais (Anglo e Prova) entre turmas do mesmo ano.</p>' +
+
+          // Filters
+          '<div class="filter-bar">' +
+            '<select id="filterAno" onchange="renderDashboard()">' +
+              '<option value="6">6º Ano</option>' +
+              '<option value="8">8º Ano</option>' +
+              '<option value="9" disabled>9º Ano (sem PB)</option>' +
+            '</select>' +
+            '<select id="filterMateria" onchange="renderDashboard()"></select>' +
+            '<select id="filterBimestre" onchange="renderDashboard()">' +
+              Store.BIMESTRES.map(function(b) { return '<option value="' + b + '">' + Store.BIMESTRE_LABELS[b] + '</option>'; }).join('') +
+            '</select>' +
+          '</div>' +
+
+          '<div id="dashboardContent"></div>' +
+        '</div>' +
+        Components.footer() +
+      '</div>';
+
+    var chartAnglo = null;
+    var chartProva = null;
+    var chartPB = null;
+
+    function updateMateriaOptions() {
+      var ano = document.getElementById('filterAno').value;
+      var materias = Store.materiasPor[ano].filter(function(m) { return Store.hasPB(m); });
+      document.getElementById('filterMateria').innerHTML = materias.map(function(m) {
+        return '<option value="' + m + '">' + m + '</option>';
+      }).join('');
+    }
+
+    function getSalasDoAno(ano) {
+      return Store.TURMAS.filter(function(t) { return t.charAt(0) === ano; });
+    }
+
+    function getPBData(ano, materia, bimestre) {
+      var salas = getSalasDoAno(ano);
+      var result = {
+        salas: [],
+        mediasAnglo: [],
+        mediasProva: [],
+        mediasPB: [],
+        melhoresAnglo: [],
+        melhoresProva: [],
+        melhoresPB: []
+      };
+
+      salas.forEach(function(sala) {
+        var pb = Store.getPB(sala, materia, bimestre);
+        var students = Store.getStudents(sala, materia, bimestre);
+
+        if (students.length === 0) return;
+
+        var totalAnglo = 0, totalProva = 0, totalPB = 0;
+        var melhorAnglo = { nome: '', nota: -1, sala: sala };
+        var melhorProva = { nome: '', nota: -1, sala: sala };
+        var melhorPB = { nome: '', nota: -1, sala: sala };
+
+        students.forEach(function(s) {
+          var angloNorm = Store.getPBNormalizada(pb.anglo, s.numero);
+          var provaNorm = Store.getPBNormalizada(pb.prova, s.numero);
+          var pbMedia = Store.getPBMedia(sala, materia, bimestre, s.numero);
+
+          totalAnglo += angloNorm;
+          totalProva += provaNorm;
+          totalPB += pbMedia;
+
+          if (angloNorm > melhorAnglo.nota) {
+            melhorAnglo = { nome: s.nome, nota: angloNorm, sala: sala };
+          }
+          if (provaNorm > melhorProva.nota) {
+            melhorProva = { nome: s.nome, nota: provaNorm, sala: sala };
+          }
+          if (pbMedia > melhorPB.nota) {
+            melhorPB = { nome: s.nome, nota: pbMedia, sala: sala };
+          }
+        });
+
+        result.salas.push(sala);
+        result.mediasAnglo.push(+(totalAnglo / students.length).toFixed(1));
+        result.mediasProva.push(+(totalProva / students.length).toFixed(1));
+        result.mediasPB.push(+(totalPB / students.length).toFixed(1));
+        if (melhorAnglo.nota > 0) result.melhoresAnglo.push(melhorAnglo);
+        if (melhorProva.nota > 0) result.melhoresProva.push(melhorProva);
+        if (melhorPB.nota > 0) result.melhoresPB.push(melhorPB);
+      });
+
+      // Sort by nota descending
+      result.melhoresAnglo.sort(function(a, b) { return b.nota - a.nota; });
+      result.melhoresProva.sort(function(a, b) { return b.nota - a.nota; });
+      result.melhoresPB.sort(function(a, b) { return b.nota - a.nota; });
+
+      return result;
+    }
+
+    function renderRanking(items, color) {
+      if (items.length === 0) return '<p style="color:var(--gray-400);font-style:italic;">Sem dados</p>';
+      var medals = ['🥇', '🥈', '🥉'];
+      var html = '';
+      items.forEach(function(m, i) {
+        var medal = medals[i] || (i + 1) + 'º';
+        var scoreColor = m.nota >= 6 ? 'color:var(--green);' : 'color:var(--red);';
+        html += '<div class="ranking-item">';
+        html += '<span class="medal">' + medal + '</span>';
+        html += '<div class="info"><div class="name">' + m.nome.split(' ')[0] + '</div><div class="sub">Turma ' + m.sala + '</div></div>';
+        html += '<span class="score" style="' + scoreColor + '">' + m.nota.toFixed(1) + '</span>';
+        html += '</div>';
+      });
+      return html;
+    }
+
+    function renderDashboard() {
+      var ano = document.getElementById('filterAno').value;
+      var materia = document.getElementById('filterMateria').value;
+      var bimestre = document.getElementById('filterBimestre').value;
+      var container = document.getElementById('dashboardContent');
+
+      if (!materia || !Store.hasPB(materia)) {
+        container.innerHTML = '<div class="warning-box"><p>Selecione uma matéria com Prova Bimestral.</p></div>';
+        return;
+      }
+
+      var data = getPBData(ano, materia, bimestre);
+
+      if (data.salas.length === 0) {
+        container.innerHTML = '<div class="card" style="padding:40px;text-align:center;color:var(--gray-400);">Nenhum dado de PB para este filtro.</div>';
+        return;
+      }
+
+      var html = '';
+
+      // Rankings section
+      html += '<h3 style="font-size:1rem;font-weight:800;color:var(--dark);margin-bottom:16px;">🏆 Ranking por Categoria</h3>';
+      html += '<div class="dashboard-grid">';
+
+      // Anglo ranking
+      html += '<div class="card">';
+      html += '<div class="card-header" style="background:#DBEAFE;"><h3 style="color:#1D4ED8;">Melhores Notas — Anglo</h3></div>';
+      html += '<div class="card-body">' + renderRanking(data.melhoresAnglo) + '</div>';
+      html += '</div>';
+
+      // Prova ranking
+      html += '<div class="card">';
+      html += '<div class="card-header" style="background:#FEE2E2;"><h3 style="color:#991B1B;">Melhores Notas — Prova</h3></div>';
+      html += '<div class="card-body">' + renderRanking(data.melhoresProva) + '</div>';
+      html += '</div>';
+
+      // PB média ranking
+      html += '<div class="card">';
+      html += '<div class="card-header" style="background:var(--green);"><h3 style="color:#fff;">Melhores Médias — PB</h3></div>';
+      html += '<div class="card-body">' + renderRanking(data.melhoresPB) + '</div>';
+      html += '</div>';
+
+      html += '</div>';
+
+      // Charts section
+      html += '<h3 style="font-size:1rem;font-weight:800;color:var(--dark);margin:32px 0 16px;">📊 Comparativo de Médias por Turma</h3>';
+      html += '<div class="dashboard-grid">';
+
+      // Anglo chart
+      html += '<div class="card">';
+      html += '<div class="card-header"><h3>Média Anglo por Turma</h3></div>';
+      html += '<div class="card-body" style="height:250px;"><canvas id="chartAnglo"></canvas></div>';
+      html += '</div>';
+
+      // Prova chart
+      html += '<div class="card">';
+      html += '<div class="card-header"><h3>Média Prova por Turma</h3></div>';
+      html += '<div class="card-body" style="height:250px;"><canvas id="chartProva"></canvas></div>';
+      html += '</div>';
+
+      // PB geral chart
+      html += '<div class="card">';
+      html += '<div class="card-header"><h3>Média PB Geral por Turma</h3></div>';
+      html += '<div class="card-body" style="height:250px;"><canvas id="chartPB"></canvas></div>';
+      html += '</div>';
+
+      html += '</div>';
+
+      container.innerHTML = html;
+
+      // Render charts
+      if (chartAnglo) chartAnglo.destroy();
+      if (chartProva) chartProva.destroy();
+      if (chartPB) chartPB.destroy();
+
+      var chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, max: 10, grid: { color: '#f3f4f6' } },
+          x: { grid: { display: false } }
+        }
+      };
+
+      chartAnglo = new Chart(document.getElementById('chartAnglo'), {
+        type: 'bar',
+        data: {
+          labels: data.salas,
+          datasets: [{ data: data.mediasAnglo, backgroundColor: data.mediasAnglo.map(function(m) { return m >= 6 ? '#3B82F6' : '#93C5FD'; }), borderRadius: 8, borderSkipped: false }]
+        },
+        options: chartOptions
+      });
+
+      chartProva = new Chart(document.getElementById('chartProva'), {
+        type: 'bar',
+        data: {
+          labels: data.salas,
+          datasets: [{ data: data.mediasProva, backgroundColor: data.mediasProva.map(function(m) { return m >= 6 ? '#EF4444' : '#FCA5A5'; }), borderRadius: 8, borderSkipped: false }]
+        },
+        options: chartOptions
+      });
+
+      chartPB = new Chart(document.getElementById('chartPB'), {
+        type: 'bar',
+        data: {
+          labels: data.salas,
+          datasets: [{ data: data.mediasPB, backgroundColor: data.mediasPB.map(function(m) { return m >= 6 ? '#11C76F' : '#F87171'; }), borderRadius: 8, borderSkipped: false }]
+        },
+        options: chartOptions
+      });
+    }
+
+    // Initialize
+    updateMateriaOptions();
+    renderDashboard();
+    Store.loadFromCloud(function(success) { if (success) renderDashboard(); });
+  </script>
+</body>
+</html>

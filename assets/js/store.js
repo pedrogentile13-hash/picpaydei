@@ -256,7 +256,7 @@ const Store = (() => {
       var students = this.getStudents(turma, materia, bimestre);
       var s = students.find(function(st) { return st.numero === numero; });
       if (s) {
-        s.negativos = Math.max(0, s.negativos + delta);
+        s.negativos = Math.min(100, Math.max(0, s.negativos + delta));
         this.setStudents(turma, materia, bimestre, students);
       }
     },
@@ -288,17 +288,35 @@ const Store = (() => {
     },
 
     addVA: function(turma, materia, bimestre, nome, tipo, valorMax) {
-      var vas = this.getVAs(turma, materia, bimestre);
-      var id = vas.length > 0 ? Math.max.apply(null, vas.map(function(v) { return v.id; })) + 1 : 1;
-      vas.push({ id: id, nome: nome, tipo: tipo, valorMax: valorMax, notas: {} });
-      this.setVAs(turma, materia, bimestre, vas);
-      return id;
+      // Propagate VA to all salas of the same year
+      var ano = turma.charAt(0);
+      var salasDoAno = TURMAS.filter(function(t) { return t.charAt(0) === ano; });
+      var self = this;
+      var newId = null;
+
+      salasDoAno.forEach(function(sala) {
+        var vas = self.getVAs(sala, materia, bimestre);
+        var id = vas.length > 0 ? Math.max.apply(null, vas.map(function(v) { return v.id; })) + 1 : 1;
+        // Use same ID across all salas for consistency
+        if (newId === null) newId = id;
+        vas.push({ id: newId, nome: nome, tipo: tipo, valorMax: valorMax, notas: {} });
+        self.setVAs(sala, materia, bimestre, vas);
+      });
+
+      return newId;
     },
 
     removeVA: function(turma, materia, bimestre, vaId) {
-      var vas = this.getVAs(turma, materia, bimestre);
-      vas = vas.filter(function(v) { return v.id !== vaId; });
-      this.setVAs(turma, materia, bimestre, vas);
+      // Remove VA from all salas of the same year
+      var ano = turma.charAt(0);
+      var salasDoAno = TURMAS.filter(function(t) { return t.charAt(0) === ano; });
+      var self = this;
+
+      salasDoAno.forEach(function(sala) {
+        var vas = self.getVAs(sala, materia, bimestre);
+        vas = vas.filter(function(v) { return v.id !== vaId; });
+        self.setVAs(sala, materia, bimestre, vas);
+      });
     },
 
     setVANota: function(turma, materia, bimestre, vaId, alunoNumero, nota) {

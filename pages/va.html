@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VA — picpay.de.i</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     .va-card { background:#fff; border-radius:1.25rem; border:1px solid var(--gray-100); margin-bottom:16px; overflow:hidden; }
     .va-card-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--gray-50); border-bottom:1px solid var(--gray-100); cursor:pointer; }
@@ -15,12 +14,6 @@
     .norm-cell { font-size:0.7rem; color:var(--gray-400); margin-top:2px; }
     .csv-upload-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:8px; font-size:0.72rem; font-weight:600; border:1px solid var(--gray-200); background:#fff; color:var(--gray-600); cursor:pointer; transition:all 0.15s; }
     .csv-upload-btn:hover { border-color:var(--green); color:var(--green); }
-    .ranking-card { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--gray-50); border-radius:12px; margin-bottom:8px; }
-    .ranking-card .medal { font-size:1.2rem; }
-    .ranking-card .info { flex:1; }
-    .ranking-card .info .name { font-weight:700; font-size:0.85rem; color:var(--dark); }
-    .ranking-card .info .sub { font-size:0.7rem; color:var(--gray-400); }
-    .ranking-card .score { font-weight:800; font-size:1.1rem; }
   </style>
 </head>
 <body>
@@ -39,9 +32,6 @@
       '<div class="main-content">' +
         Components.topbar('Verificações de Aprendizagem') +
         '<div class="page-container">' +
-
-          // Dashboard comparativo
-          '<div id="dashboardSection"></div>' +
 
           '<div class="card" style="margin-bottom:20px;">' +
             '<div class="card-header"><h3>Cadastrar Nova VA</h3></div>' +
@@ -80,9 +70,8 @@
       '</div>';
 
     initSelects();
-    var chartComparativo = null;
 
-    function onContextChange() { render(); renderDashboard(); }
+    function onContextChange() { render(); }
 
     function addVA() {
       var ctx = getCurrentContext();
@@ -95,7 +84,6 @@
       document.getElementById('inputVANome').value = '';
       document.getElementById('inputVAValor').value = '';
       render();
-      renderDashboard();
     }
 
     function removeVA(vaId) {
@@ -103,7 +91,6 @@
       var ctx = getCurrentContext();
       Store.removeVA(ctx.turma, ctx.materia, ctx.bimestre, vaId);
       render();
-      renderDashboard();
     }
 
     function onNotaBlur(vaId, alunoNumero, el) {
@@ -120,7 +107,6 @@
         }
       }
       updateSummaryRow(alunoNumero);
-      renderDashboard();
     }
 
     function updateSummaryRow(alunoNumero) {
@@ -164,7 +150,6 @@
           var count = Store.importVACSV(ctx.turma, ctx.materia, ctx.bimestre, vaId, ev.target.result);
           alert(count + ' nota(s) importada(s) com sucesso!');
           render();
-          renderDashboard();
         };
         reader.readAsText(file);
       };
@@ -180,133 +165,6 @@
         case 'Participação': return 'background:#FCE7F3;color:#9D174D;';
         case 'Prova': return 'background:#FEE2E2;color:#991B1B;';
         default: return 'background:#F3F4F6;color:#374151;';
-      }
-    }
-
-    // Get salas for current year
-    function getSalasDoAno(turma) {
-      var ano = turma.charAt(0);
-      return Store.TURMAS.filter(function(t) { return t.charAt(0) === ano; });
-    }
-
-    // Get comparative data across all salas for a matéria and bimestre
-    function getComparativeData(materia, bimestre) {
-      var ctx = getCurrentContext();
-      var salas = getSalasDoAno(ctx.turma);
-      var result = { salas: [], medias: [], melhores: [] };
-
-      salas.forEach(function(sala) {
-        var vas = Store.getVAs(sala, materia, bimestre);
-        var students = Store.getStudents(sala, materia, bimestre);
-
-        if (students.length === 0 || vas.length === 0) {
-          result.salas.push(sala);
-          result.medias.push(0);
-          result.melhores.push(null);
-          return;
-        }
-
-        var totalMedia = 0;
-        var melhorNota = 0;
-        var melhorAluno = null;
-
-        students.forEach(function(s) {
-          var vaMedia = Store.getVAMedia(sala, materia, bimestre, s.numero);
-          totalMedia += vaMedia;
-          if (vaMedia > melhorNota) {
-            melhorNota = vaMedia;
-            melhorAluno = { nome: s.nome, numero: s.numero, nota: vaMedia, sala: sala };
-          }
-        });
-
-        result.salas.push(sala);
-        result.medias.push(+(totalMedia / students.length).toFixed(1));
-        result.melhores.push(melhorAluno);
-      });
-
-      return result;
-    }
-
-    function renderDashboard() {
-      var ctx = getCurrentContext();
-      var data = getComparativeData(ctx.materia, ctx.bimestre);
-      var dashSection = document.getElementById('dashboardSection');
-
-      // Check if there's any data
-      var hasData = data.medias.some(function(m) { return m > 0; });
-      if (!hasData) {
-        dashSection.innerHTML = '';
-        return;
-      }
-
-      var ano = ctx.turma.charAt(0);
-      var anoLabel = ano + 'º Ano';
-
-      var html = '<div class="card" style="margin-bottom:20px;">';
-      html += '<div class="card-header"><h3>Dashboard Comparativo — ' + anoLabel + ' / ' + ctx.materia + '</h3></div>';
-      html += '<div class="card-body">';
-
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">';
-
-      // Top scores section
-      html += '<div>';
-      html += '<h4 style="font-size:0.8rem;font-weight:700;color:var(--gray-500);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em;">Melhores Notas por Sala</h4>';
-
-      var validMelhores = data.melhores.filter(function(m) { return m !== null; });
-      validMelhores.sort(function(a, b) { return b.nota - a.nota; });
-
-      if (validMelhores.length === 0) {
-        html += '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p>';
-      } else {
-        var medals = ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49', '4º', '5º'];
-        validMelhores.forEach(function(m, i) {
-          var scoreColor = m.nota >= 6 ? 'color:var(--green);' : 'color:var(--red);';
-          html += '<div class="ranking-card">';
-          html += '<span class="medal">' + (medals[i] || (i+1) + 'º') + '</span>';
-          html += '<div class="info"><div class="name">' + m.nome + '</div><div class="sub">Turma ' + m.sala + '</div></div>';
-          html += '<span class="score" style="' + scoreColor + '">' + m.nota.toFixed(1) + '</span>';
-          html += '</div>';
-        });
-      }
-      html += '</div>';
-
-      // Chart section
-      html += '<div>';
-      html += '<h4 style="font-size:0.8rem;font-weight:700;color:var(--gray-500);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em;">Média Geral por Sala</h4>';
-      html += '<canvas id="chartComparativo"></canvas>';
-      html += '</div>';
-
-      html += '</div>'; // grid
-      html += '</div>'; // card-body
-      html += '</div>'; // card
-
-      dashSection.innerHTML = html;
-
-      // Render chart
-      if (chartComparativo) chartComparativo.destroy();
-      var chartCanvas = document.getElementById('chartComparativo');
-      if (chartCanvas) {
-        chartComparativo = new Chart(chartCanvas, {
-          type: 'bar',
-          data: {
-            labels: data.salas,
-            datasets: [{
-              label: 'Média VA',
-              data: data.medias,
-              backgroundColor: data.medias.map(function(m) { return m >= 6 ? '#11C76F' : m > 0 ? '#F87171' : '#E5E7EB'; }),
-              borderRadius: 8,
-              borderSkipped: false,
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } },
-              x: { grid: { display: false } }
-            }
-          }
-        });
       }
     }
 
@@ -431,8 +289,7 @@
     document.getElementById('inputVANome').addEventListener('keydown', function(e) { if (e.key === 'Enter') addVA(); });
 
     render();
-    renderDashboard();
-    Store.loadFromCloud(function(success) { if (success) { render(); renderDashboard(); } });
+    Store.loadFromCloud(function(success) { if (success) render(); });
   </script>
 </body>
 </html>
