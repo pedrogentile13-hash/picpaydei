@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prova Bimestral — picpay.de.i</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     .pb-section { background:#fff; border-radius:1.25rem; border:1px solid var(--gray-100); margin-bottom:20px; overflow:hidden; }
     .pb-section-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--gray-50); border-bottom:1px solid var(--gray-100); }
@@ -52,6 +53,9 @@
           // Warning / content area
           '<div id="pbWarning"></div>' +
           '<div id="pbContent"></div>' +
+
+          // Comparative Dashboard
+          '<div id="pbDashboard" style="margin-top:32px;"></div>' +
 
         '</div>' +
         Components.footer() +
@@ -242,6 +246,219 @@
 
     render();
     Store.loadFromCloud(function(success) { if (success) render(); });
+
+    // ============================================
+    // DASHBOARD COMPARATIVO - PB
+    // ============================================
+    var chartPBComparativo = null;
+
+    function getSalasDoAno(turma) {
+      var ano = turma.charAt(0);
+      var salas = [];
+      if (ano === '6') salas = ['6A', '6B', '6C', '6D'];
+      else if (ano === '8') salas = ['8A', '8B', '8C'];
+      else if (ano === '9') salas = ['9A', '9B', '9C', '9D'];
+      return salas;
+    }
+
+    function getPBComparativeData(materia, bimestre) {
+      var ctx = getCurrentContext();
+      var salas = getSalasDoAno(ctx.turma);
+      var result = {
+        salas: [],
+        medias: [],
+        melhoresAnglo: [],
+        melhoresProva: [],
+        melhoresPB: []
+      };
+
+      salas.forEach(function(sala) {
+        if (!Store.hasPB(materia)) return;
+        var pb = Store.getPB(sala, materia, bimestre);
+        var students = Store.getStudents(sala, materia, bimestre);
+
+        if (students.length === 0) return;
+
+        var totalMedia = 0;
+        var melhorAnglo = { nome: '', nota: -1, sala: sala };
+        var melhorProva = { nome: '', nota: -1, sala: sala };
+        var melhorPB = { nome: '', nota: -1, sala: sala };
+
+        students.forEach(function(s) {
+          var angloNorm = Store.getPBNormalizada(pb.anglo, s.numero);
+          var provaNorm = Store.getPBNormalizada(pb.prova, s.numero);
+          var pbMedia = Store.getPBMedia(sala, materia, bimestre, s.numero);
+
+          totalMedia += pbMedia;
+
+          if (angloNorm > melhorAnglo.nota) {
+            melhorAnglo = { nome: s.nome, nota: angloNorm, sala: sala };
+          }
+          if (provaNorm > melhorProva.nota) {
+            melhorProva = { nome: s.nome, nota: provaNorm, sala: sala };
+          }
+          if (pbMedia > melhorPB.nota) {
+            melhorPB = { nome: s.nome, nota: pbMedia, sala: sala };
+          }
+        });
+
+        result.salas.push(sala);
+        result.medias.push(students.length > 0 ? totalMedia / students.length : 0);
+        if (melhorAnglo.nota > 0) result.melhoresAnglo.push(melhorAnglo);
+        if (melhorProva.nota > 0) result.melhoresProva.push(melhorProva);
+        if (melhorPB.nota > 0) result.melhoresPB.push(melhorPB);
+      });
+
+      // Sort by nota descending
+      result.melhoresAnglo.sort(function(a, b) { return b.nota - a.nota; });
+      result.melhoresProva.sort(function(a, b) { return b.nota - a.nota; });
+      result.melhoresPB.sort(function(a, b) { return b.nota - a.nota; });
+
+      return result;
+    }
+
+    function renderDashboard() {
+      var ctx = getCurrentContext();
+      var dashboard = document.getElementById('pbDashboard');
+
+      // Check if matéria has PB
+      if (!Store.hasPB(ctx.materia)) {
+        dashboard.innerHTML = '';
+        return;
+      }
+
+      var data = getPBComparativeData(ctx.materia, ctx.bimestre);
+
+      if (data.salas.length === 0) {
+        dashboard.innerHTML = '';
+        return;
+      }
+
+      var html = '';
+      html += '<div style="border-top:2px solid var(--gray-100);padding-top:32px;margin-top:16px;">';
+      html += '<h2 style="font-size:1.1rem;font-weight:800;color:var(--dark);margin-bottom:20px;display:flex;align-items:center;gap:10px;">';
+      html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>';
+      html += 'Dashboard Comparativo — ' + ctx.materia + ' (' + Store.BIMESTRE_LABELS[ctx.bimestre] + ')';
+      html += '</h2>';
+
+      // Grid with rankings
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:24px;">';
+
+      // Best Anglo scores
+      html += '<div class="card">';
+      html += '<div class="card-header" style="background:#DBEAFE;"><h3 style="color:#1D4ED8;">🏆 Melhores Notas — Anglo</h3></div>';
+      html += '<div class="card-body">';
+      if (data.melhoresAnglo.length === 0) {
+        html += '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados disponíveis</p>';
+      } else {
+        data.melhoresAnglo.forEach(function(m, i) {
+          var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + 'º';
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100);">';
+          html += '<div style="display:flex;align-items:center;gap:10px;">';
+          html += '<span style="font-size:1.2rem;">' + medal + '</span>';
+          html += '<div><span style="font-weight:600;color:var(--dark);">' + m.nome.split(' ')[0] + '</span>';
+          html += '<span style="font-size:0.7rem;color:var(--gray-400);display:block;">Turma ' + m.sala + '</span></div>';
+          html += '</div>';
+          html += '<span class="badge badge-green" style="font-size:0.9rem;">' + m.nota.toFixed(1) + '</span>';
+          html += '</div>';
+        });
+      }
+      html += '</div></div>';
+
+      // Best Prova scores
+      html += '<div class="card">';
+      html += '<div class="card-header" style="background:#FEE2E2;"><h3 style="color:#991B1B;">🏆 Melhores Notas — Prova</h3></div>';
+      html += '<div class="card-body">';
+      if (data.melhoresProva.length === 0) {
+        html += '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados disponíveis</p>';
+      } else {
+        data.melhoresProva.forEach(function(m, i) {
+          var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + 'º';
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100);">';
+          html += '<div style="display:flex;align-items:center;gap:10px;">';
+          html += '<span style="font-size:1.2rem;">' + medal + '</span>';
+          html += '<div><span style="font-weight:600;color:var(--dark);">' + m.nome.split(' ')[0] + '</span>';
+          html += '<span style="font-size:0.7rem;color:var(--gray-400);display:block;">Turma ' + m.sala + '</span></div>';
+          html += '</div>';
+          html += '<span class="badge badge-green" style="font-size:0.9rem;">' + m.nota.toFixed(1) + '</span>';
+          html += '</div>';
+        });
+      }
+      html += '</div></div>';
+
+      // Best PB média
+      html += '<div class="card">';
+      html += '<div class="card-header" style="background:var(--green);"><h3 style="color:#fff;">🏆 Melhores Médias — PB</h3></div>';
+      html += '<div class="card-body">';
+      if (data.melhoresPB.length === 0) {
+        html += '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados disponíveis</p>';
+      } else {
+        data.melhoresPB.forEach(function(m, i) {
+          var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + 'º';
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100);">';
+          html += '<div style="display:flex;align-items:center;gap:10px;">';
+          html += '<span style="font-size:1.2rem;">' + medal + '</span>';
+          html += '<div><span style="font-weight:600;color:var(--dark);">' + m.nome.split(' ')[0] + '</span>';
+          html += '<span style="font-size:0.7rem;color:var(--gray-400);display:block;">Turma ' + m.sala + '</span></div>';
+          html += '</div>';
+          html += '<span class="badge badge-green" style="font-size:0.9rem;">' + m.nota.toFixed(1) + '</span>';
+          html += '</div>';
+        });
+      }
+      html += '</div></div>';
+
+      html += '</div>';
+
+      // Chart - Média por Sala
+      html += '<div class="card">';
+      html += '<div class="card-header"><h3>Média PB por Turma — ' + ctx.materia + '</h3></div>';
+      html += '<div class="card-body" style="height:280px;"><canvas id="chartPBComparativo"></canvas></div>';
+      html += '</div>';
+
+      html += '</div>';
+      dashboard.innerHTML = html;
+
+      // Render chart
+      if (chartPBComparativo) chartPBComparativo.destroy();
+      var chartCtx = document.getElementById('chartPBComparativo');
+      if (chartCtx && data.salas.length > 0) {
+        var colors = data.medias.map(function(m) { return m >= 6 ? '#11C76F' : '#F87171'; });
+        chartPBComparativo = new Chart(chartCtx, {
+          type: 'bar',
+          data: {
+            labels: data.salas,
+            datasets: [{
+              label: 'Média PB',
+              data: data.medias.map(function(m) { return parseFloat(m.toFixed(1)); }),
+              backgroundColor: colors,
+              borderRadius: 8,
+              borderSkipped: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: { beginAtZero: true, max: 10, grid: { color: '#f3f4f6' } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
+    }
+
+    // Call dashboard on context change
+    var originalOnContextChange = onContextChange;
+    onContextChange = function() {
+      originalOnContextChange();
+      renderDashboard();
+    };
+
+    // Initial dashboard render
+    renderDashboard();
   </script>
 </body>
 </html>
