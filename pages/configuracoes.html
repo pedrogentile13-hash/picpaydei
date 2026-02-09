@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurações — picpay.de.i</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .manual-section { margin-bottom:24px; }
+    .manual-card { background:#fff; border-radius:1.25rem; border:1px solid var(--gray-100); overflow:hidden; margin-bottom:12px; }
+    .manual-card-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; cursor:pointer; transition:background 0.15s; }
+    .manual-card-head:hover { background:var(--gray-50); }
+    .manual-card-head h3 { font-size:0.95rem; font-weight:700; color:var(--dark); display:flex; align-items:center; gap:12px; margin:0; }
+    .manual-card-head .step-num { width:32px; height:32px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; }
+    .manual-card-head .arrow { font-size:0.8rem; color:var(--gray-400); transition:transform 0.2s; }
+    .manual-card-head.open .arrow { transform:rotate(180deg); }
+    .manual-card-body { display:none; padding:0 20px 20px 64px; }
+    .manual-card-body.open { display:block; }
+    .manual-card-body p { color:var(--gray-600); font-size:0.85rem; line-height:1.7; margin-bottom:12px; }
+    .manual-card-body ul { margin:0 0 12px 20px; color:var(--gray-600); font-size:0.85rem; }
+    .manual-card-body ul li { margin-bottom:6px; }
+    .manual-card-body .tip { background:#FEF3C7; border-left:4px solid #F59E0B; padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; }
+    .manual-card-body .tip strong { color:#92400E; }
+    .manual-card-body .tip p { color:#92400E; margin:0; }
+    .manual-card-body .example { background:var(--gray-50); border-radius:8px; padding:12px 16px; font-family:monospace; font-size:0.8rem; color:var(--dark); margin:12px 0; }
+    .manual-card-body img { max-width:100%; border-radius:8px; margin:12px 0; border:1px solid var(--gray-200); }
+    .category-title { font-size:0.75rem; font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:0.05em; margin:32px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--gray-100); }
+    .formula-box { background:linear-gradient(135deg, #11C76F 0%, #0EA85E 100%); color:#fff; padding:20px; border-radius:12px; margin:16px 0; }
+    .formula-box h4 { font-size:0.85rem; font-weight:700; margin-bottom:8px; opacity:0.9; }
+    .formula-box .formula { font-family:monospace; font-size:1.1rem; font-weight:700; }
+    .shortcut-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:16px 0; }
+    .shortcut-item { background:var(--gray-50); padding:12px 16px; border-radius:8px; display:flex; align-items:center; gap:12px; }
+    .shortcut-item kbd { background:var(--dark); color:#fff; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; }
+    .shortcut-item span { font-size:0.85rem; color:var(--gray-600); }
+    .expand-all-btn { padding:8px 16px; border-radius:8px; border:1px solid var(--gray-200); background:#fff; font-size:0.8rem; font-weight:600; color:var(--gray-600); cursor:pointer; transition:all 0.15s; }
+    .expand-all-btn:hover { border-color:var(--green); color:var(--green); }
+  </style>
+</head>
+<body>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/components.js"></script>
+
+  <div id="app"></div>
+
+  <script>
+    document.getElementById('app').innerHTML =
+      Components.sidebar('configuracoes') +
+      '<div class="main-content">' +
+        Components.topbar('Configurações', false) +
+        '<div class="page-container">' +
+
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">' +
+            '<div>' +
+              '<h2 style="font-size:1.2rem;font-weight:800;color:var(--dark);margin-bottom:4px;">Manual de Instruções</h2>' +
+              '<p style="font-size:0.85rem;color:var(--gray-500);">Aprenda a usar todas as funcionalidades do picpay.de.i</p>' +
+            '</div>' +
+            '<button class="expand-all-btn" onclick="toggleAll()">Expandir Tudo</button>' +
+          '</div>' +
+
+          '<div id="manualContent"></div>' +
+
+        '</div>' +
+        Components.footer() +
+      '</div>';
+
+    var allExpanded = false;
+
+    function toggleAll() {
+      allExpanded = !allExpanded;
+      var btn = document.querySelector('.expand-all-btn');
+      btn.textContent = allExpanded ? 'Recolher Tudo' : 'Expandir Tudo';
+      document.querySelectorAll('.manual-card').forEach(function(card) {
+        var head = card.querySelector('.manual-card-head');
+        var body = card.querySelector('.manual-card-body');
+        if (allExpanded) {
+          head.classList.add('open');
+          body.classList.add('open');
+        } else {
+          head.classList.remove('open');
+          body.classList.remove('open');
+        }
+      });
+    }
+
+    function toggleManualCard(el) {
+      var head = el;
+      var body = el.nextElementSibling;
+      head.classList.toggle('open');
+      body.classList.toggle('open');
+    }
+
+    var manualData = [
+      {
+        category: 'Primeiros Passos',
+        items: [
+          {
+            title: 'Entendendo a Interface',
+            content: `
+              <p>O <strong>picpay.de.i</strong> é um sistema de gerenciamento escolar com navegação intuitiva:</p>
+              <ul>
+                <li><strong>Sidebar (Menu Lateral):</strong> Acesso rápido a todas as páginas</li>
+                <li><strong>Topbar (Barra Superior):</strong> Seleção de Bimestre, Turma e Matéria</li>
+                <li><strong>Área Principal:</strong> Conteúdo da página atual</li>
+              </ul>
+              <div class="tip">
+                <p><strong>Dica:</strong> Em dispositivos móveis, clique no ícone ☰ para abrir o menu lateral.</p>
+              </div>
+            `
+          },
+          {
+            title: 'Selecionando o Contexto (Turma/Matéria/Bimestre)',
+            content: `
+              <p>Antes de qualquer ação, selecione o contexto correto na barra superior:</p>
+              <ul>
+                <li><strong>Bimestre:</strong> 1º, 2º, 3º ou 4º Bimestre</li>
+                <li><strong>Turma:</strong> 6A-6D, 8A-8C ou 9A-9D</li>
+                <li><strong>Matéria:</strong> Varia conforme a turma selecionada</li>
+              </ul>
+              <p>As matérias disponíveis por ano:</p>
+              <ul>
+                <li><strong>6º Ano:</strong> LEM, Produção de Texto</li>
+                <li><strong>8º Ano:</strong> Português, Produção de Texto</li>
+                <li><strong>9º Ano:</strong> LEM</li>
+              </ul>
+              <div class="tip">
+                <p><strong>Importante:</strong> O contexto é salvo automaticamente. Ao reabrir o site, você volta para a última seleção.</p>
+              </div>
+            `
+          }
+        ]
+      },
+      {
+        category: 'Gerenciamento de Alunos',
+        items: [
+          {
+            title: 'Cadastrando Alunos',
+            content: `
+              <p>Na página <strong>Alunos</strong>, você pode cadastrar alunos de duas formas:</p>
+              <p><strong>1. Cadastro Individual:</strong></p>
+              <ul>
+                <li>Digite o número do aluno (1-50)</li>
+                <li>Digite o nome completo</li>
+                <li>Clique em "Adicionar"</li>
+              </ul>
+              <p><strong>2. Importação por CSV:</strong></p>
+              <ul>
+                <li>Clique no botão "Importar CSV"</li>
+                <li>Selecione um arquivo .csv com o formato:</li>
+              </ul>
+              <div class="example">
+                1,João Silva<br>
+                2,Maria Santos<br>
+                3,Pedro Oliveira
+              </div>
+              <div class="tip">
+                <p><strong>Dica:</strong> Use o botão "Copiar para outro Bimestre" para duplicar a lista de alunos.</p>
+              </div>
+            `
+          },
+          {
+            title: 'Excluindo Alunos',
+            content: `
+              <p>Existem duas opções para excluir alunos:</p>
+              <ul>
+                <li><strong>Individual:</strong> Clique no ícone de lixeira ao lado do aluno</li>
+                <li><strong>Todos:</strong> Clique no botão "Apagar Todos" para remover todos os alunos da turma atual</li>
+              </ul>
+              <div class="tip">
+                <p><strong>Atenção:</strong> A exclusão é permanente. Todas as notas do aluno também serão removidas.</p>
+              </div>
+            `
+          }
+        ]
+      },
+      {
+        category: 'Sistema de Negativos',
+        items: [
+          {
+            title: 'Como Funcionam os Negativos',
+            content: `
+              <p>Os negativos são penalizações que afetam a nota de Qualitativa:</p>
+              <div class="formula-box">
+                <h4>Fórmula de Ajuste</h4>
+                <div class="formula">Quali Ajustada = Quali - (Negativos × 0.1)</div>
+              </div>
+              <p>Exemplo: Se o aluno tem Quali = 8.0 e 5 negativos:</p>
+              <div class="example">Quali Ajustada = 8.0 - (5 × 0.1) = 8.0 - 0.5 = 7.5</div>
+              <ul>
+                <li>Cada negativo reduz 0.1 ponto da Qualitativa</li>
+                <li>Máximo de 100 negativos por aluno</li>
+                <li>A Qualitativa ajustada nunca fica abaixo de 0</li>
+              </ul>
+            `
+          },
+          {
+            title: 'Adicionando/Removendo Negativos',
+            content: `
+              <p>Na página <strong>Negativos</strong>:</p>
+              <ul>
+                <li>Clique em <strong>+</strong> para adicionar um negativo</li>
+                <li>Clique em <strong>-</strong> para remover um negativo</li>
+                <li>O contador é atualizado instantaneamente</li>
+              </ul>
+              <div class="tip">
+                <p><strong>Dica:</strong> Use a visualização do Dashboard para ver quem tem mais negativos.</p>
+              </div>
+            `
+          }
+        ]
+      },
+      {
+        category: 'Verificações de Aprendizagem (VA)',
+        items: [
+          {
+            title: 'Criando uma VA',
+            content: `
+              <p>Na página <strong>VA</strong>, crie atividades avaliativas:</p>
+              <ul>
+                <li><strong>Nome:</strong> Ex: "Trabalho sobre verbos"</li>
+                <li><strong>Tipo:</strong> Trabalho, Escrita, Caderno, Apresentação, Participação, Prova ou Outro</li>
+                <li><strong>Valor Máximo:</strong> A nota máxima possível (ex: 10, 20, 100)</li>
+              </ul>
+              <div class="tip">
+                <p><strong>Importante:</strong> Ao criar uma VA no 6A, ela é automaticamente criada em 6B, 6C e 6D!</p>
+              </div>
+            `
+          },
+          {
+            title: 'Normalização de Notas',
+            content: `
+              <p>Todas as notas de VA são normalizadas para a escala 0-10:</p>
+              <div class="formula-box">
+                <h4>Fórmula de Normalização</h4>
+                <div class="formula">Nota Normalizada = (Nota Bruta / Valor Máximo) × 10</div>
+              </div>
+              <p>Exemplo: VA com valor máximo 20, aluno tirou 15:</p>
+              <div class="example">Nota Normalizada = (15 / 20) × 10 = 7.5</div>
+              <p>A média de VA é calculada como a média de todas as VAs normalizadas.</p>
+            `
+          },
+          {
+            title: 'Dashboard de VAs',
+            content: `
+              <p>Acesse <strong>↳ Dashboard VA</strong> no menu para ver:</p>
+              <ul>
+                <li>Comparativo de desempenho <strong>por VA específica</strong></li>
+                <li>Ranking das melhores notas de cada turma</li>
+                <li>Gráfico comparativo de médias por turma</li>
+                <li>Estatísticas: média geral, melhor turma, turma a melhorar</li>
+              </ul>
+              <div class="tip">
+                <p><strong>Dica:</strong> Use os filtros para navegar entre anos, matérias e bimestres.</p>
+              </div>
+            `
+          }
+        ]
+      },
+      {
+        category: 'Prova Bimestral (PB)',
+        items: [
+          {
+            title: 'Entendendo a Prova Bimestral',
+            content: `
+              <p>A Prova Bimestral é composta por duas avaliações:</p>
+              <ul>
+                <li><strong>Anglo:</strong> Peso 1</li>
+                <li><strong>Prova Bimestral:</strong> Peso 5</li>
+              </ul>
+              <div class="formula-box">
+                <h4>Fórmula da Média PB</h4>
+                <div class="formula">Média PB = (Anglo×1 + Prova×5) / 6</div>
+              </div>
+              <div class="tip">
+                <p><strong>Importante:</strong> A PB só está disponível para Português e Produção de Texto. LEM não possui PB.</p>
+              </div>
+            `
+          },
+          {
+            title: 'Lançando Notas de PB',
+            content: `
+              <p>Na página <strong>Prova Bimestral</strong>:</p>
+              <ul>
+                <li>Defina o valor máximo de cada prova (padrão: 10)</li>
+                <li>Lance as notas brutas de cada aluno</li>
+                <li>As notas são normalizadas automaticamente para 0-10</li>
+                <li>A média PB é calculada em tempo real</li>
+              </ul>
+              <p>Você também pode importar notas via CSV no formato:</p>
+              <div class="example">1,8.5<br>2,9.0<br>3,7.5</div>
+            `
+          },
+          {
+            title: 'Dashboard de PB',
+            content: `
+              <p>Acesse <strong>↳ Dashboard PB</strong> no menu para ver:</p>
+              <ul>
+                <li>Ranking de melhores notas em Anglo</li>
+                <li>Ranking de melhores notas em Prova</li>
+                <li>Ranking de melhores médias PB</li>
+                <li>Gráficos comparativos por turma</li>
+              </ul>
+            `
+          }
+        ]
+      },
+      {
+        category: 'Cálculo da Média Final',
+        items: [
+          {
+            title: 'Fórmula Completa (Português/Produção de Texto)',
+            content: `
+              <p>Para matérias com Prova Bimestral:</p>
+              <div class="formula-box">
+                <h4>Média Final</h4>
+                <div class="formula">M = (PB×35 + Quali×30 + VA×35) / 100</div>
+              </div>
+              <p>Onde:</p>
+              <ul>
+                <li><strong>PB (35%):</strong> Média da Prova Bimestral</li>
+                <li><strong>Quali (30%):</strong> Qualitativa ajustada (descontando negativos)</li>
+                <li><strong>VA (35%):</strong> Média das Verificações de Aprendizagem</li>
+              </ul>
+            `
+          },
+          {
+            title: 'Fórmula LEM (sem PB)',
+            content: `
+              <p>Para LEM, que não possui Prova Bimestral:</p>
+              <div class="formula-box">
+                <h4>Média Final - LEM</h4>
+                <div class="formula">M = (Quali×30 + VA×35) / 65</div>
+              </div>
+              <p>A pontuação é redistribuída proporcionalmente entre Qualitativa e VA.</p>
+            `
+          }
+        ]
+      },
+      {
+        category: 'Boletim e Relatórios',
+        items: [
+          {
+            title: 'Visualizando o Boletim',
+            content: `
+              <p>Na página <strong>Boletim</strong>, veja todas as notas consolidadas:</p>
+              <ul>
+                <li>Notas de PB (Anglo e Prova normalizadas)</li>
+                <li>Qualitativa original e ajustada</li>
+                <li>Média de VA</li>
+                <li>Média Final com indicador visual (verde ≥6, vermelho <6)</li>
+              </ul>
+            `
+          },
+          {
+            title: 'Gerando Relatórios',
+            content: `
+              <p>Na página <strong>Relatórios</strong>, filtre os dados por:</p>
+              <ul>
+                <li>Visão Geral (todas as turmas)</li>
+                <li>Por Sala específica</li>
+                <li>Por Ano (6º, 8º, 9º)</li>
+                <li>Por Matéria</li>
+              </ul>
+              <p>Visualize estatísticas como total de alunos, média geral, aprovados/reprovados e rankings.</p>
+            `
+          }
+        ]
+      },
+      {
+        category: 'Sincronização e Backup',
+        items: [
+          {
+            title: 'Sincronização com a Nuvem',
+            content: `
+              <p>O sistema sincroniza automaticamente com o Firebase:</p>
+              <ul>
+                <li>Indicador <span style="color:var(--green);">●</span> <strong>Nuvem</strong> = conectado</li>
+                <li>Indicador <span style="color:var(--gray-400);">●</span> <strong>Offline</strong> = sem conexão</li>
+              </ul>
+              <p>Mesmo offline, os dados são salvos localmente e sincronizados quando a conexão voltar.</p>
+              <div class="tip">
+                <p><strong>Dica:</strong> Os dados são salvos a cada alteração. Não é necessário salvar manualmente.</p>
+              </div>
+            `
+          }
+        ]
+      }
+    ];
+
+    function renderManual() {
+      var html = '';
+      var stepNum = 1;
+
+      manualData.forEach(function(category) {
+        html += '<div class="category-title">' + category.category + '</div>';
+        html += '<div class="manual-section">';
+
+        category.items.forEach(function(item) {
+          html += '<div class="manual-card">';
+          html += '<div class="manual-card-head" onclick="toggleManualCard(this)">';
+          html += '<h3><span class="step-num">' + stepNum + '</span>' + item.title + '</h3>';
+          html += '<span class="arrow">▼</span>';
+          html += '</div>';
+          html += '<div class="manual-card-body">' + item.content + '</div>';
+          html += '</div>';
+          stepNum++;
+        });
+
+        html += '</div>';
+      });
+
+      document.getElementById('manualContent').innerHTML = html;
+    }
+
+    renderManual();
+  </script>
+</body>
+</html>

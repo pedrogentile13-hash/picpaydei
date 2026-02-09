@@ -152,6 +152,78 @@ a { text-decoration: none; color: inherit; }
 
 .sidebar-nav a.active svg { opacity: 1; }
 
+/* Collapsible Nav Groups */
+.nav-group {
+  margin-bottom: 2px;
+}
+
+.nav-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.nav-group-header:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.nav-group-header svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.nav-group-arrow {
+  font-size: 0.65rem;
+  opacity: 0.5;
+  transition: transform 0.2s;
+}
+
+.nav-group.open .nav-group-arrow {
+  transform: rotate(180deg);
+}
+
+.nav-group-children {
+  display: none;
+  padding-left: 20px;
+  margin-top: 2px;
+}
+
+.nav-group.open .nav-group-children {
+  display: block;
+}
+
+.nav-group-children .nav-child {
+  display: block;
+  padding: 8px 14px 8px 24px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.6);
+  transition: all 0.15s;
+  margin-bottom: 2px;
+}
+
+.nav-group-children .nav-child:hover {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.9);
+}
+
+.nav-group-children .nav-child.active {
+  background: var(--green);
+  color: #fff;
+  font-weight: 600;
+}
+
 .sidebar-footer {
   padding: 16px 20px;
   border-top: 1px solid rgba(255,255,255,0.08);
