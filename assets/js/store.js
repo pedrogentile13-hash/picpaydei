@@ -622,12 +622,12 @@ const Store = (() => {
       Object.keys(data).forEach(function(key) {
         var parts = key.split('|');
         var turma = parts[0]; var bimestre = parts[2];
-        turmasSet[turma] = true;
         data[key].forEach(function(s) {
           // Deduplicate: count each student once per turma+bimestre
           var uid = turma + '|' + bimestre + '|' + s.numero;
           if (seen[uid]) return;
           seen[uid] = true;
+          turmasSet[turma] = true;
           totalAlunos++;
           totalNegativos += s.negativos;
         });
