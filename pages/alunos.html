@@ -142,8 +142,11 @@
       var ctx = getCurrentContext();
       var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
       if (students.length === 0) return alert('Não há alunos para apagar.');
-      if (!confirm('Apagar TODOS os ' + students.length + ' alunos da turma ' + ctx.turma + ' (' + ctx.materia + ', ' + Store.BIMESTRE_LABELS[ctx.bimestre] + ')?')) return;
-      Store.setStudents(ctx.turma, ctx.materia, ctx.bimestre, []);
+      if (!confirm('Apagar TODOS os ' + students.length + ' alunos da turma ' + ctx.turma + ' (' + Store.BIMESTRE_LABELS[ctx.bimestre] + ') de TODAS as matérias?')) return;
+      var materias = Store.getMaterias(ctx.turma);
+      materias.forEach(function(mat) {
+        Store.setStudents(ctx.turma, mat, ctx.bimestre, []);
+      });
       render();
     }
 

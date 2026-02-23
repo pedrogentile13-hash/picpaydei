@@ -238,18 +238,33 @@ const Store = (() => {
     },
 
     addStudent: function(turma, materia, bimestre, numero, nome) {
+      // Check if already exists in the requested matéria
       var students = this.getStudents(turma, materia, bimestre);
       if (students.find(function(s) { return s.numero === numero; })) return false;
-      students.push({ numero: numero, nome: nome, negativos: 0, quali: 0, pb: 0, va: 0 });
-      students.sort(function(a, b) { return a.numero - b.numero; });
-      this.setStudents(turma, materia, bimestre, students);
+
+      // Propagate to all matérias of this turma
+      var materias = this.getMaterias(turma);
+      var self = this;
+      materias.forEach(function(mat) {
+        var list = self.getStudents(turma, mat, bimestre);
+        if (!list.find(function(s) { return s.numero === numero; })) {
+          list.push({ numero: numero, nome: nome, negativos: 0, quali: 0, pb: 0, va: 0 });
+          list.sort(function(a, b) { return a.numero - b.numero; });
+          self.setStudents(turma, mat, bimestre, list);
+        }
+      });
       return true;
     },
 
     removeStudent: function(turma, materia, bimestre, numero) {
-      var students = this.getStudents(turma, materia, bimestre);
-      students = students.filter(function(s) { return s.numero !== numero; });
-      this.setStudents(turma, materia, bimestre, students);
+      // Remove from all matérias of this turma
+      var materias = this.getMaterias(turma);
+      var self = this;
+      materias.forEach(function(mat) {
+        var students = self.getStudents(turma, mat, bimestre);
+        students = students.filter(function(s) { return s.numero !== numero; });
+        self.setStudents(turma, mat, bimestre, students);
+      });
     },
 
     updateNegativo: function(turma, materia, bimestre, numero, delta) {
@@ -462,38 +477,77 @@ const Store = (() => {
     },
 
     importCSV: function(turma, materia, bimestre, csvText) {
-      var students = this.getStudents(turma, materia, bimestre);
       var lines = csvText.split('\n').filter(function(l) { return l.trim(); });
       var count = 0;
+      var self = this;
+      var materias = this.getMaterias(turma);
+
+      // Parse new students from CSV first
+      var parsed = [];
       lines.forEach(function(line) {
         var parts = line.split(',');
         if (parts.length >= 2) {
           var numero = parseInt(parts[0].trim());
           var nome = parts[1].trim();
           var negativos = parts[2] ? parseInt(parts[2].trim()) || 0 : 0;
-          if (numero && nome && !students.find(function(s) { return s.numero === numero; })) {
-            students.push({ numero: numero, nome: nome, negativos: negativos, quali: 0, pb: 0, va: 0 });
-            count++;
-          }
+          if (numero && nome) parsed.push({ numero: numero, nome: nome, negativos: negativos });
         }
       });
-      students.sort(function(a, b) { return a.numero - b.numero; });
-      this.setStudents(turma, materia, bimestre, students);
+
+      // Check count against the requested matéria
+      var students = this.getStudents(turma, materia, bimestre);
+      parsed.forEach(function(p) {
+        if (!students.find(function(s) { return s.numero === p.numero; })) count++;
+      });
+
+      // Add to all matérias of this turma
+      materias.forEach(function(mat) {
+        var list = self.getStudents(turma, mat, bimestre);
+        var changed = false;
+        parsed.forEach(function(p) {
+          if (!list.find(function(s) { return s.numero === p.numero; })) {
+            list.push({ numero: p.numero, nome: p.nome, negativos: p.negativos, quali: 0, pb: 0, va: 0 });
+            changed = true;
+          }
+        });
+        if (changed) {
+          list.sort(function(a, b) { return a.numero - b.numero; });
+          self.setStudents(turma, mat, bimestre, list);
+        }
+      });
+
       return count;
     },
 
     copyStudentsToBimestre: function(turma, materia, fromBim, toBim) {
       var from = this.getStudents(turma, materia, fromBim);
-      var to = this.getStudents(turma, materia, toBim);
       var count = 0;
+      var self = this;
+      var materias = this.getMaterias(turma);
+
+      // Count new students based on the requested matéria
+      var to = this.getStudents(turma, materia, toBim);
       from.forEach(function(s) {
-        if (!to.find(function(t) { return t.numero === s.numero; })) {
-          to.push({ numero: s.numero, nome: s.nome, negativos: 0, quali: 0, pb: 0, va: 0 });
-          count++;
+        if (!to.find(function(t) { return t.numero === s.numero; })) count++;
+      });
+
+      // Copy to all matérias of this turma
+      materias.forEach(function(mat) {
+        var fromList = self.getStudents(turma, mat, fromBim);
+        var toList = self.getStudents(turma, mat, toBim);
+        var changed = false;
+        fromList.forEach(function(s) {
+          if (!toList.find(function(t) { return t.numero === s.numero; })) {
+            toList.push({ numero: s.numero, nome: s.nome, negativos: 0, quali: 0, pb: 0, va: 0 });
+            changed = true;
+          }
+        });
+        if (changed) {
+          toList.sort(function(a, b) { return a.numero - b.numero; });
+          self.setStudents(turma, mat, toBim, toList);
         }
       });
-      to.sort(function(a, b) { return a.numero - b.numero; });
-      this.setStudents(turma, materia, toBim, to);
+
       return count;
     },
 
