@@ -556,6 +556,7 @@ const Store = (() => {
     getFilteredStudents: function(filter) {
       var data = _load(STORAGE_KEY);
       var results = [];
+      var seen = {};
       var self = this;
 
       Object.keys(data).forEach(function(key) {
@@ -571,6 +572,10 @@ const Store = (() => {
         }
         if (match) {
           data[key].forEach(function(s) {
+            // Deduplicate: count each student once per turma+bimestre
+            var uid = turma + '|' + bimestre + '|' + s.numero;
+            if (seen[uid]) return;
+            seen[uid] = true;
             var media = self.calcMediaFull(turma, materia, bimestre, s);
             results.push({
               turma: turma, materia: materia, bimestre: bimestre,
@@ -613,9 +618,19 @@ const Store = (() => {
     getAllStats: function() {
       var data = _load(STORAGE_KEY);
       var totalAlunos = 0; var totalNegativos = 0; var turmasSet = {};
+      var seen = {};
       Object.keys(data).forEach(function(key) {
-        turmasSet[key.split('|')[0]] = true;
-        data[key].forEach(function(s) { totalAlunos++; totalNegativos += s.negativos; });
+        var parts = key.split('|');
+        var turma = parts[0]; var bimestre = parts[2];
+        turmasSet[turma] = true;
+        data[key].forEach(function(s) {
+          // Deduplicate: count each student once per turma+bimestre
+          var uid = turma + '|' + bimestre + '|' + s.numero;
+          if (seen[uid]) return;
+          seen[uid] = true;
+          totalAlunos++;
+          totalNegativos += s.negativos;
+        });
       });
       return { totalAlunos: totalAlunos, totalNegativos: totalNegativos, turmasCount: Object.keys(turmasSet).length };
     },
