@@ -1,28 +1,26 @@
 /* ============================
    picpay.de.i — Auth Guard
    Redirects to login if not authenticated
+   Uses localStorage session (Firestore-based auth)
    ============================ */
 
 (function() {
-  // Determine login page path based on current location
+  var SESSION_KEY = 'picpay_dei_session';
   var isRoot = window.location.pathname.indexOf('/pages/') === -1;
   var loginPath = isRoot ? 'pages/login.html' : 'login.html';
 
-  firebase.auth().onAuthStateChanged(function(user) {
-    if (!user) {
+  try {
+    var session = JSON.parse(localStorage.getItem(SESSION_KEY));
+    if (!session || !session.username) {
       window.location.href = loginPath;
-    } else {
-      // Store user info for display
-      window._currentUser = {
-        uid: user.uid,
-        email: user.email,
-        username: user.displayName || user.email
-      };
-      // Show page content (hidden by default until auth check)
-      var app = document.getElementById('app');
-      if (app) app.style.visibility = 'visible';
-      // Trigger callback if defined
-      if (typeof onAuthReady === 'function') onAuthReady(user);
+      return;
     }
-  });
+    // Make session available globally
+    window._currentUser = session;
+    // Show page content
+    var app = document.getElementById('app');
+    if (app) app.style.visibility = 'visible';
+  } catch(e) {
+    window.location.href = loginPath;
+  }
 })();

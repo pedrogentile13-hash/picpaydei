@@ -180,19 +180,17 @@ function toggleNavGroup(groupId) {
   if (group) group.classList.toggle('open');
 }
 function doLogout() {
-  if (typeof firebase !== 'undefined' && firebase.auth) {
-    firebase.auth().signOut().then(function() {
-      var isRoot = window.location.pathname.indexOf('/pages/') === -1;
-      window.location.href = isRoot ? 'pages/login.html' : 'login.html';
-    });
-  }
+  localStorage.removeItem('picpay_dei_session');
+  var isRoot = window.location.pathname.indexOf('/pages/') === -1;
+  window.location.href = isRoot ? 'pages/login.html' : 'login.html';
 }
 // Show logged-in username in sidebar
-if (typeof firebase !== 'undefined' && firebase.auth) {
-  firebase.auth().onAuthStateChanged(function(user) {
+(function() {
+  try {
+    var session = JSON.parse(localStorage.getItem('picpay_dei_session'));
     var el = document.getElementById('sidebarUser');
-    if (el && user) {
-      el.textContent = user.displayName || user.email;
+    if (el && session && session.username) {
+      el.textContent = session.username;
     }
-  });
-}
+  } catch(e) {}
+})();
