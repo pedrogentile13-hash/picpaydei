@@ -11,6 +11,7 @@ const Components = (() => {
       { id: 'dashboard', label: 'Dashboard', href: 'dashboard.html', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>' },
       { id: 'alunos', label: 'Alunos', href: 'alunos.html', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>' },
       { id: 'negativos', label: 'Negativos', href: 'negativos.html', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>' },
+      { id: 'qualitativa', label: 'Qualitativa', href: 'qualitativa.html', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>' },
       {
         id: 'pb-group',
         label: 'Prova Bimestral',
@@ -84,7 +85,14 @@ const Components = (() => {
           '<span class="nav-section">Menu Principal</span>' +
           navHTML +
         '</nav>' +
-        '<div class="sidebar-footer">picpay.de.i &copy; ' + Store.ANO_LETIVO + ' &mdash; Prof. Aladdin</div>' +
+        '<div class="sidebar-footer">' +
+          '<div id="sidebarUser" style="font-size:0.7rem;color:var(--gray-400);margin-bottom:8px;"></div>' +
+          '<button onclick="doLogout()" style="background:none;border:1px solid var(--gray-300);border-radius:8px;padding:6px 14px;font-size:0.75rem;font-weight:700;color:var(--gray-500);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor=\'var(--red)\';this.style.color=\'var(--red)\'" onmouseout="this.style.borderColor=\'var(--gray-300)\';this.style.color=\'var(--gray-500)\'">' +
+            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>' +
+            'Sair' +
+          '</button>' +
+          '<div style="margin-top:8px;font-size:0.65rem;color:var(--gray-400);">picpay.de.i &copy; ' + Store.ANO_LETIVO + '</div>' +
+        '</div>' +
       '</aside>';
   }
 
@@ -170,4 +178,21 @@ function getCurrentContext() {
 function toggleNavGroup(groupId) {
   var group = document.querySelector('[data-group="' + groupId + '"]');
   if (group) group.classList.toggle('open');
+}
+function doLogout() {
+  if (typeof firebase !== 'undefined' && firebase.auth) {
+    firebase.auth().signOut().then(function() {
+      var isRoot = window.location.pathname.indexOf('/pages/') === -1;
+      window.location.href = isRoot ? 'pages/login.html' : 'login.html';
+    });
+  }
+}
+// Show logged-in username in sidebar
+if (typeof firebase !== 'undefined' && firebase.auth) {
+  firebase.auth().onAuthStateChanged(function(user) {
+    var el = document.getElementById('sidebarUser');
+    if (el && user) {
+      el.textContent = user.displayName || user.email;
+    }
+  });
 }

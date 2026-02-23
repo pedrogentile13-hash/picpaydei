@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — picpay.de.i</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    body { background: var(--bg); display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; }
+    .login-container { width:100%; max-width:420px; padding:20px; }
+    .login-card {
+      background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-lg);
+      padding:40px 32px; text-align:center;
+    }
+    .login-logo {
+      width:72px; height:72px; background:var(--green); border-radius:20px;
+      display:inline-flex; align-items:center; justify-content:center;
+      margin-bottom:20px; box-shadow:0 8px 30px rgba(17,199,111,0.3);
+    }
+    .login-logo span { font-size:2rem; font-weight:900; color:#fff; }
+    .login-card h1 { font-size:1.8rem; font-weight:900; color:var(--dark); margin:0 0 4px; letter-spacing:-0.03em; }
+    .login-card p.sub { font-size:0.85rem; color:var(--gray-400); margin:0 0 28px; font-weight:500; }
+    .login-tabs {
+      display:flex; background:var(--gray-100); border-radius:10px; padding:4px; margin-bottom:24px;
+    }
+    .login-tab {
+      flex:1; padding:10px; border:none; background:transparent; border-radius:8px;
+      font-weight:700; font-size:0.85rem; color:var(--gray-400); cursor:pointer; transition:all 0.2s;
+    }
+    .login-tab.active { background:#fff; color:var(--dark); box-shadow:var(--shadow-sm); }
+    .login-field { margin-bottom:16px; text-align:left; }
+    .login-field label { display:block; font-size:0.78rem; font-weight:700; color:var(--gray-500); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em; }
+    .login-field input {
+      width:100%; padding:12px 14px; border:2px solid var(--gray-200); border-radius:10px;
+      font-size:0.95rem; font-weight:500; outline:none; transition:border-color 0.2s;
+      box-sizing:border-box;
+    }
+    .login-field input:focus { border-color:var(--green); }
+    .login-btn {
+      width:100%; padding:14px; border:none; border-radius:10px;
+      background:var(--green); color:#fff; font-size:1rem; font-weight:800;
+      cursor:pointer; transition:background 0.2s; margin-top:8px;
+    }
+    .login-btn:hover { background:var(--green-hover); }
+    .login-btn:disabled { opacity:0.6; cursor:not-allowed; }
+    .login-error {
+      background:#FEF2F2; color:var(--red); padding:10px 14px; border-radius:8px;
+      font-size:0.8rem; font-weight:600; margin-bottom:16px; display:none;
+    }
+    .login-success {
+      background:var(--light); color:var(--dark); padding:10px 14px; border-radius:8px;
+      font-size:0.8rem; font-weight:600; margin-bottom:16px; display:none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../assets/js/firebase-config.js"></script>
+
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-logo"><span>P</span></div>
+      <h1>picpay.de.i</h1>
+      <p class="sub">Sistema de Gestão Escolar</p>
+
+      <div class="login-tabs">
+        <button class="login-tab active" onclick="switchTab('login')">Entrar</button>
+        <button class="login-tab" onclick="switchTab('register')">Cadastrar</button>
+      </div>
+
+      <div id="errorMsg" class="login-error"></div>
+      <div id="successMsg" class="login-success"></div>
+
+      <!-- Login Form -->
+      <div id="loginForm">
+        <div class="login-field">
+          <label>E-mail</label>
+          <input type="email" id="loginEmail" placeholder="seu@email.com" />
+        </div>
+        <div class="login-field">
+          <label>Senha</label>
+          <input type="password" id="loginPassword" placeholder="Sua senha" />
+        </div>
+        <button class="login-btn" onclick="doLogin()" id="btnLogin">Entrar</button>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerForm" style="display:none;">
+        <div class="login-field">
+          <label>Nome de Usuário</label>
+          <input type="text" id="regUsername" placeholder="Professor Silva" />
+        </div>
+        <div class="login-field">
+          <label>E-mail</label>
+          <input type="email" id="regEmail" placeholder="seu@email.com" />
+        </div>
+        <div class="login-field">
+          <label>Senha</label>
+          <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" />
+        </div>
+        <div class="login-field">
+          <label>Confirmar Senha</label>
+          <input type="password" id="regPasswordConfirm" placeholder="Repita a senha" />
+        </div>
+        <button class="login-btn" onclick="doRegister()" id="btnRegister">Criar Conta</button>
+      </div>
+
+      <p style="margin-top:20px;font-size:0.75rem;color:var(--gray-400);">picpay.de.i &copy; 2026 — Prof. Aladdin</p>
+    </div>
+  </div>
+
+  <script>
+    // Check if already logged in
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        window.location.href = '../index.html';
+      }
+    });
+
+    function switchTab(tab) {
+      var tabs = document.querySelectorAll('.login-tab');
+      tabs[0].className = 'login-tab' + (tab === 'login' ? ' active' : '');
+      tabs[1].className = 'login-tab' + (tab === 'register' ? ' active' : '');
+      document.getElementById('loginForm').style.display = tab === 'login' ? '' : 'none';
+      document.getElementById('registerForm').style.display = tab === 'register' ? '' : 'none';
+      hideMessages();
+    }
+
+    function showError(msg) {
+      var el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.style.display = '';
+      document.getElementById('successMsg').style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      var el = document.getElementById('successMsg');
+      el.textContent = msg;
+      el.style.display = '';
+      document.getElementById('errorMsg').style.display = 'none';
+    }
+
+    function hideMessages() {
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'none';
+    }
+
+    function translateError(code) {
+      var msgs = {
+        'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
+        'auth/invalid-email': 'E-mail inválido.',
+        'auth/weak-password': 'Senha muito fraca (mínimo 6 caracteres).',
+        'auth/user-not-found': 'Usuário não encontrado.',
+        'auth/wrong-password': 'Senha incorreta.',
+        'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde.',
+        'auth/invalid-credential': 'Credenciais inválidas. Verifique e-mail e senha.',
+      };
+      return msgs[code] || 'Erro: ' + code;
+    }
+
+    function doLogin() {
+      var email = document.getElementById('loginEmail').value.trim();
+      var password = document.getElementById('loginPassword').value;
+      if (!email || !password) return showError('Preencha todos os campos.');
+      hideMessages();
+
+      var btn = document.getElementById('btnLogin');
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(function() {
+          window.location.href = '../index.html';
+        })
+        .catch(function(err) {
+          showError(translateError(err.code));
+          btn.disabled = false;
+          btn.textContent = 'Entrar';
+        });
+    }
+
+    function doRegister() {
+      var username = document.getElementById('regUsername').value.trim();
+      var email = document.getElementById('regEmail').value.trim();
+      var password = document.getElementById('regPassword').value;
+      var confirm = document.getElementById('regPasswordConfirm').value;
+
+      if (!username || !email || !password || !confirm) return showError('Preencha todos os campos.');
+      if (password !== confirm) return showError('As senhas não coincidem.');
+      if (password.length < 6) return showError('Senha deve ter no mínimo 6 caracteres.');
+      hideMessages();
+
+      var btn = document.getElementById('btnRegister');
+      btn.disabled = true;
+      btn.textContent = 'Criando conta...';
+
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(function(cred) {
+          // Save username to Firestore
+          return db.collection('users').doc(cred.user.uid).set({
+            username: username,
+            email: email,
+            createdAt: new Date().toISOString()
+          });
+        })
+        .then(function() {
+          // Update display name
+          return firebase.auth().currentUser.updateProfile({ displayName: username });
+        })
+        .then(function() {
+          window.location.href = '../index.html';
+        })
+        .catch(function(err) {
+          showError(translateError(err.code));
+          btn.disabled = false;
+          btn.textContent = 'Criar Conta';
+        });
+    }
+
+    // Enter key support
+    document.getElementById('loginPassword').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('loginEmail').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('regPasswordConfirm').addEventListener('keydown', function(e) { if (e.key === 'Enter') doRegister(); });
+  </script>
+</body>
+</html>
