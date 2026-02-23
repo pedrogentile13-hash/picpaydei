@@ -1,0 +1,22 @@
+{
+  "name": "picpay-dei-site",
+  "version": "1.0.0",
+  "description": "Sistema de Gerenciamento Escolar - picpay.de.i",
+  "main": "index.js",
+  "scripts": {
+    "generate-pptx": "node generate-pptx.js"
+  },
+  "keywords": [
+    "education",
+    "management",
+    "school",
+    "firebase",
+    "pwa"
+  ],
+  "author": "Prof. Aladdin",
+  "license": "MIT",
+  "devDependencies": {
+    "pptxgenjs": "^3.12.0"
+  },
+  "optionalDependencies": {}
+}

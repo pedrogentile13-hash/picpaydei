@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>picpay.de.i - Apresentação do Projeto</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .slide {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      page-break-after: always;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Cores e gradientes */
+    .slide-title {
+      background: linear-gradient(135deg, #11C76F 0%, #0EA85E 100%);
+      color: white;
+    }
+
+    .slide-content {
+      background: #f9fafb;
+    }
+
+    .slide-content h1 {
+      font-size: 3rem;
+      margin-bottom: 40px;
+      color: #005542;
+      text-align: center;
+    }
+
+    .slide-content h2 {
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      color: #11C76F;
+      border-bottom: 3px solid #11C76F;
+      padding-bottom: 15px;
+    }
+
+    .slide-title h1 {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .slide-title p {
+      font-size: 1.5rem;
+      opacity: 0.95;
+      margin-bottom: 10px;
+    }
+
+    .slide-title .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.85;
+      margin-top: 20px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .content-item {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      border-left: 5px solid #11C76F;
+    }
+
+    .content-item h3 {
+      color: #005542;
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+    }
+
+    .content-item ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .content-item li {
+      margin-bottom: 12px;
+      padding-left: 30px;
+      position: relative;
+      font-size: 1rem;
+    }
+
+    .content-item li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #11C76F;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .feature-box {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: start;
+      gap: 15px;
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: #11C76F;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .feature-text h4 {
+      color: #005542;
+      margin-bottom: 5px;
+    }
+
+    .feature-text p {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .formula-box {
+      background: linear-gradient(135deg, #11C76F 0%, #0EA85E 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 12px;
+      margin: 15px 0;
+      text-align: center;
+    }
+
+    .formula-box .formula {
+      font-family: 'Courier New', monospace;
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .stat {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .stat-number {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #11C76F;
+      margin-bottom: 10px;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 1rem;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 30px;
+      right: 40px;
+      font-size: 0.9rem;
+      color: #999;
+    }
+
+    .slide-title .footer {
+      color: rgba(255,255,255,0.7);
+    }
+
+    .full-width {
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    table th {
+      background: #11C76F;
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    table tr:last-child td {
+      border-bottom: none;
+    }
+
+    table tr:hover {
+      background: #f9fafb;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .badge-green {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-blue {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    @media print {
+      body { background: white; }
+      .slide { page-break-after: always; }
+      * { box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Slide 1: Título -->
+<div class="slide slide-title">
+  <h1>picpay.de.i</h1>
+  <p>Sistema de Gerenciamento Escolar</p>
+  <div class="subtitle">Uma solução moderna para acompanhamento de desempenho acadêmico</div>
+  <div class="footer">Apresentação do Projeto • 2026</div>
+</div>
+
+<!-- Slide 2: Problema -->
+<div class="slide slide-content">
+  <h2>O Desafio</h2>
+  <div class="content-grid">
+    <div class="content-item">
+      <h3>❌ Antes</h3>
+      <ul>
+        <li>Gestão manual de notas</li>
+        <li>Cálculos complexos sujeitos a erros</li>
+        <li>Falta de visualização de dados</li>
+        <li>Dificuldade em acompanhamento individual</li>
+        <li>Sem acesso remoto ou backup</li>
+      </ul>
+    </div>
+    <div class="content-item">
+      <h3>✅ Solução</h3>
+      <ul>
+        <li>Plataforma integrada e intuitiva</li>
+        <li>Cálculos automáticos e precisos</li>
+        <li>Dashboards e relatórios visuais</li>
+        <li>Acompanhamento em tempo real</li>
+        <li>Sincronização com nuvem (Firebase)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer">Slide 2</div>
+</div>
+
+<!-- Slide 3: Características Principais -->
+<div class="slide slide-content">
+  <h2>Características Principais</h2>
+  <div class="full-width">
+    <div class="feature-box">
+      <div class="feature-icon">👥</div>
+      <div class="feature-text">
+        <h4>Gerenciamento de Alunos</h4>
+        <p>Cadastro individual ou em lote (CSV). Controle total de turmas (6A-6D, 8A-8C, 9A-9D)</p>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">📝</div>
+      <div class="feature-text">
+        <h4>Sistema de Verificação de Aprendizagem (VA)</h4>
+        <p>Múltiplas atividades avaliativas com normalização automática. VA criada em uma turma se replica para as outras</p>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">📊</div>
+      <div class="feature-text">
+        <h4>Prova Bimestral (PB)</h4>
+        <p>Avaliações Anglo e Prova com pesos específicos. Disponível para Português e Produção de Texto</p>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">⚠️</div>
+      <div class="feature-text">
+        <h4>Sistema de Negativos</h4>
+        <p>Registro de comportamento com penalização automática (até 100 negativos por aluno)</p>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">📈</div>
+      <div class="feature-text">
+        <h4>Dashboards Comparativos</h4>
+        <p>Rankings de desempenho e gráficos comparativos entre turmas</p>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">☁️</div>
+      <div class="feature-text">
+        <h4>Sincronização em Nuvem</h4>
+        <p>Firebase Firestore com offline persistence. Dados sincronizados automaticamente</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Slide 3</div>
+</div>
+
+<!-- Slide 4: Fórmulas de Cálculo -->
+<div class="slide slide-content">
+  <h2>Fórmulas de Cálculo</h2>
+  <div class="full-width">
+    <h3 style="color: #005542; margin-top: 40px;">Para Português e Produção de Texto:</h3>
+    <div class="formula-box">
+      <div style="font-size: 1rem; margin-bottom: 10px;">Média Final</div>
+      <div class="formula">M = (PB×35 + Quali×30 + VA×35) / 100</div>
+    </div>
+
+    <h3 style="color: #005542; margin-top: 40px;">Para LEM (sem Prova Bimestral):</h3>
+    <div class="formula-box">
+      <div style="font-size: 1rem; margin-bottom: 10px;">Média Final LEM</div>
+      <div class="formula">M = (Quali×30 + VA×35) / 65</div>
+    </div>
+
+    <h3 style="color: #005542; margin-top: 40px;">Qualitativa Ajustada (descontando negativos):</h3>
+    <div class="formula-box">
+      <div style="font-size: 1rem; margin-bottom: 10px;">Penalização</div>
+      <div class="formula">Quali Ajustada = Quali - (Negativos × 0.1)</div>
+    </div>
+
+    <p style="margin-top: 30px; text-align: center; color: #666; font-size: 1rem;">
+      Todas as notas são normalizadas para a escala 0-10
+    </p>
+  </div>
+  <div class="footer">Slide 4</div>
+</div>
+
+<!-- Slide 5: Estrutura de Dados -->
+<div class="slide slide-content">
+  <h2>Estrutura Organizacional</h2>
+  <div class="full-width">
+    <h3 style="color: #005542; margin-bottom: 20px;">Turmas por Ano:</h3>
+    <div class="stats" style="margin-bottom: 40px;">
+      <div class="stat">
+        <div class="stat-number">4</div>
+        <div class="stat-label">Turmas 6º Ano<br/>(6A, 6B, 6C, 6D)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">3</div>
+        <div class="stat-label">Turmas 8º Ano<br/>(8A, 8B, 8C)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">4</div>
+        <div class="stat-label">Turmas 9º Ano<br/>(9A, 9B, 9C, 9D)</div>
+      </div>
+    </div>
+
+    <h3 style="color: #005542; margin-bottom: 20px;">Matérias por Série:</h3>
+    <table>
+      <tr>
+        <th>Série</th>
+        <th>Matérias</th>
+        <th>Prova Bimestral</th>
+      </tr>
+      <tr>
+        <td><span class="badge badge-green">6º Ano</span></td>
+        <td>LEM, Produção de Texto</td>
+        <td>Não</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-green">8º Ano</span></td>
+        <td>Português, Produção de Texto</td>
+        <td>Sim</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-blue">9º Ano</span></td>
+        <td>LEM</td>
+        <td>Não</td>
+      </tr>
+    </table>
+  </div>
+  <div class="footer">Slide 5</div>
+</div>
+
+<!-- Slide 6: Módulos Principais -->
+<div class="slide slide-content">
+  <h2>Módulos da Plataforma</h2>
+  <div class="content-grid">
+    <div class="content-item">
+      <h3>📚 Alunos</h3>
+      <ul>
+        <li>Cadastro individual</li>
+        <li>Importação em massa</li>
+        <li>Cópia entre bimestres</li>
+        <li>Exclusão em lote</li>
+      </ul>
+    </div>
+
+    <div class="content-item">
+      <h3>⚡ Verificações (VA)</h3>
+      <ul>
+        <li>Criação com tipos</li>
+        <li>Propagação automática</li>
+        <li>Normalização 0-10</li>
+        <li>Dashboard por VA</li>
+      </ul>
+    </div>
+
+    <div class="content-item">
+      <h3>📋 Prova Bimestral</h3>
+      <ul>
+        <li>Anglo (peso 1)</li>
+        <li>Prova (peso 5)</li>
+        <li>Lançamento rápido</li>
+        <li>Dashboard comparativo</li>
+      </ul>
+    </div>
+
+    <div class="content-item">
+      <h3>⚠️ Negativos</h3>
+      <ul>
+        <li>Registro por aluno</li>
+        <li>Limite de 100</li>
+        <li>Penalização automática</li>
+        <li>Histórico completo</li>
+      </ul>
+    </div>
+
+    <div class="content-item">
+      <h3>📊 Boletim</h3>
+      <ul>
+        <li>Notas consolidadas</li>
+        <li>Média final</li>
+        <li>Status (verde/vermelho)</li>
+        <li>Exportação visual</li>
+      </ul>
+    </div>
+
+    <div class="content-item">
+      <h3>📈 Relatórios</h3>
+      <ul>
+        <li>Filtragem flexível</li>
+        <li>Rankings por critério</li>
+        <li>Estatísticas gerais</li>
+        <li>Análise por turma/ano</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer">Slide 6</div>
+</div>
+
+<!-- Slide 7: Tecnologias -->
+<div class="slide slide-content">
+  <h2>Stack Tecnológico</h2>
+  <div class="full-width">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+      <div>
+        <h3 style="color: #005542; margin-bottom: 20px;">Frontend</h3>
+        <div class="content-item" style="border-left: 5px solid #1D4ED8;">
+          <ul style="margin: 0;">
+            <li>HTML5</li>
+            <li>CSS3 (Design System Customizado)</li>
+            <li>JavaScript Vanilla (ES5)</li>
+            <li>Chart.js para gráficos</li>
+            <li>Responsive Design</li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="color: #005542; margin-bottom: 20px;">Backend & Data</h3>
+        <div class="content-item" style="border-left: 5px solid #059669;">
+          <ul style="margin: 0;">
+            <li>Firebase Firestore</li>
+            <li>Autenticação Firebase</li>
+            <li>localStorage (cache local)</li>
+            <li>Offline Persistence</li>
+            <li>Sincronização automática</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="color: #005542; margin-top: 40px; margin-bottom: 20px;">Características Técnicas</h3>
+    <div class="content-item">
+      <ul style="margin: 0;">
+        <li>✓ Progressive Web App (PWA) - funciona offline</li>
+        <li>✓ Sincronização em tempo real com nuvem</li>
+        <li>✓ Sem dependências externas pesadas</li>
+        <li>✓ Compatível com navegadores modernos</li>
+        <li>✓ Segurança com Firebase Rules</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer">Slide 7</div>
+</div>
+
+<!-- Slide 8: Dashboard e Relatórios -->
+<div class="slide slide-content">
+  <h2>Visualização de Dados</h2>
+  <div class="content-grid">
+    <div class="content-item">
+      <h3>📊 Dashboard VA</h3>
+      <ul>
+        <li>Seleção por VA</li>
+        <li>Ranking de notas</li>
+        <li>Gráfico por turma</li>
+        <li>Comparativo 6A vs 6B vs...</li>
+        <li>Estatísticas (média/melhor/pior)</li>
+      </ul>
+    </div>
+
+    <div class="content-item">
+      <h3>📊 Dashboard PB</h3>
+      <ul>
+        <li>Ranking Anglo</li>
+        <li>Ranking Prova</li>
+        <li>Ranking Média PB</li>
+        <li>Gráficos comparativos</li>
+        <li>Filtros por bimestre</li>
+      </ul>
+    </div>
+
+    <div class="content-item">
+      <h3>📈 Relatórios</h3>
+      <ul>
+        <li>Visão geral do sistema</li>
+        <li>Por sala específica</li>
+        <li>Por ano letivo</li>
+        <li>Por matéria</li>
+        <li>Top performers</li>
+      </ul>
+    </div>
+
+    <div class="content-item">
+      <h3>⚙️ Configurações</h3>
+      <ul>
+        <li>Manual interativo</li>
+        <li>Guia de uso passo a passo</li>
+        <li>Fórmulas explicadas</li>
+        <li>Tips e dicas</li>
+        <li>FAQ integrado</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer">Slide 8</div>
+</div>
+
+<!-- Slide 9: Diferenciais -->
+<div class="slide slide-content">
+  <h2>Diferenciais do Projeto</h2>
+  <div class="full-width">
+    <div class="feature-box">
+      <div class="feature-icon">🔄</div>
+      <div class="feature-text">
+        <h4>Propagação Automática de VA</h4>
+        <p>Ao criar uma VA em uma turma, ela é automaticamente replicada para as outras turmas do mesmo ano</p>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">📱</div>
+      <div class="feature-text">
+        <h4>Offline First</h4>
+        <p>Funciona completamente offline. Dados são sincronizados automaticamente quando conectado</p>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">🎯</div>
+      <div class="feature-text">
+        <h4>Flexibilidade na Avaliação</h4>
+        <p>Suporta diferentes tipos de avaliação: VA com valores variáveis, PB com pesos específicos, negativos com limite</p>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">📊</div>
+      <div class="feature-text">
+        <h4>Análise Comparativa</h4>
+        <p>Dashboards que permitem comparar desempenho entre turmas, matérias e bimestres</p>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-text">
+        <h4>Persistência de Dados</h4>
+        <p>Backup automático na nuvem com sincronização de múltiplas abas/dispositivos</p>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <div class="feature-icon">📚</div>
+      <div class="feature-text">
+        <h4>Documentação Integrada</h4>
+        <p>Manual interativo e colapsável com instruções passo a passo para cada funcionalidade</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Slide 9</div>
+</div>
+
+<!-- Slide 10: Fluxo de Uso -->
+<div class="slide slide-content">
+  <h2>Fluxo Típico de Uso</h2>
+  <div class="full-width" style="text-align: center;">
+    <div style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 50px;">
+      <div style="text-align: center;">
+        <div style="width: 80px; height: 80px; background: #11C76F; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-weight: bold; font-size: 1.5rem;">1</div>
+        <p style="font-weight: 600; color: #005542;">Cadastrar<br/>Alunos</p>
+      </div>
+      <div style="font-size: 2rem; color: #11C76F;">→</div>
+      <div style="text-align: center;">
+        <div style="width: 80px; height: 80px; background: #11C76F; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-weight: bold; font-size: 1.5rem;">2</div>
+        <p style="font-weight: 600; color: #005542;">Criar<br/>Avaliações</p>
+      </div>
+      <div style="font-size: 2rem; color: #11C76F;">→</div>
+      <div style="text-align: center;">
+        <div style="width: 80px; height: 80px; background: #11C76F; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-weight: bold; font-size: 1.5rem;">3</div>
+        <p style="font-weight: 600; color: #005542;">Lançar<br/>Notas</p>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-around; align-items: center;">
+      <div style="text-align: center;">
+        <div style="width: 80px; height: 80px; background: #11C76F; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-weight: bold; font-size: 1.5rem;">6</div>
+        <p style="font-weight: 600; color: #005542;">Gerar<br/>Boletim</p>
+      </div>
+      <div style="font-size: 2rem; color: #11C76F;">←</div>
+      <div style="text-align: center;">
+        <div style="width: 80px; height: 80px; background: #11C76F; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-weight: bold; font-size: 1.5rem;">5</div>
+        <p style="font-weight: 600; color: #005542;">Analisar<br/>Dashboards</p>
+      </div>
+      <div style="font-size: 2rem; color: #11C76F;">←</div>
+      <div style="text-align: center;">
+        <div style="width: 80px; height: 80px; background: #11C76F; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-weight: bold; font-size: 1.5rem;">4</div>
+        <p style="font-weight: 600; color: #005542;">Adicionar<br/>Negativos</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Slide 10</div>
+</div>
+
+<!-- Slide 11: Resultados Esperados -->
+<div class="slide slide-content">
+  <h2>Resultados Esperados</h2>
+  <div class="full-width">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+      <div>
+        <h3 style="color: #005542; margin-bottom: 20px; border-bottom: 2px solid #11C76F; padding-bottom: 10px;">Para o Professor</h3>
+        <div class="content-item" style="border-left: 5px solid #11C76F;">
+          <ul style="margin: 0;">
+            <li>Redução de tempo em digitação (50%)</li>
+            <li>Eliminação de erros de cálculo</li>
+            <li>Visão holística do desempenho</li>
+            <li>Identificação rápida de alunos com dificuldade</li>
+            <li>Acesso remoto aos dados</li>
+            <li>Backup automático</li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="color: #005542; margin-bottom: 20px; border-bottom: 2px solid #11C76F; padding-bottom: 10px;">Para o Sistema Escolar</h3>
+        <div class="content-item" style="border-left: 5px solid #11C76F;">
+          <ul style="margin: 0;">
+            <li>Padronização de processos</li>
+            <li>Maior precisão nas avaliações</li>
+            <li>Documentação automática</li>
+            <li>Relatórios gerenciais</li>
+            <li>Rastreabilidade completa</li>
+            <li>Conformidade e auditoria</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Slide 11</div>
+</div>
+
+<!-- Slide 12: Cronograma -->
+<div class="slide slide-content">
+  <h2>Cronograma de Desenvolvimento</h2>
+  <div class="full-width">
+    <table>
+      <tr>
+        <th>Fase</th>
+        <th>Funcionalidades</th>
+        <th>Status</th>
+      </tr>
+      <tr>
+        <td><strong>Fase 1</strong><br/>Estrutura Base</td>
+        <td>Sidebar, Topbar, Layout principal</td>
+        <td><span class="badge" style="background: #d1fae5; color: #065f46;">✓ Concluído</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fase 2</strong><br/>Gestão de Alunos</td>
+        <td>Cadastro, importação CSV, exclusão</td>
+        <td><span class="badge" style="background: #d1fae5; color: #065f46;">✓ Concluído</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fase 3</strong><br/>Sistema de VA</td>
+        <td>Criação, normalização, propagação automática</td>
+        <td><span class="badge" style="background: #d1fae5; color: #065f46;">✓ Concluído</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fase 4</strong><br/>Prova Bimestral</td>
+        <td>Anglo, Prova, cálculos com pesos</td>
+        <td><span class="badge" style="background: #d1fae5; color: #065f46;">✓ Concluído</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fase 5</strong><br/>Negativos & Qual</td>
+        <td>Registro, limite de 100, penalização</td>
+        <td><span class="badge" style="background: #d1fae5; color: #065f46;">✓ Concluído</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fase 6</strong><br/>Dashboards</td>
+        <td>VA, PB, comparativos, gráficos</td>
+        <td><span class="badge" style="background: #d1fae5; color: #065f46;">✓ Concluído</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fase 7</strong><br/>Firebase & Sync</td>
+        <td>Firestore, offline persistence, backup</td>
+        <td><span class="badge" style="background: #d1fae5; color: #065f46;">✓ Concluído</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fase 8</strong><br/>Boletim & Relatórios</td>
+        <td>Consolidação de notas, exportação</td>
+        <td><span class="badge" style="background: #d1fae5; color: #065f46;">✓ Concluído</span></td>
+      </tr>
+      <tr>
+        <td><strong>Fase 9</strong><br/>Documentação</td>
+        <td>Manual interativo, configurações</td>
+        <td><span class="badge" style="background: #d1fae5; color: #065f46;">✓ Concluído</span></td>
+      </tr>
+    </table>
+  </div>
+  <div class="footer">Slide 12</div>
+</div>
+
+<!-- Slide 13: Conclusão -->
+<div class="slide slide-title">
+  <h1>Obrigado!</h1>
+  <p>picpay.de.i - Sistema de Gerenciamento Escolar</p>
+  <div style="margin-top: 60px; font-size: 1.2rem;">
+    <p>🌐 Plataforma web responsiva</p>
+    <p>📱 Funciona offline e online</p>
+    <p>📊 Dashboards inteligentes</p>
+    <p>☁️ Sincronização em nuvem</p>
+    <p>📚 Documentação completa</p>
+  </div>
+  <div class="footer">Apresentação do Projeto • 2026</div>
+</div>
+
+</body>
+</html>
