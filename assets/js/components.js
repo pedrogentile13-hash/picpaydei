@@ -4,10 +4,10 @@
 
 const Components = (() => {
 
-  // Detect if we're in root or pages folder
-  var isRoot = window.location.pathname.indexOf('/pages/') === -1;
-  var pagesPrefix = isRoot ? 'pages/' : '';
-  var rootPrefix = isRoot ? '' : '../';
+  // Detect if we're in pages folder based on URL path
+  var inPagesFolder = window.location.pathname.indexOf('/pages/') !== -1;
+  var pagesPrefix = inPagesFolder ? '' : 'pages/';
+  var rootPrefix = inPagesFolder ? '../' : '';
 
   function sidebar(activePage) {
     // Menu structure with collapsible groups
