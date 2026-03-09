@@ -56,6 +56,7 @@
 <body>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="../assets/js/firebase-config.js"></script>
 
@@ -76,8 +77,8 @@
       <!-- Login Form -->
       <div id="loginForm">
         <div class="login-field">
-          <label>Nome de Usuário</label>
-          <input type="text" id="loginUsername" placeholder="Seu nome de usuário" />
+          <label>E-mail</label>
+          <input type="email" id="loginEmail" placeholder="seu@email.com" />
         </div>
         <div class="login-field">
           <label>Senha</label>
@@ -90,11 +91,15 @@
       <div id="registerForm" style="display:none;">
         <div class="login-field">
           <label>Nome de Usuário</label>
-          <input type="text" id="regUsername" placeholder="Ex: prof.silva" />
+          <input type="text" id="regUsername" placeholder="Professor Silva" />
+        </div>
+        <div class="login-field">
+          <label>E-mail</label>
+          <input type="email" id="regEmail" placeholder="seu@email.com" />
         </div>
         <div class="login-field">
           <label>Senha</label>
-          <input type="password" id="regPassword" placeholder="Mínimo 4 caracteres" />
+          <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" />
         </div>
         <div class="login-field">
           <label>Confirmar Senha</label>
@@ -108,26 +113,12 @@
   </div>
 
   <script>
-    var SESSION_KEY = 'picpay_dei_session';
-
     // Check if already logged in
-    try {
-      var session = JSON.parse(localStorage.getItem(SESSION_KEY));
-      if (session && session.username) {
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
         window.location.href = '../index.html';
       }
-    } catch(e) {}
-
-    // Simple hash function for passwords
-    function simpleHash(str) {
-      var hash = 0;
-      for (var i = 0; i < str.length; i++) {
-        var ch = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + ch;
-        hash = hash & hash; // Convert to 32bit integer
-      }
-      return 'h_' + Math.abs(hash).toString(36);
-    }
+    });
 
     function switchTab(tab) {
       var tabs = document.querySelectorAll('.login-tab');
@@ -157,95 +148,83 @@
       document.getElementById('successMsg').style.display = 'none';
     }
 
+    function translateError(code) {
+      var msgs = {
+        'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
+        'auth/invalid-email': 'E-mail inválido.',
+        'auth/weak-password': 'Senha muito fraca (mínimo 6 caracteres).',
+        'auth/user-not-found': 'Usuário não encontrado.',
+        'auth/wrong-password': 'Senha incorreta.',
+        'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde.',
+        'auth/invalid-credential': 'Credenciais inválidas. Verifique e-mail e senha.',
+      };
+      return msgs[code] || 'Erro: ' + code;
+    }
+
     function doLogin() {
-      var username = document.getElementById('loginUsername').value.trim().toLowerCase();
+      var email = document.getElementById('loginEmail').value.trim();
       var password = document.getElementById('loginPassword').value;
-      if (!username || !password) return showError('Preencha todos os campos.');
+      if (!email || !password) return showError('Preencha todos os campos.');
       hideMessages();
 
       var btn = document.getElementById('btnLogin');
       btn.disabled = true;
       btn.textContent = 'Entrando...';
 
-      var passHash = simpleHash(password);
-
-      db.collection('users').doc(username).get()
-        .then(function(doc) {
-          if (!doc.exists) {
-            showError('Usuário não encontrado.');
-            btn.disabled = false;
-            btn.textContent = 'Entrar';
-            return;
-          }
-          var userData = doc.data();
-          if (userData.password !== passHash) {
-            showError('Senha incorreta.');
-            btn.disabled = false;
-            btn.textContent = 'Entrar';
-            return;
-          }
-          // Login success — save session
-          localStorage.setItem(SESSION_KEY, JSON.stringify({
-            username: userData.displayName || username,
-            userId: username,
-            loginAt: new Date().toISOString()
-          }));
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(function(result) {
+          console.log('Login success:', result.user.email);
           window.location.href = '../index.html';
         })
         .catch(function(err) {
           console.error('Login error:', err);
-          showError('Erro ao conectar. Tente novamente.');
+          showError(translateError(err.code));
           btn.disabled = false;
           btn.textContent = 'Entrar';
         });
     }
 
     function doRegister() {
-      var username = document.getElementById('regUsername').value.trim().toLowerCase();
+      var username = document.getElementById('regUsername').value.trim();
+      var email = document.getElementById('regEmail').value.trim();
       var password = document.getElementById('regPassword').value;
       var confirm = document.getElementById('regPasswordConfirm').value;
 
-      if (!username || !password || !confirm) return showError('Preencha todos os campos.');
-      if (username.length < 3) return showError('Nome de usuário deve ter no mínimo 3 caracteres.');
-      if (!/^[a-z0-9._]+$/.test(username)) return showError('Nome de usuário: apenas letras minúsculas, números, . e _');
-      if (password.length < 4) return showError('Senha deve ter no mínimo 4 caracteres.');
+      if (!username || !email || !password || !confirm) return showError('Preencha todos os campos.');
       if (password !== confirm) return showError('As senhas não coincidem.');
+      if (password.length < 6) return showError('Senha deve ter no mínimo 6 caracteres.');
       hideMessages();
 
       var btn = document.getElementById('btnRegister');
       btn.disabled = true;
       btn.textContent = 'Criando conta...';
 
-      var passHash = simpleHash(password);
-      var displayName = document.getElementById('regUsername').value.trim();
+      console.log('Starting registration for:', email);
 
-      // Check if username already exists
-      db.collection('users').doc(username).get()
-        .then(function(doc) {
-          if (doc.exists) {
-            showError('Este nome de usuário já está em uso.');
-            btn.disabled = false;
-            btn.textContent = 'Criar Conta';
-            return;
-          }
-          // Create user
-          return db.collection('users').doc(username).set({
-            displayName: displayName,
-            password: passHash,
-            createdAt: new Date().toISOString()
-          }).then(function() {
-            // Auto-login after registration
-            localStorage.setItem(SESSION_KEY, JSON.stringify({
-              username: displayName,
-              userId: username,
-              loginAt: new Date().toISOString()
-            }));
-            window.location.href = '../index.html';
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(function(result) {
+          console.log('User created:', result.user.uid);
+          // Update display name
+          return result.user.updateProfile({ displayName: username }).then(function() {
+            console.log('Profile updated with username:', username);
+            // Save to Firestore
+            return db.collection('users').doc(result.user.uid).set({
+              username: username,
+              email: email,
+              createdAt: new Date().toISOString()
+            });
           });
+        })
+        .then(function() {
+          console.log('User data saved to Firestore');
+          showSuccess('Conta criada com sucesso! Redirecionando...');
+          setTimeout(function() {
+            window.location.href = '../index.html';
+          }, 1000);
         })
         .catch(function(err) {
           console.error('Register error:', err);
-          showError('Erro ao criar conta. Tente novamente.');
+          showError(translateError(err.code));
           btn.disabled = false;
           btn.textContent = 'Criar Conta';
         });
@@ -253,7 +232,7 @@
 
     // Enter key support
     document.getElementById('loginPassword').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
-    document.getElementById('loginUsername').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('loginPassword').focus(); });
+    document.getElementById('loginEmail').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
     document.getElementById('regPasswordConfirm').addEventListener('keydown', function(e) { if (e.key === 'Enter') doRegister(); });
   </script>
 </body>
