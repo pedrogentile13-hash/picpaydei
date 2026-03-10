@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuracao Inicial — picpay.de.i</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    body { background: var(--bg); min-height: 100vh; padding: 20px; }
+    .setup-container { max-width: 800px; margin: 0 auto; }
+    .setup-header {
+      text-align: center;
+      padding: 32px 20px;
+      margin-bottom: 24px;
+    }
+    .setup-logo {
+      width: 80px;
+      height: 80px;
+      background: var(--green);
+      border-radius: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 30px rgba(17,199,111,0.3);
+    }
+    .setup-logo span { font-size: 2.2rem; font-weight: 900; color: #fff; }
+    .setup-title { font-size: 1.8rem; font-weight: 900; color: var(--dark); margin: 0 0 8px; }
+    .setup-subtitle { font-size: 1rem; color: var(--gray-500); margin: 0; }
+    .step-card {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid var(--gray-100);
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .step-number {
+      width: 40px;
+      height: 40px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .step-title { font-size: 1.1rem; font-weight: 700; color: var(--dark); margin: 0; }
+    .step-desc { font-size: 0.85rem; color: var(--gray-500); margin: 4px 0 0; }
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--gray-50);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+    .checkbox-item:hover { background: var(--light); }
+    .checkbox-item.selected {
+      background: var(--light);
+      border-color: var(--green);
+    }
+    .checkbox-item input { display: none; }
+    .checkbox-item .check {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--gray-300);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .checkbox-item.selected .check {
+      background: var(--green);
+      border-color: var(--green);
+    }
+    .checkbox-item .check svg { display: none; }
+    .checkbox-item.selected .check svg { display: block; }
+    .checkbox-item span { font-weight: 600; font-size: 0.9rem; color: var(--dark); }
+    .materia-config {
+      background: var(--gray-50);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .materia-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .materia-name { font-weight: 700; color: var(--dark); font-size: 0.95rem; }
+    .materia-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: var(--green);
+      color: #fff;
+    }
+    .materia-badge.no-pb {
+      background: var(--gray-300);
+      color: var(--gray-600);
+    }
+    .materia-anos {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ano-toggle {
+      padding: 8px 16px;
+      border: 2px solid var(--gray-200);
+      border-radius: 8px;
+      background: #fff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--gray-500);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ano-toggle:hover { border-color: var(--green); color: var(--green); }
+    .ano-toggle.active {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--gray-200);
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .form-group input:focus { border-color: var(--green); }
+    .setup-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 32px;
+    }
+    .btn-large {
+      padding: 16px 48px;
+      font-size: 1rem;
+    }
+    .materias-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .selected-summary {
+      background: var(--light);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .selected-summary h4 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--gray-500);
+      margin: 0 0 8px;
+      text-transform: uppercase;
+    }
+    .selected-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .selected-tag {
+      background: var(--green);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/store.js"></script>
+
+  <div class="setup-container">
+    <div class="setup-header">
+      <div class="setup-logo"><span>P</span></div>
+      <h1 class="setup-title">Bem-vindo ao picpay.de.i</h1>
+      <p class="setup-subtitle">Configure suas turmas e materias para comecar</p>
+    </div>
+
+    <div id="setupContent"></div>
+  </div>
+
+  <script>
+    var config = {
+      nome: '',
+      anos: [],
+      turmas: [],
+      materias: []
+    };
+
+    // Load existing config if any
+    var existingConfig = Store.getProfessor();
+    if (existingConfig && existingConfig.anos) {
+      config = existingConfig;
+    }
+
+    var allMaterias = Store.TODAS_MATERIAS;
+    var materiasComPB = Store.MATERIAS_COM_PB;
+
+    function render() {
+      var html = '';
+
+      // Step 1: Nome
+      html += '<div class="step-card">';
+      html += '<div class="step-header">';
+      html += '<div class="step-number">1</div>';
+      html += '<div><h3 class="step-title">Seu Nome</h3>';
+      html += '<p class="step-desc">Como voce quer ser identificado no sistema</p></div>';
+      html += '</div>';
+      html += '<div class="form-group" style="margin-bottom:0;">';
+      html += '<input type="text" id="inputNome" value="' + (config.nome || '') + '" placeholder="Ex: Professor Silva" onchange="config.nome=this.value" />';
+      html += '</div>';
+      html += '</div>';
+
+      // Step 2: Anos
+      html += '<div class="step-card">';
+      html += '<div class="step-header">';
+      html += '<div class="step-number">2</div>';
+      html += '<div><h3 class="step-title">Anos que Leciona</h3>';
+      html += '<p class="step-desc">Selecione os anos em que voce da aula</p></div>';
+      html += '</div>';
+      html += '<div class="checkbox-grid">';
+      Store.ANOS_DISPONIVEIS.forEach(function(ano) {
+        var selected = config.anos.indexOf(ano) !== -1;
+        html += '<label class="checkbox-item' + (selected ? ' selected' : '') + '" onclick="toggleAno(\'' + ano + '\')">';
+        html += '<div class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>';
+        html += '<span>' + ano + 'o Ano</span>';
+        html += '</label>';
+      });
+      html += '</div>';
+      html += '</div>';
+
+      // Step 3: Turmas
+      html += '<div class="step-card">';
+      html += '<div class="step-header">';
+      html += '<div class="step-number">3</div>';
+      html += '<div><h3 class="step-title">Turmas que Administra</h3>';
+      html += '<p class="step-desc">Selecione as letras das turmas (A, B, C, D, E)</p></div>';
+      html += '</div>';
+      html += '<div class="checkbox-grid">';
+      Store.TURMAS_DISPONIVEIS.forEach(function(letra) {
+        var selected = config.turmas.indexOf(letra) !== -1;
+        html += '<label class="checkbox-item' + (selected ? ' selected' : '') + '" onclick="toggleTurma(\'' + letra + '\')">';
+        html += '<div class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>';
+        html += '<span>Turma ' + letra + '</span>';
+        html += '</label>';
+      });
+      html += '</div>';
+
+      // Show combined turmas
+      if (config.anos.length > 0 && config.turmas.length > 0) {
+        html += '<div class="selected-summary">';
+        html += '<h4>Turmas Configuradas</h4>';
+        html += '<div class="selected-tags">';
+        config.anos.forEach(function(ano) {
+          config.turmas.forEach(function(letra) {
+            html += '<span class="selected-tag">' + ano + 'o ' + letra + '</span>';
+          });
+        });
+        html += '</div></div>';
+      }
+      html += '</div>';
+
+      // Step 4: Materias
+      html += '<div class="step-card">';
+      html += '<div class="step-header">';
+      html += '<div class="step-number">4</div>';
+      html += '<div><h3 class="step-title">Materias que Leciona</h3>';
+      html += '<p class="step-desc">Selecione as materias e os anos em que da aula de cada uma</p></div>';
+      html += '</div>';
+      html += '<div class="materias-list">';
+
+      allMaterias.forEach(function(materia) {
+        var materiaConfig = config.materias.find(function(m) { return m.nome === materia; });
+        var isSelected = materiaConfig && materiaConfig.anos && materiaConfig.anos.length > 0;
+        var hasPB = materiasComPB.indexOf(materia) !== -1;
+
+        html += '<div class="materia-config">';
+        html += '<div class="materia-header">';
+        html += '<span class="materia-name">' + materia + '</span>';
+        html += '<span class="materia-badge' + (hasPB ? '' : ' no-pb') + '">' + (hasPB ? 'Com PB' : 'Sem PB') + '</span>';
+        html += '</div>';
+        html += '<div class="materia-anos">';
+
+        config.anos.forEach(function(ano) {
+          var active = materiaConfig && materiaConfig.anos && materiaConfig.anos.indexOf(ano) !== -1;
+          html += '<button class="ano-toggle' + (active ? ' active' : '') + '" onclick="toggleMateriaAno(\'' + materia + '\', \'' + ano + '\')">' + ano + 'o Ano</button>';
+        });
+
+        if (config.anos.length === 0) {
+          html += '<span style="font-size:0.8rem;color:var(--gray-400);">Selecione os anos primeiro</span>';
+        }
+
+        html += '</div>';
+        html += '</div>';
+      });
+
+      html += '</div>';
+      html += '</div>';
+
+      // Actions
+      html += '<div class="setup-actions">';
+      html += '<button class="btn btn-primary btn-large" onclick="saveConfig()">Salvar e Continuar</button>';
+      html += '</div>';
+
+      document.getElementById('setupContent').innerHTML = html;
+    }
+
+    function toggleAno(ano) {
+      var idx = config.anos.indexOf(ano);
+      if (idx === -1) {
+        config.anos.push(ano);
+        config.anos.sort();
+      } else {
+        config.anos.splice(idx, 1);
+        // Remove this ano from all materias
+        config.materias.forEach(function(m) {
+          var i = m.anos.indexOf(ano);
+          if (i !== -1) m.anos.splice(i, 1);
+        });
+      }
+      render();
+    }
+
+    function toggleTurma(letra) {
+      var idx = config.turmas.indexOf(letra);
+      if (idx === -1) {
+        config.turmas.push(letra);
+        config.turmas.sort();
+      } else {
+        config.turmas.splice(idx, 1);
+      }
+      render();
+    }
+
+    function toggleMateriaAno(materia, ano) {
+      var materiaConfig = config.materias.find(function(m) { return m.nome === materia; });
+      if (!materiaConfig) {
+        materiaConfig = { nome: materia, anos: [] };
+        config.materias.push(materiaConfig);
+      }
+
+      var idx = materiaConfig.anos.indexOf(ano);
+      if (idx === -1) {
+        materiaConfig.anos.push(ano);
+        materiaConfig.anos.sort();
+      } else {
+        materiaConfig.anos.splice(idx, 1);
+      }
+      render();
+    }
+
+    function saveConfig() {
+      config.nome = document.getElementById('inputNome').value.trim();
+
+      if (!config.nome) {
+        alert('Por favor, informe seu nome.');
+        return;
+      }
+      if (config.anos.length === 0) {
+        alert('Selecione pelo menos um ano.');
+        return;
+      }
+      if (config.turmas.length === 0) {
+        alert('Selecione pelo menos uma turma.');
+        return;
+      }
+
+      // Filter out materias with no anos selected
+      config.materias = config.materias.filter(function(m) {
+        return m.anos && m.anos.length > 0;
+      });
+
+      if (config.materias.length === 0) {
+        alert('Selecione pelo menos uma materia e os anos em que leciona.');
+        return;
+      }
+
+      Store.setProfessor(config);
+      alert('Configuracao salva com sucesso!');
+      window.location.href = '../index.html';
+    }
+
+    render();
+  </script>
+</body>
+</html>

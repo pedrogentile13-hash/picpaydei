@@ -10,6 +10,7 @@ const Store = (() => {
   const PB_KEY = 'picpay_dei_pbs';
   const PROFILE_KEY = 'picpay_dei_profile';
   const CONFIG_KEY = 'picpay_dei_config';
+  const PROFESSOR_KEY = 'picpay_dei_professor';
 
   // Load dynamic ANO_LETIVO from config (default 2026)
   function _loadConfig() {
@@ -27,22 +28,91 @@ const Store = (() => {
   // Pesos for weighted average
   const PESOS = { pb: 35, quali: 30, va: 35 };
 
-  const materiasPor = {
-    '6': ['LEM', 'Produção de Texto'],
-    '8': ['Português', 'Produção de Texto'],
-    '9': ['LEM'],
-  };
+  // All available years
+  const ANOS_DISPONIVEIS = ['6', '7', '8', '9'];
 
-  // 8D removed
-  const TURMAS = ['6A', '6B', '6C', '6D', '8A', '8B', '8C', '9A', '9B', '9C', '9D'];
+  // All available classes
+  const TURMAS_DISPONIVEIS = ['A', 'B', 'C', 'D', 'E'];
 
-  const VA_TIPOS = ['Trabalho', 'Escrita', 'Caderno', 'Apresentação', 'Participação', 'Prova', 'Outro'];
+  // All subjects in the system (from image)
+  const TODAS_MATERIAS = [
+    'Lingua Portuguesa',
+    'Matematica',
+    'Historia',
+    'Geografia',
+    'Educacao Fisica',
+    'Artes',
+    'Biologia',
+    'Quimica',
+    'Iniciacao Cientifica',
+    'Educacao Socioemocional',
+    'Producao de Texto',
+    'Fisica',
+    'Educacao Financeira',
+    'Pensamento Computacional',
+    'Ingles'
+  ];
 
-  // Matérias that have Prova Bimestral
-  const MATERIAS_COM_PB = ['Português', 'Produção de Texto'];
+  // Subjects that have Prova Bimestral (from image - those with filled PB column)
+  const MATERIAS_COM_PB = [
+    'Lingua Portuguesa',
+    'Matematica',
+    'Historia',
+    'Geografia',
+    'Biologia',
+    'Quimica',
+    'Producao de Texto',
+    'Fisica',
+    'Ingles'
+  ];
+
+  const VA_TIPOS = ['Trabalho', 'Escrita', 'Caderno', 'Apresentacao', 'Participacao', 'Prova', 'Outro'];
 
   // PB weights: Anglo peso 1, Prova Bimestral peso 5
   const PB_PESOS = { anglo: 1, prova: 5 };
+
+  // =========== PROFESSOR CONFIG ===========
+
+  function _loadProfessor() {
+    try {
+      var raw = localStorage.getItem(PROFESSOR_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch(e) { return null; }
+  }
+
+  function _saveProfessor(data) {
+    localStorage.setItem(PROFESSOR_KEY, JSON.stringify(data));
+  }
+
+  // Get configured turmas based on professor's selections
+  function _getTurmasConfiguradas() {
+    var prof = _loadProfessor();
+    if (!prof || !prof.anos || !prof.turmas) {
+      return ['6A', '6B', '6C', '6D', '7A', '7B', '7C', '7D', '8A', '8B', '8C', '8D', '9A', '9B', '9C', '9D'];
+    }
+    var turmas = [];
+    prof.anos.forEach(function(ano) {
+      prof.turmas.forEach(function(letra) {
+        turmas.push(ano + letra);
+      });
+    });
+    return turmas.sort();
+  }
+
+  // Get configured materias for a specific year
+  function _getMateriasConfiguradas(ano) {
+    var prof = _loadProfessor();
+    if (!prof || !prof.materias) {
+      return TODAS_MATERIAS;
+    }
+    var materias = [];
+    prof.materias.forEach(function(m) {
+      if (m.anos && m.anos.indexOf(ano) !== -1) {
+        materias.push(m.nome);
+      }
+    });
+    return materias.length > 0 ? materias : TODAS_MATERIAS;
+  }
 
   // =========== LOCAL STORAGE ===========
 
@@ -60,8 +130,14 @@ const Store = (() => {
   function _loadSettings() {
     try {
       var raw = localStorage.getItem(SETTINGS_KEY);
-      return raw ? JSON.parse(raw) : { turma: '6A', materia: 'LEM', bimestre: '1' };
-    } catch(e) { return { turma: '6A', materia: 'LEM', bimestre: '1' }; }
+      if (raw) return JSON.parse(raw);
+      // Dynamic default based on professor config
+      var turmas = _getTurmasConfiguradas();
+      var firstTurma = turmas[0] || '6A';
+      var ano = firstTurma.charAt(0);
+      var materias = _getMateriasConfiguradas(ano);
+      return { turma: firstTurma, materia: materias[0] || 'Lingua Portuguesa', bimestre: '1' };
+    } catch(e) { return { turma: '6A', materia: 'Lingua Portuguesa', bimestre: '1' }; }
   }
 
   function _makeKey(turma, materia, bimestre) {
@@ -141,13 +217,35 @@ const Store = (() => {
     BIMESTRE_LABELS: BIMESTRE_LABELS,
     PESOS: PESOS,
     PB_PESOS: PB_PESOS,
-    materiasPor: materiasPor,
-    TURMAS: TURMAS,
     VA_TIPOS: VA_TIPOS,
     MATERIAS_COM_PB: MATERIAS_COM_PB,
+    TODAS_MATERIAS: TODAS_MATERIAS,
+    ANOS_DISPONIVEIS: ANOS_DISPONIVEIS,
+    TURMAS_DISPONIVEIS: TURMAS_DISPONIVEIS,
+
+    // Dynamic getters
+    get TURMAS() { return _getTurmasConfiguradas(); },
 
     hasPB: function(materia) {
       return MATERIAS_COM_PB.indexOf(materia) !== -1;
+    },
+
+    // =========== PROFESSOR CONFIG ===========
+
+    isProfessorConfigured: function() {
+      var prof = _loadProfessor();
+      return prof && prof.anos && prof.anos.length > 0 && prof.materias && prof.materias.length > 0;
+    },
+
+    getProfessor: function() {
+      return _loadProfessor() || { nome: '', anos: [], turmas: [], materias: [] };
+    },
+
+    setProfessor: function(data) {
+      _saveProfessor(data);
+      if (_syncEnabled) {
+        _firestoreSave('config', 'professor', data);
+      }
     },
 
     getSettings: function() {
@@ -161,8 +259,8 @@ const Store = (() => {
     getSerie: function(turma) { return turma.charAt(0); },
 
     getMaterias: function(turma) {
-      var serie = turma.charAt(0);
-      return materiasPor[serie] || [];
+      var ano = turma.charAt(0);
+      return _getMateriasConfiguradas(ano);
     },
 
     // =========== SYNC STATUS ===========

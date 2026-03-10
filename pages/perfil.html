@@ -186,6 +186,15 @@
               '</div>' +
             '</div>' +
 
+            // Professor Config Card
+            '<div class="card" style="margin-top:24px;">' +
+              '<div class="card-header">' +
+                '<h3>Minhas Turmas e Materias</h3>' +
+                '<a href="setup.html" class="btn btn-outline" style="text-decoration:none;font-size:0.8rem;padding:8px 16px;">Reconfigurar</a>' +
+              '</div>' +
+              '<div id="profConfig"></div>' +
+            '</div>' +
+
           '</div>' +
           Components.footer() +
         '</div>';
@@ -197,6 +206,37 @@
       var stats = Store.getAllStats();
       document.getElementById('statAlunos').textContent = stats.totalAlunos;
       document.getElementById('statTurmas').textContent = stats.turmasCount;
+
+      // Render professor config
+      var prof = Store.getProfessor();
+      var configHtml = '<div style="padding:8px 0;">';
+
+      if (prof && prof.anos && prof.anos.length > 0) {
+        configHtml += '<div style="margin-bottom:16px;">';
+        configHtml += '<div style="font-size:0.75rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;margin-bottom:8px;">Turmas</div>';
+        configHtml += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+        prof.anos.forEach(function(ano) {
+          (prof.turmas || []).forEach(function(letra) {
+            configHtml += '<span style="background:var(--light);color:var(--dark);padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">' + ano + 'o ' + letra + '</span>';
+          });
+        });
+        configHtml += '</div></div>';
+
+        configHtml += '<div>';
+        configHtml += '<div style="font-size:0.75rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;margin-bottom:8px;">Materias</div>';
+        configHtml += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+        (prof.materias || []).forEach(function(m) {
+          if (m.anos && m.anos.length > 0) {
+            configHtml += '<span style="background:var(--green);color:#fff;padding:6px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">' + m.nome + ' (' + m.anos.join(', ') + ')</span>';
+          }
+        });
+        configHtml += '</div></div>';
+      } else {
+        configHtml += '<p style="color:var(--gray-400);font-size:0.9rem;">Nenhuma configuracao encontrada. <a href="setup.html" style="color:var(--green);font-weight:600;">Configurar agora</a></p>';
+      }
+
+      configHtml += '</div>';
+      document.getElementById('profConfig').innerHTML = configHtml;
     }
 
     function saveProfile() {
