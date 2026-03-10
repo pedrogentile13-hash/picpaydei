@@ -46,9 +46,8 @@
                   ' Importar CSV' +
                   '<input type="file" accept=".csv" onchange="importCSV(event)" style="display:none;" />' +
                 '</label>' +
-                '<span style="font-size:0.75rem;color:var(--gray-400);">Formato: numero,nome,negativos</span>' +
-                '<button class="btn btn-outline" onclick="addSampleData()" style="margin-left:auto;">Dados de Exemplo</button>' +
-                '<button class="btn btn-outline" onclick="copyFromPrevBim()" style="font-size:0.78rem;">Copiar do Bim. Anterior</button>' +
+                '<span style="font-size:0.75rem;color:var(--gray-400);">Formato: numero,nome</span>' +
+                '<button class="btn btn-outline" onclick="copyFromPrevBim()" style="margin-left:auto;font-size:0.78rem;">Copiar do Bim. Anterior</button>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -67,6 +66,7 @@
                   '<tr>' +
                     '<th style="text-align:left;">Nº</th>' +
                     '<th style="text-align:left;">Nome</th>' +
+                    '<th style="text-align:center;">Positivos</th>' +
                     '<th style="text-align:center;">Negativos</th>' +
                     '<th style="text-align:center;">Média</th>' +
                     '<th style="text-align:center;">Ações</th>' +
@@ -118,17 +118,6 @@
       event.target.value = '';
     }
 
-    function addSampleData() {
-      var ctx = getCurrentContext();
-      var names = ['Ana Silva', 'Bruno Costa', 'Carla Souza', 'Daniel Lima', 'Eduarda Santos',
-        'Felipe Oliveira', 'Gabriela Martins', 'Henrique Rocha', 'Isabela Ferreira', 'João Pedro Alves',
-        'Kamila Dias', 'Lucas Ribeiro', 'Maria Clara Gomes', 'Nathan Barbosa', 'Olivia Cardoso'];
-      names.forEach(function(nome, i) {
-        Store.addStudent(ctx.turma, ctx.materia, ctx.bimestre, i + 1, nome);
-      });
-      render();
-    }
-
     function copyFromPrevBim() {
       var ctx = getCurrentContext();
       var bimNum = parseInt(ctx.bimestre);
@@ -155,12 +144,15 @@
     function buildRow(s) {
       var media = Store.calcMedia(s);
       var colorClass = media >= 6 ? 'badge-green' : 'badge-red';
+      var positivos = s.positivos || 0;
+      var posColor = positivos > 0 ? 'var(--green)' : 'var(--gray-400)';
       var negColor = s.negativos > 0 ? 'var(--red)' : 'var(--gray-400)';
 
       return '<tr>' +
         '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>' +
         '<td>' + s.nome + '</td>' +
-        '<td style="text-align:center;"><span style="font-weight:700;color:' + negColor + ';">' + s.negativos + '</span></td>' +
+        '<td style="text-align:center;"><span style="font-weight:700;color:' + posColor + ';">+' + positivos + '</span></td>' +
+        '<td style="text-align:center;"><span style="font-weight:700;color:' + negColor + ';">-' + s.negativos + '</span></td>' +
         '<td style="text-align:center;"><span class="badge ' + colorClass + '">' + media + '</span></td>' +
         '<td style="text-align:center;">' +
           '<button onclick="removeAluno(' + s.numero + ')" class="btn-icon-sm" style="background:#FEE2E2;color:var(--red);" title="Remover">' +

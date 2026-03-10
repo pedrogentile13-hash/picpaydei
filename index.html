@@ -63,60 +63,71 @@
             '</div>' +
           '</div>' +
 
-          '<div style="max-width:700px;margin:0 auto;">' +
-            '<h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-400);margin-bottom:16px;">Acesso Rápido</h3>' +
-            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">' +
+          '<div style="max-width:900px;margin:0 auto;">' +
+            '<h3 style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-400);margin-bottom:20px;text-align:center;">Acesso Rápido</h3>' +
 
-              '<a href="pages/dashboard.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">' +
-                '<div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>' +
+            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">' +
+              '<a href="pages/negativos.html" class="card" style="display:flex;flex-direction:column;align-items:center;padding:28px 20px;text-decoration:none;text-align:center;border:2px solid transparent;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#EF4444\'" onmouseout="this.style.borderColor=\'transparent\'">' +
+                '<div style="width:56px;height:56px;background:#FEE2E2;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#EF4444" style="width:28px;height:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>' +
+                '</div>' +
+                '<div style="font-weight:700;font-size:1rem;color:var(--dark);">Negativos</div>' +
+                '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px;">Registrar ocorrências</div>' +
+              '</a>' +
+
+              '<a href="pages/positivos.html" class="card" style="display:flex;flex-direction:column;align-items:center;padding:28px 20px;text-decoration:none;text-align:center;border:2px solid transparent;transition:all 0.2s;" onmouseover="this.style.borderColor=\'var(--green)\'" onmouseout="this.style.borderColor=\'transparent\'">' +
+                '<div style="width:56px;height:56px;background:var(--light);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:28px;height:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>' +
+                '</div>' +
+                '<div style="font-weight:700;font-size:1rem;color:var(--dark);">Positivos</div>' +
+                '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px;">Registrar méritos</div>' +
+              '</a>' +
+
+              '<a href="pages/qualitativa.html" class="card" style="display:flex;flex-direction:column;align-items:center;padding:28px 20px;text-decoration:none;text-align:center;border:2px solid transparent;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#F59E0B\'" onmouseout="this.style.borderColor=\'transparent\'">' +
+                '<div style="width:56px;height:56px;background:#FEF3C7;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#F59E0B" style="width:28px;height:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>' +
+                '</div>' +
+                '<div style="font-weight:700;font-size:1rem;color:var(--dark);">Qualitativa</div>' +
+                '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px;">Nota de participação</div>' +
+              '</a>' +
+            '</div>' +
+
+            '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">' +
+              '<a href="pages/pb.html" class="card" style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">' +
+                '<div style="width:40px;height:40px;background:#EDE9FE;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#8B5CF6" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>' +
                 '</div>' +
                 '<div>' +
-                  '<div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Dashboard</div>' +
-                  '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Visão geral com filtros</div>' +
+                  '<div style="font-weight:600;font-size:0.85rem;color:var(--dark);">Prova Bimestral</div>' +
                 '</div>' +
               '</a>' +
 
-              '<a href="pages/alunos.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">' +
-                '<div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>' +
+              '<a href="pages/va.html" class="card" style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">' +
+                '<div style="width:40px;height:40px;background:#DBEAFE;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#3B82F6" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>' +
                 '</div>' +
                 '<div>' +
-                  '<div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Alunos</div>' +
-                  '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Cadastro e importação</div>' +
+                  '<div style="font-weight:600;font-size:0.85rem;color:var(--dark);">VA</div>' +
                 '</div>' +
               '</a>' +
 
-              '<a href="pages/negativos.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">' +
-                '<div style="width:48px;height:48px;background:#FEF2F2;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#EF4444" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>' +
+              '<a href="pages/boletim.html" class="card" style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">' +
+                '<div style="width:40px;height:40px;background:var(--light);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>' +
                 '</div>' +
                 '<div>' +
-                  '<div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Negativos</div>' +
-                  '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Gestão disciplinar</div>' +
+                  '<div style="font-weight:600;font-size:0.85rem;color:var(--dark);">Boletim</div>' +
                 '</div>' +
               '</a>' +
 
-              '<a href="pages/boletim.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">' +
-                '<div style="width:48px;height:48px;background:var(--light);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>' +
+              '<a href="pages/alunos.html" class="card" style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">' +
+                '<div style="width:40px;height:40px;background:#F3F4F6;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6B7280" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>' +
                 '</div>' +
                 '<div>' +
-                  '<div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Boletim</div>' +
-                  '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Lançamento de notas</div>' +
+                  '<div style="font-weight:600;font-size:0.85rem;color:var(--dark);">Alunos</div>' +
                 '</div>' +
               '</a>' +
-
-              '<a href="pages/relatorios.html" class="card" style="display:flex;align-items:center;gap:16px;padding:20px;text-decoration:none;">' +
-                '<div style="width:48px;height:48px;background:#FFF7ED;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#F97316" style="width:24px;height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>' +
-                '</div>' +
-                '<div>' +
-                  '<div style="font-weight:700;font-size:0.95rem;color:var(--dark);">Relatórios</div>' +
-                  '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:2px;">Exportação e análise</div>' +
-                '</div>' +
-              '</a>' +
-
             '</div>' +
           '</div>' +
 
