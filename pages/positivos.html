@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Positivos — picpay.de.i</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+
+  <div id="app" style="visibility:hidden;"></div>
+
+  <script>
+    document.getElementById('app').innerHTML =
+      Components.sidebar('positivos') +
+      '<div class="main-content">' +
+        Components.topbar('Positivos') +
+        '<div class="page-container">' +
+
+          '<div class="summary-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">' +
+            '<div class="summary-card">' +
+              '<div class="label">Alunos na Turma</div>' +
+              '<div class="value dark" id="stat-total">0</div>' +
+            '</div>' +
+            '<div class="summary-card">' +
+              '<div class="label">Total de Positivos</div>' +
+              '<div class="value green" id="stat-pos">0</div>' +
+            '</div>' +
+            '<div class="summary-card">' +
+              '<div class="label">Alunos com Bonus</div>' +
+              '<div class="value green" id="stat-bonus">0</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="card">' +
+            '<div class="card-header">' +
+              '<h3>Gestao de Positivos</h3>' +
+              '<button class="btn btn-outline" onclick="resetAll()" style="font-size:0.75rem;padding:6px 14px;">Zerar Todos</button>' +
+            '</div>' +
+            '<div class="table-container">' +
+              '<table>' +
+                '<thead>' +
+                  '<tr>' +
+                    '<th style="text-align:left;">N</th>' +
+                    '<th style="text-align:left;">Nome</th>' +
+                    '<th style="text-align:center;">Positivos</th>' +
+                    '<th style="text-align:center;">Bonus na Quali</th>' +
+                    '<th style="text-align:center;">Acoes</th>' +
+                  '</tr>' +
+                '</thead>' +
+                '<tbody id="tbodyPositivos"></tbody>' +
+              '</table>' +
+              '<div id="emptyState" class="empty-state">Nenhum aluno cadastrado. Va em <a href="alunos.html" style="color:var(--green);font-weight:600;">Alunos</a> para adicionar.</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<p style="margin-top:12px;font-size:0.75rem;color:var(--gray-400);">' +
+            '* Cada positivo adiciona +0.1 na nota Qualitativa no Boletim deste bimestre.' +
+          '</p>' +
+
+        '</div>' +
+        Components.footer() +
+      '</div>';
+
+    initSelects();
+
+    function onContextChange() { render(); }
+
+    function changePos(numero, delta) {
+      var ctx = getCurrentContext();
+      Store.updatePositivo(ctx.turma, ctx.materia, ctx.bimestre, numero, delta);
+      render();
+    }
+
+    function resetAll() {
+      if (!confirm('Zerar todos os positivos desta turma neste bimestre?')) return;
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      students.forEach(function(s) { s.positivos = 0; });
+      Store.setStudents(ctx.turma, ctx.materia, ctx.bimestre, students);
+      render();
+    }
+
+    function buildRow(s) {
+      var positivos = s.positivos || 0;
+      var bonus = (positivos * 0.1).toFixed(1);
+      var posColor = positivos > 0 ? 'var(--green)' : 'var(--gray-300)';
+      var bonusColor = positivos > 0 ? 'var(--green)' : 'var(--gray-400)';
+
+      return '<tr>' +
+        '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>' +
+        '<td>' + s.nome + '</td>' +
+        '<td style="text-align:center;">' +
+          '<span style="display:inline-block;min-width:2rem;font-weight:800;font-size:1.2rem;color:' + posColor + ';">' + positivos + '</span>' +
+        '</td>' +
+        '<td style="text-align:center;font-size:0.8rem;font-weight:600;color:' + bonusColor + ';">' +
+          '+' + bonus +
+        '</td>' +
+        '<td style="text-align:center;">' +
+          '<div style="display:inline-flex;gap:6px;">' +
+            '<button onclick="changePos(' + s.numero + ',-1)" class="btn-icon-sm" style="background:var(--gray-100);color:var(--gray-500);" title="Remover positivo">&minus;</button>' +
+            '<button onclick="changePos(' + s.numero + ',1)" class="btn-icon-sm" style="background:var(--light);color:var(--green);" title="Adicionar positivo">+</button>' +
+          '</div>' +
+        '</td>' +
+      '</tr>';
+    }
+
+    function render() {
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      var tbody = document.getElementById('tbodyPositivos');
+      var empty = document.getElementById('emptyState');
+
+      var totalPos = students.reduce(function(sum, s) { return sum + (s.positivos || 0); }, 0);
+      var comBonus = students.filter(function(s) { return (s.positivos || 0) > 0; }).length;
+      document.getElementById('stat-total').textContent = students.length;
+      document.getElementById('stat-pos').textContent = totalPos;
+      document.getElementById('stat-bonus').textContent = comBonus;
+
+      if (students.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+
+      tbody.innerHTML = students.map(buildRow).join('');
+    }
+
+    render();
+    Store.loadFromCloud(function(success) { if (success) render(); });
+  </script>
+</body>
+</html>

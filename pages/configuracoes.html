@@ -49,15 +49,45 @@
   <div id="app" style="visibility:hidden;"></div>
 
   <script>
+    var config = Store.getConfig();
+
     document.getElementById('app').innerHTML =
       Components.sidebar('configuracoes') +
       '<div class="main-content">' +
-        Components.topbar('Configurações', false) +
+        Components.topbar('Configuracoes', false) +
         '<div class="page-container">' +
+
+          // Settings Card
+          '<div class="card" style="margin-bottom:32px;">' +
+            '<div class="card-header">' +
+              '<h3>Configuracoes do Sistema</h3>' +
+            '</div>' +
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:8px 0;">' +
+
+              '<div class="form-group" style="display:flex;flex-direction:column;gap:6px;">' +
+                '<label style="font-size:0.78rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;">Ano Letivo</label>' +
+                '<div style="display:flex;gap:8px;">' +
+                  '<input type="number" id="inputAnoLetivo" value="' + config.anoLetivo + '" min="2020" max="2050" style="flex:1;padding:12px 14px;border:2px solid var(--gray-200);border-radius:10px;font-size:1rem;font-weight:700;outline:none;" />' +
+                  '<button class="btn btn-primary" onclick="saveAnoLetivo()">Salvar</button>' +
+                '</div>' +
+                '<span style="font-size:0.75rem;color:var(--gray-400);">O ano letivo afeta todo o sistema</span>' +
+              '</div>' +
+
+              '<div class="form-group" style="display:flex;flex-direction:column;gap:6px;">' +
+                '<label style="font-size:0.78rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;">Acoes</label>' +
+                '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+                  '<a href="perfil.html" class="btn btn-outline" style="text-decoration:none;">Meu Perfil</a>' +
+                  '<button class="btn btn-outline" onclick="exportAllData()">Exportar Dados</button>' +
+                  '<button class="btn btn-outline" style="color:var(--red);border-color:var(--red);" onclick="clearAllData()">Limpar Dados</button>' +
+                '</div>' +
+              '</div>' +
+
+            '</div>' +
+          '</div>' +
 
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">' +
             '<div>' +
-              '<h2 style="font-size:1.2rem;font-weight:800;color:var(--dark);margin-bottom:4px;">Manual de Instruções</h2>' +
+              '<h2 style="font-size:1.2rem;font-weight:800;color:var(--dark);margin-bottom:4px;">Manual de Instrucoes</h2>' +
               '<p style="font-size:0.85rem;color:var(--gray-500);">Aprenda a usar todas as funcionalidades do picpay.de.i</p>' +
             '</div>' +
             '<button class="expand-all-btn" onclick="toggleAll()">Expandir Tudo</button>' +
@@ -68,6 +98,40 @@
         '</div>' +
         Components.footer() +
       '</div>';
+
+    function saveAnoLetivo() {
+      var ano = parseInt(document.getElementById('inputAnoLetivo').value);
+      if (ano < 2020 || ano > 2050) {
+        alert('Ano invalido. Use um valor entre 2020 e 2050.');
+        return;
+      }
+      Store.setAnoLetivo(ano);
+      alert('Ano letivo atualizado para ' + ano + '! Recarregando...');
+      location.reload();
+    }
+
+    function exportAllData() {
+      var data = Store.exportData();
+      data.config = Store.getConfig();
+      data.profile = Store.getProfile();
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'picpaydei-backup-' + new Date().toISOString().split('T')[0] + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAllData() {
+      if (!confirm('ATENCAO: Isso ira apagar TODOS os dados (alunos, notas, configuracoes)!')) return;
+      if (!confirm('Tem certeza absoluta? Esta acao nao pode ser desfeita!')) return;
+      Store.clearAll();
+      localStorage.removeItem('picpay_dei_config');
+      localStorage.removeItem('picpay_dei_profile');
+      alert('Todos os dados foram apagados. Recarregando...');
+      location.reload();
+    }
 
     var allExpanded = false;
 

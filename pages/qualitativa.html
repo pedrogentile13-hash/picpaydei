@@ -39,36 +39,37 @@
               '<div class="value dark" id="stat-final">0.0</div>' +
             '</div>' +
             '<div class="summary-card">' +
-              '<div class="label">Com Desconto</div>' +
-              '<div class="value red" id="stat-desconto">0</div>' +
+              '<div class="label">Com Ajuste</div>' +
+              '<div class="value dark" id="stat-desconto">0</div>' +
             '</div>' +
           '</div>' +
 
           '<div class="card">' +
             '<div class="card-header">' +
               '<h3>Notas Qualitativas</h3>' +
-              '<span style="font-size:0.75rem;color:var(--gray-400);font-weight:600;">Nota Final = Quali - (Negativos × 0.1)</span>' +
+              '<span style="font-size:0.75rem;color:var(--gray-400);font-weight:600;">Nota Final = Quali + Bonus - Desconto (0 a 10)</span>' +
             '</div>' +
             '<div class="table-container">' +
               '<table>' +
                 '<thead>' +
                   '<tr>' +
-                    '<th style="text-align:left;">Nº</th>' +
+                    '<th style="text-align:left;">N</th>' +
                     '<th style="text-align:left;">Aluno</th>' +
                     '<th style="text-align:center;">Nota Quali</th>' +
+                    '<th style="text-align:center;">Positivos</th>' +
                     '<th style="text-align:center;">Negativos</th>' +
-                    '<th style="text-align:center;">Descontos</th>' +
+                    '<th style="text-align:center;">Ajuste</th>' +
                     '<th style="text-align:center;">Nota Final</th>' +
                   '</tr>' +
                 '</thead>' +
                 '<tbody id="tbodyQuali"></tbody>' +
               '</table>' +
-              '<div id="emptyState" class="empty-state">Nenhum aluno cadastrado. Vá em <a href="alunos.html" style="color:var(--green);font-weight:600;">Alunos</a> para adicionar.</div>' +
+              '<div id="emptyState" class="empty-state">Nenhum aluno cadastrado. Va em <a href="alunos.html" style="color:var(--green);font-weight:600;">Alunos</a> para adicionar.</div>' +
             '</div>' +
           '</div>' +
 
           '<p style="margin-top:12px;font-size:0.75rem;color:var(--gray-400);">' +
-            '* Clique na célula da Nota Quali para editar. Desconto = Negativos × 0.1. Nota Final = Quali - Desconto (mín. 0).' +
+            '* Clique na celula da Nota Quali para editar. Bonus = Positivos x 0.1. Desconto = Negativos x 0.1. Nota Final limitada entre 0 e 10.' +
           '</p>' +
 
         '</div>' +
@@ -115,9 +116,13 @@
     }
 
     function buildRow(s) {
+      var positivos = s.positivos || 0;
+      var bonus = +(positivos * 0.1).toFixed(1);
       var desconto = +(s.negativos * 0.1).toFixed(1);
-      var notaFinal = +Math.max(0, s.quali - desconto).toFixed(2);
-      var descontoColor = desconto > 0 ? 'var(--red)' : 'var(--gray-400)';
+      var ajuste = +(bonus - desconto).toFixed(1);
+      var notaFinal = +Math.min(10, Math.max(0, s.quali + ajuste)).toFixed(2);
+      var ajusteColor = ajuste > 0 ? 'var(--green)' : (ajuste < 0 ? 'var(--red)' : 'var(--gray-400)');
+      var ajusteText = ajuste > 0 ? '+' + ajuste : (ajuste < 0 ? ajuste : '0.0');
       var finalColor = notaFinal >= 6 ? 'badge-green' : (notaFinal > 0 ? 'badge-red' : '');
       var finalBadge = finalColor ? ' class="badge ' + finalColor + '"' : ' style="color:var(--gray-400);"';
 
@@ -133,10 +138,9 @@
             'onfocus="this.style.borderColor=\'var(--green)\'" ' +
             'onblur="this.style.borderColor=\'var(--gray-200)\';onQualiBlur(' + s.numero + ')" />' +
         '</td>' +
-        '<td style="text-align:center;font-weight:700;color:var(--gray-500);">' + s.negativos + '</td>' +
-        '<td style="text-align:center;font-weight:700;color:' + descontoColor + ';">' +
-          (desconto > 0 ? '-' + desconto : '0.0') +
-        '</td>' +
+        '<td style="text-align:center;font-weight:700;color:' + (positivos > 0 ? 'var(--green)' : 'var(--gray-400)') + ';">' + positivos + '</td>' +
+        '<td style="text-align:center;font-weight:700;color:' + (s.negativos > 0 ? 'var(--red)' : 'var(--gray-400)') + ';">' + s.negativos + '</td>' +
+        '<td style="text-align:center;font-weight:700;color:' + ajusteColor + ';">' + ajusteText + '</td>' +
         '<td style="text-align:center;"><span' + finalBadge + '>' + notaFinal + '</span></td>' +
       '</tr>';
     }
@@ -161,18 +165,19 @@
 
       var somaQuali = 0;
       var somaFinal = 0;
-      var comDesconto = 0;
+      var comAjuste = 0;
       students.forEach(function(s) {
         somaQuali += s.quali;
-        var desconto = s.negativos * 0.1;
-        var notaFinal = Math.max(0, s.quali - desconto);
+        var positivos = s.positivos || 0;
+        var ajuste = positivos * 0.1 - s.negativos * 0.1;
+        var notaFinal = Math.min(10, Math.max(0, s.quali + ajuste));
         somaFinal += notaFinal;
-        if (desconto > 0) comDesconto++;
+        if (ajuste !== 0) comAjuste++;
       });
 
       document.getElementById('stat-media').textContent = (somaQuali / students.length).toFixed(1);
       document.getElementById('stat-final').textContent = (somaFinal / students.length).toFixed(1);
-      document.getElementById('stat-desconto').textContent = comDesconto;
+      document.getElementById('stat-desconto').textContent = comAjuste;
 
       tbody.innerHTML = students.map(buildRow).join('');
     }

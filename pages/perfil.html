@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil — picpay.de.i</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .profile-header {
+      text-align: center;
+      padding: 32px 20px;
+      background: linear-gradient(135deg, var(--green) 0%, #0fa968 100%);
+      border-radius: var(--radius-lg);
+      margin-bottom: 24px;
+      color: #fff;
+    }
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: 900;
+      margin-bottom: 16px;
+      border: 4px solid rgba(255,255,255,0.3);
+    }
+    .profile-name {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0 0 4px;
+    }
+    .profile-email {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    .profile-form {
+      display: grid;
+      gap: 20px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .form-group input, .form-group textarea {
+      padding: 12px 14px;
+      border: 2px solid var(--gray-200);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--green);
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .profile-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .profile-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .info-card {
+      background: var(--light);
+      padding: 16px;
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .info-card .label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--gray-400);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .info-card .value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--dark);
+    }
+  </style>
+</head>
+<body>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+
+  <div id="app" style="visibility:hidden;"></div>
+
+  <script>
+    var currentUser = null;
+    var profile = Store.getProfile();
+
+    firebase.auth().onAuthStateChanged(function(user) {
+      currentUser = user;
+      renderPage();
+    });
+
+    function renderPage() {
+      var userEmail = currentUser ? currentUser.email : 'Nao logado';
+      var userName = profile.nome || (currentUser ? currentUser.displayName : '') || 'Professor';
+      var initials = userName.split(' ').map(function(n) { return n.charAt(0); }).join('').substring(0, 2).toUpperCase() || 'P';
+
+      document.getElementById('app').innerHTML =
+        Components.sidebar('perfil') +
+        '<div class="main-content">' +
+          '<header class="topbar">' +
+            '<div style="display:flex;align-items:center;gap:12px;">' +
+              '<button class="hamburger" onclick="toggleSidebar()">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>' +
+              '</button>' +
+              '<div><h2 class="topbar-title">Meu Perfil</h2>' +
+              '<span style="font-size:0.65rem;color:var(--gray-400);font-weight:600;">Ano Letivo ' + Store.ANO_LETIVO + '</span></div>' +
+            '</div>' +
+          '</header>' +
+          '<div class="page-container">' +
+
+            '<div class="profile-header">' +
+              '<div class="profile-avatar">' + initials + '</div>' +
+              '<h2 class="profile-name" id="displayName">' + userName + '</h2>' +
+              '<p class="profile-email">' + userEmail + '</p>' +
+            '</div>' +
+
+            '<div class="card">' +
+              '<div class="card-header">' +
+                '<h3>Informacoes do Perfil</h3>' +
+              '</div>' +
+              '<div class="profile-form">' +
+                '<div class="form-group">' +
+                  '<label>Nome Completo</label>' +
+                  '<input type="text" id="inputNome" value="' + (profile.nome || '') + '" placeholder="Seu nome completo" />' +
+                '</div>' +
+                '<div class="form-group">' +
+                  '<label>Escola</label>' +
+                  '<input type="text" id="inputEscola" value="' + (profile.escola || '') + '" placeholder="Nome da escola" />' +
+                '</div>' +
+                '<div class="form-group">' +
+                  '<label>Disciplinas</label>' +
+                  '<textarea id="inputDisciplinas" placeholder="Ex: Portugues, Ingles, Producao de Texto">' + (profile.disciplinas || '') + '</textarea>' +
+                '</div>' +
+                '<div class="profile-actions">' +
+                  '<button class="btn btn-primary" onclick="saveProfile()">Salvar Alteracoes</button>' +
+                  '<button class="btn btn-outline" onclick="doLogout()">Sair da Conta</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+
+            '<div class="profile-info-grid">' +
+              '<div class="info-card">' +
+                '<div class="label">Ano Letivo</div>' +
+                '<div class="value">' + Store.ANO_LETIVO + '</div>' +
+              '</div>' +
+              '<div class="info-card">' +
+                '<div class="label">Total de Alunos</div>' +
+                '<div class="value" id="statAlunos">0</div>' +
+              '</div>' +
+              '<div class="info-card">' +
+                '<div class="label">Turmas</div>' +
+                '<div class="value" id="statTurmas">0</div>' +
+              '</div>' +
+            '</div>' +
+
+          '</div>' +
+          Components.footer() +
+        '</div>';
+
+      updateStats();
+    }
+
+    function updateStats() {
+      var stats = Store.getAllStats();
+      document.getElementById('statAlunos').textContent = stats.totalAlunos;
+      document.getElementById('statTurmas').textContent = stats.turmasCount;
+    }
+
+    function saveProfile() {
+      var nome = document.getElementById('inputNome').value.trim();
+      var escola = document.getElementById('inputEscola').value.trim();
+      var disciplinas = document.getElementById('inputDisciplinas').value.trim();
+
+      profile = { nome: nome, escola: escola, disciplinas: disciplinas, email: currentUser ? currentUser.email : '' };
+      Store.setProfile(profile);
+
+      alert('Perfil salvo com sucesso!');
+      renderPage();
+    }
+
+    function doLogout() {
+      if (!confirm('Tem certeza que deseja sair?')) return;
+      firebase.auth().signOut().then(function() {
+        window.location.href = 'login.html';
+      });
+    }
+
+    Store.loadFromCloud(function(success) {
+      if (success) {
+        profile = Store.getProfile();
+        renderPage();
+      }
+    });
+  </script>
+</body>
+</html>

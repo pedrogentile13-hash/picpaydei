@@ -1,7 +1,6 @@
 /* ============================
    picpay.de.i — Data Store
    Shared across all pages via localStorage + Firebase
-   Ano Letivo 2026
    ============================ */
 
 const Store = (() => {
@@ -9,7 +8,18 @@ const Store = (() => {
   const SETTINGS_KEY = 'picpay_dei_settings';
   const VA_KEY = 'picpay_dei_vas';
   const PB_KEY = 'picpay_dei_pbs';
-  const ANO_LETIVO = 2026;
+  const PROFILE_KEY = 'picpay_dei_profile';
+  const CONFIG_KEY = 'picpay_dei_config';
+
+  // Load dynamic ANO_LETIVO from config (default 2026)
+  function _loadConfig() {
+    try {
+      var raw = localStorage.getItem(CONFIG_KEY);
+      return raw ? JSON.parse(raw) : { anoLetivo: 2026 };
+    } catch(e) { return { anoLetivo: 2026 }; }
+  }
+
+  var ANO_LETIVO = _loadConfig().anoLetivo;
 
   const BIMESTRES = ['1', '2', '3', '4'];
   const BIMESTRE_LABELS = { '1': '1º Bimestre', '2': '2º Bimestre', '3': '3º Bimestre', '4': '4º Bimestre' };
@@ -276,6 +286,16 @@ const Store = (() => {
       }
     },
 
+    updatePositivo: function(turma, materia, bimestre, numero, delta) {
+      var students = this.getStudents(turma, materia, bimestre);
+      var s = students.find(function(st) { return st.numero === numero; });
+      if (s) {
+        if (typeof s.positivos === 'undefined') s.positivos = 0;
+        s.positivos = Math.min(100, Math.max(0, s.positivos + delta));
+        this.setStudents(turma, materia, bimestre, students);
+      }
+    },
+
     updateNota: function(turma, materia, bimestre, numero, field, value) {
       var students = this.getStudents(turma, materia, bimestre);
       var s = students.find(function(st) { return st.numero === numero; });
@@ -449,15 +469,20 @@ const Store = (() => {
 
     // =========== GRADE CALCULATIONS ===========
 
+    // Quali ajustada = quali + (positivos × 0.1) - (negativos × 0.1), clamped to 0-10
     getQualiAjustada: function(student) {
-      return +Math.max(0, student.quali - student.negativos * 0.1).toFixed(2);
+      var positivos = student.positivos || 0;
+      var bonus = positivos * 0.1;
+      var desconto = student.negativos * 0.1;
+      return +Math.min(10, Math.max(0, student.quali + bonus - desconto)).toFixed(2);
     },
 
     // Full media calculation
     // For matérias with PB: M = (PB×35 + Quali×30 + VA×35) / 100
     // For LEM (no PB):       M = (Quali×30 + VA×35) / 65
     calcMediaFull: function(turma, materia, bimestre, student) {
-      var qualiAjustada = Math.max(0, student.quali - student.negativos * 0.1);
+      var positivos = student.positivos || 0;
+      var qualiAjustada = Math.min(10, Math.max(0, student.quali + positivos * 0.1 - student.negativos * 0.1));
       var vaMedia = this.getVAMedia(turma, materia, bimestre, student.numero);
 
       if (this.hasPB(materia)) {
@@ -471,7 +496,8 @@ const Store = (() => {
 
     // Simplified calc for backward compat (uses stored va field, no PB system)
     calcMedia: function(student, vaMedia) {
-      var qualiAjustada = Math.max(0, student.quali - student.negativos * 0.1);
+      var positivos = student.positivos || 0;
+      var qualiAjustada = Math.min(10, Math.max(0, student.quali + positivos * 0.1 - student.negativos * 0.1));
       var vaScore = (vaMedia !== undefined) ? vaMedia : student.va;
       return +((student.pb * PESOS.pb + qualiAjustada * PESOS.quali + vaScore * PESOS.va) / (PESOS.pb + PESOS.quali + PESOS.va)).toFixed(1);
     },
@@ -657,6 +683,63 @@ const Store = (() => {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(VA_KEY);
       localStorage.removeItem(PB_KEY);
+    },
+
+    // =========== PROFILE ===========
+
+    getProfile: function() {
+      try {
+        var raw = localStorage.getItem(PROFILE_KEY);
+        return raw ? JSON.parse(raw) : { nome: '', email: '', escola: '', disciplinas: '' };
+      } catch(e) { return { nome: '', email: '', escola: '', disciplinas: '' }; }
+    },
+
+    setProfile: function(profile) {
+      _save(PROFILE_KEY, profile);
+      if (_syncEnabled) {
+        _firestoreSave('config', 'profile', profile);
+      }
+    },
+
+    // =========== CONFIG (ANO LETIVO) ===========
+
+    getConfig: function() {
+      return _loadConfig();
+    },
+
+    setAnoLetivo: function(ano) {
+      var config = _loadConfig();
+      config.anoLetivo = parseInt(ano) || 2026;
+      _save(CONFIG_KEY, config);
+      ANO_LETIVO = config.anoLetivo;
+      if (_syncEnabled) {
+        _firestoreSave('config', 'settings', config);
+      }
+    },
+
+    syncConfigFromCloud: function(callback) {
+      if (!_syncEnabled) {
+        if (callback) callback(false);
+        return;
+      }
+      Promise.all([
+        _firestoreLoad('config', 'settings'),
+        _firestoreLoad('config', 'profile')
+      ]).then(function(results) {
+        var configCloud = results[0];
+        var profileCloud = results[1];
+        if (configCloud && configCloud.anoLetivo) {
+          _save(CONFIG_KEY, configCloud);
+          ANO_LETIVO = configCloud.anoLetivo;
+        }
+        if (profileCloud) {
+          _save(PROFILE_KEY, profileCloud);
+        }
+        if (callback) callback(true);
+      }).catch(function(err) {
+        console.error('Config sync error:', err);
+        if (callback) callback(false);
+      });
     }
   };
 })();
