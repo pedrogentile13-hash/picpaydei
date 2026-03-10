@@ -43,7 +43,10 @@
           '<div class="card">' +
             '<div class="card-header">' +
               '<h3>Gestão de Negativos</h3>' +
-              '<button class="btn btn-outline" onclick="resetAll()" style="font-size:0.75rem;padding:6px 14px;">Zerar Todos</button>' +
+              '<div style="display:flex;gap:8px;">' +
+                '<button class="btn btn-outline" onclick="openMultiSelector()" style="font-size:0.75rem;padding:6px 14px;">Selecionar</button>' +
+                '<button class="btn btn-outline" onclick="resetAll()" style="font-size:0.75rem;padding:6px 14px;">Zerar Todos</button>' +
+              '</div>' +
             '</div>' +
             '<div class="table-container">' +
               '<table>' +
@@ -68,6 +71,31 @@
 
         '</div>' +
         Components.footer() +
+      '</div>' +
+
+      // Multi-selector Modal
+      '<div id="multiSelectorModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:20px;">' +
+        '<div style="background:#fff;border-radius:var(--radius-lg);max-width:500px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-lg);">' +
+          '<div style="padding:20px;border-bottom:1px solid var(--gray-100);">' +
+            '<h2 style="margin:0 0 4px;font-size:1.2rem;font-weight:800;color:var(--dark);">Selecionar Alunos</h2>' +
+            '<p style="margin:0;font-size:0.85rem;color:var(--gray-500);">Escolha os alunos para adicionar negativos</p>' +
+          '</div>' +
+          '<div style="padding:20px;">' +
+            '<div style="display:flex;gap:8px;margin-bottom:16px;">' +
+              '<button class="btn btn-outline" onclick="toggleAllSelector()" style="flex:1;padding:10px;">Selecionar Todos</button>' +
+              '<button class="btn btn-outline" onclick="clearAllSelector()" style="flex:1;padding:10px;">Desselecionar Tudo</button>' +
+            '</div>' +
+            '<div id="studentCheckboxes" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;"></div>' +
+          '</div>' +
+          '<div style="padding:20px;border-top:1px solid var(--gray-100);display:flex;gap:8px;">' +
+            '<div style="display:flex;align-items:center;gap:8px;flex:1;">' +
+              '<label style="font-size:0.85rem;color:var(--gray-600);">Quantidade:</label>' +
+              '<input type="number" id="selectorQuantidade" value="1" min="1" max="10" style="width:60px;padding:6px;border:1px solid var(--gray-200);border-radius:6px;font-weight:600;" />' +
+            '</div>' +
+            '<button class="btn btn-primary" onclick="applySelectorNeg()">Adicionar</button>' +
+            '<button class="btn btn-outline" onclick="closeMultiSelector()">Cancelar</button>' +
+          '</div>' +
+        '</div>' +
       '</div>';
 
     initSelects();
@@ -132,6 +160,73 @@
       empty.style.display = 'none';
 
       tbody.innerHTML = students.map(buildRow).join('');
+    }
+
+    var selectedStudents = [];
+
+    function openMultiSelector() {
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      selectedStudents = [];
+
+      var checkboxHtml = students.map(function(s) {
+        return '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--gray-50);border-radius:8px;cursor:pointer;">' +
+          '<input type="checkbox" value="' + s.numero + '" onchange="handleStudentCheckbox(this)" style="width:18px;height:18px;cursor:pointer;" />' +
+          '<span style="flex:1;font-weight:600;color:var(--dark);">' + s.numero + ' - ' + s.nome + '</span>' +
+        '</label>';
+      }).join('');
+
+      document.getElementById('studentCheckboxes').innerHTML = checkboxHtml;
+      document.getElementById('multiSelectorModal').style.display = 'flex';
+    }
+
+    function closeMultiSelector() {
+      document.getElementById('multiSelectorModal').style.display = 'none';
+      selectedStudents = [];
+    }
+
+    function handleStudentCheckbox(checkbox) {
+      var numero = parseInt(checkbox.value);
+      if (checkbox.checked) {
+        if (selectedStudents.indexOf(numero) === -1) {
+          selectedStudents.push(numero);
+        }
+      } else {
+        var idx = selectedStudents.indexOf(numero);
+        if (idx !== -1) selectedStudents.splice(idx, 1);
+      }
+    }
+
+    function toggleAllSelector() {
+      var checkboxes = document.querySelectorAll('#studentCheckboxes input[type="checkbox"]');
+      var allChecked = Array.from(checkboxes).every(function(cb) { return cb.checked; });
+      checkboxes.forEach(function(cb) {
+        cb.checked = !allChecked;
+        handleStudentCheckbox(cb);
+      });
+    }
+
+    function clearAllSelector() {
+      document.querySelectorAll('#studentCheckboxes input[type="checkbox"]').forEach(function(cb) {
+        cb.checked = false;
+        handleStudentCheckbox(cb);
+      });
+    }
+
+    function applySelectorNeg() {
+      if (selectedStudents.length === 0) {
+        alert('Selecione pelo menos um aluno');
+        return;
+      }
+      var quantidade = parseInt(document.getElementById('selectorQuantidade').value) || 1;
+      var ctx = getCurrentContext();
+
+      selectedStudents.forEach(function(numero) {
+        Store.updateNegativo(ctx.turma, ctx.materia, ctx.bimestre, numero, quantidade);
+      });
+
+      render();
+      closeMultiSelector();
     }
 
     render();
