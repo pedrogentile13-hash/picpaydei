@@ -149,16 +149,40 @@ const Store = (() => {
   var _syncEnabled = typeof firebase !== 'undefined' && typeof db !== 'undefined';
   var _syncStatus = 'idle'; // idle, syncing, error, success
   var _onSyncCallbacks = [];
+  var _currentUserId = null;
+
+  // Get current user ID (must be authenticated)
+  function _getUserId() {
+    if (_currentUserId) return _currentUserId;
+    if (typeof firebase !== 'undefined' && firebase.auth().currentUser) {
+      _currentUserId = firebase.auth().currentUser.uid;
+      return _currentUserId;
+    }
+    return null;
+  }
+
+  // Update user ID when auth state changes
+  if (typeof firebase !== 'undefined') {
+    firebase.auth().onAuthStateChanged(function(user) {
+      _currentUserId = user ? user.uid : null;
+    });
+  }
 
   function _notifySync(status, msg) {
     _syncStatus = status;
     _onSyncCallbacks.forEach(function(cb) { cb(status, msg); });
   }
 
+  // Secure save - data goes to users/{userId}/collection/docId
   function _firestoreSave(collection, docId, data) {
     if (!_syncEnabled) return Promise.resolve();
+    var userId = _getUserId();
+    if (!userId) {
+      console.warn('Firestore save blocked: user not authenticated');
+      return Promise.resolve();
+    }
     _notifySync('syncing', 'Salvando...');
-    return db.collection(collection).doc(docId).set(data)
+    return db.collection('users').doc(userId).collection(collection).doc(docId).set(data)
       .then(function() { _notifySync('success', 'Salvo na nuvem'); })
       .catch(function(err) {
         console.error('Firestore save error:', err);
@@ -166,9 +190,12 @@ const Store = (() => {
       });
   }
 
+  // Secure load - data comes from users/{userId}/collection/docId
   function _firestoreLoad(collection, docId) {
     if (!_syncEnabled) return Promise.resolve(null);
-    return db.collection(collection).doc(docId).get()
+    var userId = _getUserId();
+    if (!userId) return Promise.resolve(null);
+    return db.collection('users').doc(userId).collection(collection).doc(docId).get()
       .then(function(doc) { return doc.exists ? doc.data() : null; })
       .catch(function(err) {
         console.error('Firestore load error:', err);
@@ -176,9 +203,12 @@ const Store = (() => {
       });
   }
 
+  // Secure load all - from users/{userId}/collection
   function _firestoreLoadAll(collection) {
     if (!_syncEnabled) return Promise.resolve({});
-    return db.collection(collection).get()
+    var userId = _getUserId();
+    if (!userId) return Promise.resolve({});
+    return db.collection('users').doc(userId).collection(collection).get()
       .then(function(snapshot) {
         var result = {};
         snapshot.forEach(function(doc) {
@@ -190,6 +220,22 @@ const Store = (() => {
         console.error('Firestore loadAll error:', err);
         return {};
       });
+  }
+
+  // Audit log - records all grade changes (immutable)
+  function _logAudit(action, details) {
+    if (!_syncEnabled) return;
+    var userId = _getUserId();
+    if (!userId) return;
+    var logEntry = {
+      action: action,
+      details: details,
+      timestamp: new Date().toISOString(),
+      userEmail: firebase.auth().currentUser ? firebase.auth().currentUser.email : 'unknown'
+    };
+    var logId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    db.collection('users').doc(userId).collection('audit').doc(logId).set(logEntry)
+      .catch(function(err) { console.error('Audit log error:', err); });
   }
 
   // =========== SYNC FUNCTIONS ===========
@@ -398,9 +444,21 @@ const Store = (() => {
       var students = this.getStudents(turma, materia, bimestre);
       var s = students.find(function(st) { return st.numero === numero; });
       if (s) {
+        var oldValue = s[field];
         var v = parseFloat(value);
         s[field] = isNaN(v) ? 0 : Math.min(10, Math.max(0, v));
         this.setStudents(turma, materia, bimestre, students);
+        // Log grade change
+        _logAudit('nota_alterada', {
+          aluno: s.nome,
+          numero: numero,
+          turma: turma,
+          materia: materia,
+          bimestre: bimestre,
+          campo: field,
+          valorAnterior: oldValue,
+          valorNovo: s[field]
+        });
       }
     },
 
@@ -456,9 +514,20 @@ const Store = (() => {
       var vas = this.getVAs(turma, materia, bimestre);
       var va = vas.find(function(v) { return v.id === vaId; });
       if (va) {
+        var oldValue = va.notas[alunoNumero] || 0;
         var v = parseFloat(nota);
         va.notas[alunoNumero] = isNaN(v) ? 0 : Math.min(va.valorMax, Math.max(0, v));
         this.setVAs(turma, materia, bimestre, vas);
+        // Log VA change
+        _logAudit('va_alterado', {
+          alunoNumero: alunoNumero,
+          turma: turma,
+          materia: materia,
+          bimestre: bimestre,
+          vaNome: va.nome,
+          valorAnterior: oldValue,
+          valorNovo: va.notas[alunoNumero]
+        });
       }
     },
 
@@ -526,9 +595,20 @@ const Store = (() => {
 
     setPBNota: function(turma, materia, bimestre, tipo, alunoNumero, nota) {
       var pb = this.getPB(turma, materia, bimestre);
+      var oldValue = pb[tipo].notas[alunoNumero] || 0;
       var v = parseFloat(nota);
       pb[tipo].notas[alunoNumero] = isNaN(v) ? 0 : Math.min(pb[tipo].valorMax, Math.max(0, v));
       this.setPB(turma, materia, bimestre, pb);
+      // Log PB change
+      _logAudit('pb_alterado', {
+        alunoNumero: alunoNumero,
+        turma: turma,
+        materia: materia,
+        bimestre: bimestre,
+        tipo: tipo,
+        valorAnterior: oldValue,
+        valorNovo: pb[tipo].notas[alunoNumero]
+      });
     },
 
     getPBNormalizada: function(pbTipo, alunoNumero) {
