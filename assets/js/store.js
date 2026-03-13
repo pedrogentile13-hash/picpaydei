@@ -478,19 +478,21 @@ const Store = (() => {
       syncVAsToCloud(turma, materia, bimestre, vas);
     },
 
-    addVA: function(turma, materia, bimestre, nome, tipo, valorMax) {
+    addVA: function(turma, materia, bimestre, nome, tipo, valorMax, peso) {
       // Propagate VA to all salas of the same year
       var ano = turma.charAt(0);
-      var salasDoAno = TURMAS.filter(function(t) { return t.charAt(0) === ano; });
+      var turmasConfig = _getTurmasConfiguradas();
+      var salasDoAno = turmasConfig.filter(function(t) { return t.charAt(0) === ano; });
       var self = this;
       var newId = null;
+      var pesoVal = parseFloat(peso) || 1;
 
       salasDoAno.forEach(function(sala) {
         var vas = self.getVAs(sala, materia, bimestre);
         var id = vas.length > 0 ? Math.max.apply(null, vas.map(function(v) { return v.id; })) + 1 : 1;
         // Use same ID across all salas for consistency
         if (newId === null) newId = id;
-        vas.push({ id: newId, nome: nome, tipo: tipo, valorMax: valorMax, notas: {} });
+        vas.push({ id: newId, nome: nome, tipo: tipo, valorMax: valorMax, peso: pesoVal, notas: {} });
         self.setVAs(sala, materia, bimestre, vas);
       });
 
@@ -500,13 +502,32 @@ const Store = (() => {
     removeVA: function(turma, materia, bimestre, vaId) {
       // Remove VA from all salas of the same year
       var ano = turma.charAt(0);
-      var salasDoAno = TURMAS.filter(function(t) { return t.charAt(0) === ano; });
+      var turmasConfig = _getTurmasConfiguradas();
+      var salasDoAno = turmasConfig.filter(function(t) { return t.charAt(0) === ano; });
       var self = this;
 
       salasDoAno.forEach(function(sala) {
         var vas = self.getVAs(sala, materia, bimestre);
         vas = vas.filter(function(v) { return v.id !== vaId; });
         self.setVAs(sala, materia, bimestre, vas);
+      });
+    },
+
+    updateVAPeso: function(turma, materia, bimestre, vaId, novoPeso) {
+      // Update peso for all salas of the same year
+      var ano = turma.charAt(0);
+      var turmasConfig = _getTurmasConfiguradas();
+      var salasDoAno = turmasConfig.filter(function(t) { return t.charAt(0) === ano; });
+      var self = this;
+      var pesoVal = parseFloat(novoPeso) || 1;
+
+      salasDoAno.forEach(function(sala) {
+        var vas = self.getVAs(sala, materia, bimestre);
+        var va = vas.find(function(v) { return v.id === vaId; });
+        if (va) {
+          va.peso = pesoVal;
+          self.setVAs(sala, materia, bimestre, vas);
+        }
       });
     },
 
@@ -541,9 +562,15 @@ const Store = (() => {
       var vas = this.getVAs(turma, materia, bimestre);
       if (vas.length === 0) return 0;
       var self = this;
-      var total = 0;
-      vas.forEach(function(va) { total += self.getVANormalizada(va, alunoNumero); });
-      return +(total / vas.length).toFixed(2);
+      var totalPonderado = 0;
+      var somaPesos = 0;
+      vas.forEach(function(va) {
+        var peso = va.peso || 1;
+        totalPonderado += self.getVANormalizada(va, alunoNumero) * peso;
+        somaPesos += peso;
+      });
+      if (somaPesos === 0) return 0;
+      return +(totalPonderado / somaPesos).toFixed(2);
     },
 
     importVACSV: function(turma, materia, bimestre, vaId, csvText) {

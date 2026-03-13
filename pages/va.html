@@ -53,9 +53,13 @@
                   '<label>Valor (0 a X)</label>' +
                   '<input type="number" id="inputVAValor" min="0.1" max="100" step="0.1" placeholder="10" />' +
                 '</div>' +
+                '<div class="form-group" style="width:100px;">' +
+                  '<label>Peso</label>' +
+                  '<input type="number" id="inputVAPeso" min="0.1" max="10" step="0.1" value="1" placeholder="1" />' +
+                '</div>' +
                 '<button class="btn btn-primary" onclick="addVA()" style="align-self:flex-end;">+ Criar VA</button>' +
               '</div>' +
-              '<p style="margin-top:8px;font-size:0.72rem;color:var(--gray-400);">A nota de cada aluno será normalizada para 0-10. No boletim, VA = média de todas as VAs normalizadas.</p>' +
+              '<p style="margin-top:8px;font-size:0.72rem;color:var(--gray-400);">A nota de cada aluno será normalizada para 0-10. No boletim, VA = média ponderada (pelo peso) de todas as VAs.</p>' +
             '</div>' +
           '</div>' +
 
@@ -80,11 +84,19 @@
       var nome = document.getElementById('inputVANome').value.trim();
       var tipo = document.getElementById('inputVATipo').value;
       var valor = parseFloat(document.getElementById('inputVAValor').value);
+      var peso = parseFloat(document.getElementById('inputVAPeso').value) || 1;
       if (!nome) return alert('Informe o nome da VA.');
       if (!valor || valor <= 0) return alert('Informe o valor máximo da VA (maior que 0).');
-      Store.addVA(ctx.turma, ctx.materia, ctx.bimestre, nome, tipo, valor);
+      Store.addVA(ctx.turma, ctx.materia, ctx.bimestre, nome, tipo, valor, peso);
       document.getElementById('inputVANome').value = '';
       document.getElementById('inputVAValor').value = '';
+      document.getElementById('inputVAPeso').value = '1';
+      render();
+    }
+
+    function updatePeso(vaId, el) {
+      var ctx = getCurrentContext();
+      Store.updateVAPeso(ctx.turma, ctx.materia, ctx.bimestre, vaId, el.value);
       render();
     }
 
@@ -198,6 +210,11 @@
         html += '</div>';
         html += '<div style="display:flex;align-items:center;gap:12px;">';
         html += '<span style="font-size:0.8rem;font-weight:600;color:var(--gray-500);">Valor: 0 a ' + va.valorMax + '</span>';
+        html += '<span style="font-size:0.8rem;color:var(--gray-400);">|</span>';
+        html += '<span style="font-size:0.8rem;font-weight:600;color:var(--gray-500);">Peso: </span>';
+        html += '<input type="number" min="0.1" max="10" step="0.1" value="' + (va.peso || 1) + '" ';
+        html += 'onclick="event.stopPropagation()" onblur="updatePeso(' + va.id + ',this)" ';
+        html += 'style="width:50px;padding:2px 6px;border:1px solid var(--gray-200);border-radius:4px;font-size:0.8rem;text-align:center;" />';
         html += '<button onclick="event.stopPropagation();triggerCSVImport(' + va.id + ')" class="csv-upload-btn" title="Importar CSV">';
         html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>';
         html += 'CSV</button>';
@@ -256,7 +273,7 @@
         html += '<th style="text-align:left;">Nome</th>';
 
         vas.forEach(function(va) {
-          html += '<th style="text-align:center;font-size:0.65rem;">' + va.nome + '<br>(norm.)</th>';
+          html += '<th style="text-align:center;font-size:0.65rem;">' + va.nome + '<br>(peso ' + (va.peso || 1) + ')</th>';
         });
 
         html += '<th style="text-align:center;background:var(--dark);">Média VA</th>';
@@ -279,9 +296,10 @@
         });
 
         html += '</tbody></table></div>';
+        var somaPesos = vas.reduce(function(sum, va) { return sum + (va.peso || 1); }, 0);
         html += '<p style="padding:12px 20px;font-size:0.72rem;color:var(--gray-400);">Média VA = (' +
-          vas.map(function(va) { return 'Norm. ' + va.nome; }).join(' + ') +
-          ') / ' + vas.length + '</p>';
+          vas.map(function(va) { return '(' + va.nome + ' × ' + (va.peso || 1) + ')'; }).join(' + ') +
+          ') / ' + somaPesos.toFixed(1) + '</p>';
         html += '</div>';
       }
 
