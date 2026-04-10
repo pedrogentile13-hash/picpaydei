@@ -3,37 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configurações — picpay.de.i</title>
+  <title>Configurações — Lidara</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
   <style>
-    .manual-section { margin-bottom:24px; }
-    .manual-card { background:#fff; border-radius:1.25rem; border:1px solid var(--gray-100); overflow:hidden; margin-bottom:12px; }
-    .manual-card-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; cursor:pointer; transition:background 0.15s; }
-    .manual-card-head:hover { background:var(--gray-50); }
-    .manual-card-head h3 { font-size:0.95rem; font-weight:700; color:var(--dark); display:flex; align-items:center; gap:12px; margin:0; }
-    .manual-card-head .step-num { width:32px; height:32px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; }
-    .manual-card-head .arrow { font-size:0.8rem; color:var(--gray-400); transition:transform 0.2s; }
-    .manual-card-head.open .arrow { transform:rotate(180deg); }
-    .manual-card-body { display:none; padding:0 20px 20px 64px; }
-    .manual-card-body.open { display:block; }
-    .manual-card-body p { color:var(--gray-600); font-size:0.85rem; line-height:1.7; margin-bottom:12px; }
-    .manual-card-body ul { margin:0 0 12px 20px; color:var(--gray-600); font-size:0.85rem; }
-    .manual-card-body ul li { margin-bottom:6px; }
-    .manual-card-body .tip { background:#FEF3C7; border-left:4px solid #F59E0B; padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; }
-    .manual-card-body .tip strong { color:#92400E; }
-    .manual-card-body .tip p { color:#92400E; margin:0; }
-    .manual-card-body .example { background:var(--gray-50); border-radius:8px; padding:12px 16px; font-family:monospace; font-size:0.8rem; color:var(--dark); margin:12px 0; }
-    .manual-card-body img { max-width:100%; border-radius:8px; margin:12px 0; border:1px solid var(--gray-200); }
-    .category-title { font-size:0.75rem; font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:0.05em; margin:32px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--gray-100); }
-    .formula-box { background:linear-gradient(135deg, #11C76F 0%, #0EA85E 100%); color:#fff; padding:20px; border-radius:12px; margin:16px 0; }
-    .formula-box h4 { font-size:0.85rem; font-weight:700; margin-bottom:8px; opacity:0.9; }
-    .formula-box .formula { font-family:monospace; font-size:1.1rem; font-weight:700; }
-    .shortcut-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:16px 0; }
-    .shortcut-item { background:var(--gray-50); padding:12px 16px; border-radius:8px; display:flex; align-items:center; gap:12px; }
-    .shortcut-item kbd { background:var(--dark); color:#fff; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; }
-    .shortcut-item span { font-size:0.85rem; color:var(--gray-600); }
-    .expand-all-btn { padding:8px 16px; border-radius:8px; border:1px solid var(--gray-200); background:#fff; font-size:0.8rem; font-weight:600; color:var(--gray-600); cursor:pointer; transition:all 0.15s; }
-    .expand-all-btn:hover { border-color:var(--green); color:var(--green); }
+    .cfg-section { margin-bottom: 32px; }
+    .cfg-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .cfg-field { display: flex; flex-direction: column; gap: 6px; }
+    .cfg-field label { font-size: 0.75rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.04em; }
+    .cfg-field input, .cfg-field select {
+      padding: 11px 14px; border: 2px solid var(--gray-200); border-radius: 10px;
+      font-size: 0.95rem; font-weight: 500; outline: none; transition: border-color 0.2s;
+      font-family: inherit; background: #fff; color: var(--gray-900);
+    }
+    .cfg-field input:focus, .cfg-field select:focus { border-color: var(--green); }
+    .cfg-hint { font-size: 0.72rem; color: var(--gray-400); }
+
+    /* Tag list */
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; min-height: 36px; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--light); color: var(--dark);
+      padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+      border: 1px solid rgba(17,199,111,0.2);
+    }
+    .tag button {
+      background: none; border: none; cursor: pointer;
+      color: var(--gray-400); font-size: 0.9rem; line-height: 1;
+      padding: 0; transition: color 0.15s;
+    }
+    .tag button:hover { color: var(--red); }
+    .tag-green { background: var(--green); color: #fff; border-color: transparent; }
+    .tag-green button { color: rgba(255,255,255,0.7); }
+    .tag-green button:hover { color: #fff; }
+
+    /* Add field row */
+    .add-row { display: flex; gap: 8px; margin-top: 12px; }
+    .add-row input, .add-row select {
+      flex: 1; padding: 9px 12px; border: 2px solid var(--gray-200); border-radius: 9px;
+      font-size: 0.875rem; outline: none; font-family: inherit; transition: border-color 0.2s;
+    }
+    .add-row input:focus, .add-row select:focus { border-color: var(--green); }
+
+    /* Matérias table */
+    .materias-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .materia-item {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--gray-50); border-radius: 10px; padding: 12px 14px;
+      border: 1px solid var(--gray-100);
+    }
+    .materia-item .nome { flex: 1; font-weight: 600; font-size: 0.9rem; color: var(--dark); }
+    .materia-item .turmas-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .materia-item .turmas-tags span {
+      background: var(--light); color: var(--dark);
+      font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+    }
+    .materia-item .actions { display: flex; gap: 6px; margin-left: auto; }
+
+    /* Bimestres */
+    .bim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; }
+    .bim-card {
+      background: var(--gray-50); border-radius: 12px; padding: 16px;
+      border: 1px solid var(--gray-100);
+    }
+    .bim-card h4 { font-size: 0.8rem; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+    .bim-dates { display: flex; flex-direction: column; gap: 8px; }
+    .bim-dates label { font-size: 0.7rem; color: var(--gray-500); font-weight: 600; }
+    .bim-dates input[type="date"] {
+      width: 100%; padding: 7px 10px; border: 1px solid var(--gray-200); border-radius: 7px;
+      font-size: 0.8rem; font-family: inherit; outline: none; transition: border-color 0.2s;
+    }
+    .bim-dates input[type="date"]:focus { border-color: var(--green); }
+
+    /* Danger zone */
+    .danger-zone { border: 1.5px solid #FCA5A5; border-radius: var(--radius-lg); padding: 20px; }
+    .danger-zone h4 { color: var(--red); font-size: 0.9rem; margin-bottom: 12px; }
+
+    /* Modal overlay */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 500;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: var(--radius-lg); max-width: 480px; width: 100%;
+      box-shadow: var(--shadow-lg); overflow: hidden;
+    }
+    .modal-head {
+      padding: 20px 24px; border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-head h3 { font-size: 1rem; font-weight: 800; color: var(--dark); }
+    .modal-head button { background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 1.2rem; }
+    .modal-body { padding: 24px; }
+    .modal-foot { padding: 16px 24px; border-top: 1px solid var(--gray-100); display: flex; gap: 8px; justify-content: flex-end; }
+
+    .checkbox-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
+    .checkbox-list label {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; background: var(--gray-50); border-radius: 8px;
+      cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--dark);
+    }
+    .checkbox-list input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--green); }
   </style>
 </head>
 <body>
@@ -48,440 +119,476 @@
 
   <div id="app" style="visibility:hidden;"></div>
 
-  <script>
-    var config = Store.getConfig();
+  <!-- Add Matéria Modal -->
+  <div id="modalMateria" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="modalMateriaTitle">Nova Matéria</h3>
+        <button onclick="closeModalMateria()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="cfg-field" style="margin-bottom:16px;">
+          <label>Nome da Matéria</label>
+          <select id="modalMateriaNome" style="padding:11px 14px;border:2px solid var(--gray-200);border-radius:10px;font-size:0.95rem;outline:none;font-family:inherit;">
+            <option value="">— Selecione ou digite —</option>
+          </select>
+        </div>
+        <div class="cfg-field">
+          <label>Vincular a quais anos</label>
+          <div class="checkbox-list" id="modalMateriaAnos"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModalMateria()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveMateria()">Salvar</button>
+      </div>
+    </div>
+  </div>
 
+  <script>
+    // ============================
+    // DATA HELPERS
+    // ============================
+    function getProf() {
+      return Store.getProfessor() || { anos: [], turmas: [], materias: [] };
+    }
+
+    function saveProf(prof) {
+      Store.setProfessor(prof);
+    }
+
+    var TODAS_MATERIAS = [
+      'Lingua Portuguesa','Matematica','Historia','Geografia',
+      'Educacao Fisica','Artes','Biologia','Quimica',
+      'Iniciacao Cientifica','Educacao Socioemocional','Producao de Texto',
+      'Fisica','Educacao Financeira','Pensamento Computacional','Ingles'
+    ];
+
+    var ANOS_DISPONIVEIS = ['6','7','8','9'];
+    var TURMAS_DISPONIVEIS = ['A','B','C','D','E'];
+
+    var BIM_DATAS_KEY = 'lidara_bim_datas';
+
+    function getBimDatas() {
+      try { return JSON.parse(localStorage.getItem(BIM_DATAS_KEY)) || {}; }
+      catch(e) { return {}; }
+    }
+
+    function setBimDatas(d) {
+      localStorage.setItem(BIM_DATAS_KEY, JSON.stringify(d));
+    }
+
+    // ============================
+    // RENDER
+    // ============================
     document.getElementById('app').innerHTML =
       Components.sidebar('configuracoes') +
       '<div class="main-content">' +
-        Components.topbar('Configuracoes', false) +
+        Components.topbar('Configurações', false) +
         '<div class="page-container">' +
 
-          // Settings Card
-          '<div class="card" style="margin-bottom:32px;">' +
-            '<div class="card-header">' +
-              '<h3>Configuracoes do Sistema</h3>' +
-            '</div>' +
-            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:8px 0;">' +
-
-              '<div class="form-group" style="display:flex;flex-direction:column;gap:6px;">' +
-                '<label style="font-size:0.78rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;">Ano Letivo</label>' +
+          // ── ESCOLA ──────────────────────────────
+          '<div class="card cfg-section">' +
+            '<div class="card-header"><h3>Escola</h3></div>' +
+            '<div class="cfg-row">' +
+              '<div class="cfg-field">' +
+                '<label>Nome da Escola</label>' +
+                '<input type="text" id="inputEscola" placeholder="Ex: Colégio São Paulo" />' +
+                '<span class="cfg-hint">Aparece no cabeçalho dos relatórios</span>' +
+              '</div>' +
+              '<div class="cfg-field">' +
+                '<label>Ano Letivo</label>' +
                 '<div style="display:flex;gap:8px;">' +
-                  '<input type="number" id="inputAnoLetivo" value="' + config.anoLetivo + '" min="2020" max="2050" style="flex:1;padding:12px 14px;border:2px solid var(--gray-200);border-radius:10px;font-size:1rem;font-weight:700;outline:none;" />' +
+                  '<input type="number" id="inputAnoLetivo" min="2020" max="2050" style="flex:1;" />' +
                   '<button class="btn btn-primary" onclick="saveAnoLetivo()">Salvar</button>' +
                 '</div>' +
-                '<span style="font-size:0.75rem;color:var(--gray-400);">O ano letivo afeta todo o sistema</span>' +
+                '<span class="cfg-hint">Afeta todo o sistema</span>' +
               '</div>' +
-
-              '<div class="form-group" style="display:flex;flex-direction:column;gap:6px;">' +
-                '<label style="font-size:0.78rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;">Acoes</label>' +
-                '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-                  '<a href="perfil.html" class="btn btn-outline" style="text-decoration:none;">Meu Perfil</a>' +
-                  '<button class="btn btn-outline" onclick="exportAllData()">Exportar Dados</button>' +
-                  '<button class="btn btn-outline" style="color:var(--red);border-color:var(--red);" onclick="clearAllData()">Limpar Dados</button>' +
-                '</div>' +
-              '</div>' +
-
+            '</div>' +
+            '<div style="margin-top:16px;display:flex;gap:8px;">' +
+              '<button class="btn btn-primary" onclick="saveEscola()">Salvar Escola</button>' +
             '</div>' +
           '</div>' +
 
-          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">' +
+          // ── TURMAS ──────────────────────────────
+          '<div class="card cfg-section">' +
+            '<div class="card-header"><h3>Turmas Configuradas</h3>' +
+              '<span style="font-size:0.75rem;color:var(--gray-400);">Anos e letras ativas</span>' +
+            '</div>' +
+
+            '<div style="margin-bottom:20px;">' +
+              '<p style="font-size:0.8rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Anos</p>' +
+              '<div class="tag-list" id="tagAnosList"></div>' +
+              '<div class="add-row">' +
+                '<select id="selectAddAno">' +
+                  ANOS_DISPONIVEIS.map(function(a){ return '<option value="'+a+'">'+a+'º Ano</option>'; }).join('') +
+                '</select>' +
+                '<button class="btn btn-outline" onclick="addAno()">+ Adicionar Ano</button>' +
+              '</div>' +
+            '</div>' +
+
             '<div>' +
-              '<h2 style="font-size:1.2rem;font-weight:800;color:var(--dark);margin-bottom:4px;">Manual de Instrucoes</h2>' +
-              '<p style="font-size:0.85rem;color:var(--gray-500);">Aprenda a usar todas as funcionalidades do picpay.de.i</p>' +
+              '<p style="font-size:0.8rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Letras de Turma</p>' +
+              '<div class="tag-list" id="tagTurmasList"></div>' +
+              '<div class="add-row">' +
+                '<select id="selectAddTurma">' +
+                  TURMAS_DISPONIVEIS.map(function(t){ return '<option value="'+t+'">Turma '+t+'</option>'; }).join('') +
+                '</select>' +
+                '<button class="btn btn-outline" onclick="addTurma()">+ Adicionar Turma</button>' +
+              '</div>' +
+              '<p style="margin-top:12px;font-size:0.75rem;color:var(--gray-400);">* A combinação de anos × letras gera as turmas (ex: 6A, 6B, 9C)</p>' +
             '</div>' +
-            '<button class="expand-all-btn" onclick="toggleAll()">Expandir Tudo</button>' +
+
+            '<div style="margin-top:20px;padding:14px;background:var(--light);border-radius:10px;">' +
+              '<p style="font-size:0.8rem;font-weight:700;color:var(--dark);margin-bottom:8px;">Turmas geradas:</p>' +
+              '<div id="turmasGeradasList" style="display:flex;flex-wrap:wrap;gap:6px;"></div>' +
+            '</div>' +
           '</div>' +
 
-          '<div id="manualContent"></div>' +
+          // ── MATÉRIAS ─────────────────────────────
+          '<div class="card cfg-section">' +
+            '<div class="card-header"><h3>Matérias</h3>' +
+              '<button class="btn btn-outline" onclick="openModalMateria()" style="font-size:0.75rem;padding:6px 14px;">+ Adicionar</button>' +
+            '</div>' +
+            '<div id="materiasList" class="materias-list"></div>' +
+          '</div>' +
+
+          // ── PERÍODO LETIVO ───────────────────────
+          '<div class="card cfg-section">' +
+            '<div class="card-header"><h3>Período Letivo</h3>' +
+              '<span style="font-size:0.75rem;color:var(--gray-400);">Datas por bimestre</span>' +
+            '</div>' +
+            '<div class="bim-grid" id="bimGrid"></div>' +
+            '<div style="margin-top:16px;">' +
+              '<button class="btn btn-primary" onclick="saveBimDatas()">Salvar Datas</button>' +
+            '</div>' +
+          '</div>' +
+
+          // ── AÇÕES ────────────────────────────────
+          '<div class="card cfg-section">' +
+            '<div class="card-header"><h3>Ações</h3></div>' +
+            '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
+              '<a href="perfil.html" class="btn btn-outline" style="text-decoration:none;">Meu Perfil</a>' +
+              '<button class="btn btn-outline" onclick="exportAllData()">Exportar Dados</button>' +
+            '</div>' +
+            '<div class="danger-zone" style="margin-top:20px;">' +
+              '<h4>Zona de Perigo</h4>' +
+              '<p style="font-size:0.8rem;color:var(--gray-500);margin-bottom:12px;">Estas ações são irreversíveis.</p>' +
+              '<button class="btn" style="background:#FEE2E2;color:var(--red);border:1px solid #FCA5A5;" onclick="clearAllData()">Apagar Todos os Dados</button>' +
+            '</div>' +
+          '</div>' +
 
         '</div>' +
         Components.footer() +
       '</div>';
 
-    function saveAnoLetivo() {
-      var ano = parseInt(document.getElementById('inputAnoLetivo').value);
-      if (ano < 2020 || ano > 2050) {
-        alert('Ano invalido. Use um valor entre 2020 e 2050.');
-        return;
-      }
-      Store.setAnoLetivo(ano);
-      alert('Ano letivo atualizado para ' + ano + '! Recarregando...');
-      location.reload();
+    // ============================
+    // INIT
+    // ============================
+    (function init() {
+      // Escola / ano letivo
+      var profile = Store.getProfile();
+      var config = Store.getConfig();
+      document.getElementById('inputEscola').value = profile.escola || '';
+      document.getElementById('inputAnoLetivo').value = config.anoLetivo || 2026;
+
+      renderAnosTags();
+      renderTurmasTags();
+      renderTurmasGeradas();
+      renderMaterias();
+      renderBimGrid();
+
+      Store.loadFromCloud(function(success) {
+        if (success) {
+          var p = Store.getProfile();
+          document.getElementById('inputEscola').value = p.escola || '';
+          renderAnosTags();
+          renderTurmasTags();
+          renderTurmasGeradas();
+          renderMaterias();
+        }
+      });
+    })();
+
+    // ============================
+    // ESCOLA
+    // ============================
+    function saveEscola() {
+      var profile = Store.getProfile();
+      profile.escola = document.getElementById('inputEscola').value.trim();
+      Store.setProfile(profile);
+      showToast('Escola salva!');
     }
 
+    function saveAnoLetivo() {
+      var ano = parseInt(document.getElementById('inputAnoLetivo').value);
+      if (ano < 2020 || ano > 2050) { alert('Ano inválido (2020–2050).'); return; }
+      Store.setAnoLetivo(ano);
+      showToast('Ano letivo atualizado! Recarregando...');
+      setTimeout(function() { location.reload(); }, 800);
+    }
+
+    // ============================
+    // ANOS
+    // ============================
+    function renderAnosTags() {
+      var prof = getProf();
+      var anos = prof.anos || [];
+      var html = '';
+      anos.forEach(function(a) {
+        html += '<span class="tag tag-green">' + a + 'º Ano' +
+          '<button onclick="removeAno(\'' + a + '\')">×</button></span>';
+      });
+      document.getElementById('tagAnosList').innerHTML = html || '<span style="font-size:0.8rem;color:var(--gray-400);">Nenhum ano adicionado</span>';
+    }
+
+    function addAno() {
+      var val = document.getElementById('selectAddAno').value;
+      var prof = getProf();
+      if (!prof.anos) prof.anos = [];
+      if (prof.anos.indexOf(val) === -1) {
+        prof.anos.push(val);
+        prof.anos.sort();
+        saveProf(prof);
+        renderAnosTags();
+        renderTurmasGeradas();
+      }
+    }
+
+    function removeAno(ano) {
+      var prof = getProf();
+      prof.anos = (prof.anos || []).filter(function(a) { return a !== ano; });
+      saveProf(prof);
+      renderAnosTags();
+      renderTurmasGeradas();
+    }
+
+    // ============================
+    // TURMAS (letras)
+    // ============================
+    function renderTurmasTags() {
+      var prof = getProf();
+      var turmas = prof.turmas || [];
+      var html = '';
+      turmas.forEach(function(t) {
+        html += '<span class="tag tag-green">Turma ' + t +
+          '<button onclick="removeTurma(\'' + t + '\')">×</button></span>';
+      });
+      document.getElementById('tagTurmasList').innerHTML = html || '<span style="font-size:0.8rem;color:var(--gray-400);">Nenhuma turma adicionada</span>';
+    }
+
+    function addTurma() {
+      var val = document.getElementById('selectAddTurma').value;
+      var prof = getProf();
+      if (!prof.turmas) prof.turmas = [];
+      if (prof.turmas.indexOf(val) === -1) {
+        prof.turmas.push(val);
+        prof.turmas.sort();
+        saveProf(prof);
+        renderTurmasTags();
+        renderTurmasGeradas();
+      }
+    }
+
+    function removeTurma(letra) {
+      var prof = getProf();
+      prof.turmas = (prof.turmas || []).filter(function(t) { return t !== letra; });
+      saveProf(prof);
+      renderTurmasTags();
+      renderTurmasGeradas();
+    }
+
+    function renderTurmasGeradas() {
+      var prof = getProf();
+      var anos = prof.anos || [];
+      var turmas = prof.turmas || [];
+      var geradas = [];
+      anos.forEach(function(ano) {
+        turmas.forEach(function(letra) { geradas.push(ano + letra); });
+      });
+      geradas.sort();
+      var el = document.getElementById('turmasGeradasList');
+      if (geradas.length === 0) {
+        el.innerHTML = '<span style="font-size:0.8rem;color:var(--gray-400);">Nenhuma turma gerada ainda</span>';
+      } else {
+        el.innerHTML = geradas.map(function(t) {
+          return '<span style="background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:4px 10px;font-size:0.8rem;font-weight:700;color:var(--dark);">' + t + '</span>';
+        }).join('');
+      }
+    }
+
+    // ============================
+    // MATÉRIAS
+    // ============================
+    var editMateriaIdx = -1;
+
+    function renderMaterias() {
+      var prof = getProf();
+      var materias = prof.materias || [];
+      var el = document.getElementById('materiasList');
+      if (materias.length === 0) {
+        el.innerHTML = '<p style="color:var(--gray-400);font-size:0.875rem;padding:8px 0;">Nenhuma matéria configurada.</p>';
+        return;
+      }
+      el.innerHTML = materias.map(function(m, idx) {
+        var anosHtml = (m.anos || []).map(function(a) {
+          return '<span>' + a + 'º</span>';
+        }).join('');
+        return '<div class="materia-item">' +
+          '<span class="nome">' + m.nome + '</span>' +
+          '<div class="turmas-tags">' + anosHtml + '</div>' +
+          '<div class="actions">' +
+            '<button class="btn-icon-sm" style="background:var(--light);color:var(--dark);" onclick="openEditMateria(' + idx + ')" title="Editar">' +
+              '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>' +
+            '</button>' +
+            '<button class="btn-icon-sm" style="background:#FEE2E2;color:var(--red);" onclick="removeMateria(' + idx + ')" title="Remover">' +
+              '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function openModalMateria() {
+      editMateriaIdx = -1;
+      document.getElementById('modalMateriaTitle').textContent = 'Nova Matéria';
+      buildMateriaModal(null);
+      document.getElementById('modalMateria').classList.add('open');
+    }
+
+    function openEditMateria(idx) {
+      editMateriaIdx = idx;
+      var prof = getProf();
+      var m = prof.materias[idx];
+      document.getElementById('modalMateriaTitle').textContent = 'Editar Matéria';
+      buildMateriaModal(m);
+      document.getElementById('modalMateria').classList.add('open');
+    }
+
+    function buildMateriaModal(materia) {
+      var prof = getProf();
+      var anos = prof.anos || ANOS_DISPONIVEIS;
+      var nomeSel = document.getElementById('modalMateriaNome');
+      nomeSel.innerHTML = '<option value="">— Selecione —</option>' +
+        TODAS_MATERIAS.map(function(m) {
+          var sel = materia && materia.nome === m ? ' selected' : '';
+          return '<option value="' + m + '"' + sel + '>' + m + '</option>';
+        }).join('');
+      // Also allow custom text
+      if (materia && TODAS_MATERIAS.indexOf(materia.nome) === -1) {
+        nomeSel.innerHTML += '<option value="' + materia.nome + '" selected>' + materia.nome + '</option>';
+      }
+
+      var selectedAnos = materia ? (materia.anos || []) : [];
+      document.getElementById('modalMateriaAnos').innerHTML = anos.map(function(a) {
+        var chk = selectedAnos.indexOf(a) !== -1 ? ' checked' : '';
+        return '<label><input type="checkbox" value="' + a + '"' + chk + ' /> ' + a + 'º Ano</label>';
+      }).join('');
+    }
+
+    function closeModalMateria() {
+      document.getElementById('modalMateria').classList.remove('open');
+      editMateriaIdx = -1;
+    }
+
+    function saveMateria() {
+      var nome = document.getElementById('modalMateriaNome').value.trim();
+      if (!nome) { alert('Selecione uma matéria.'); return; }
+      var anos = Array.from(document.querySelectorAll('#modalMateriaAnos input:checked')).map(function(cb) { return cb.value; });
+      if (anos.length === 0) { alert('Selecione pelo menos um ano.'); return; }
+      var prof = getProf();
+      if (!prof.materias) prof.materias = [];
+      if (editMateriaIdx >= 0) {
+        prof.materias[editMateriaIdx] = { nome: nome, anos: anos };
+      } else {
+        prof.materias.push({ nome: nome, anos: anos });
+      }
+      saveProf(prof);
+      renderMaterias();
+      closeModalMateria();
+      showToast('Matéria salva!');
+    }
+
+    function removeMateria(idx) {
+      if (!confirm('Remover esta matéria?')) return;
+      var prof = getProf();
+      prof.materias.splice(idx, 1);
+      saveProf(prof);
+      renderMaterias();
+    }
+
+    // ============================
+    // BIMESTRES / PERÍODO LETIVO
+    // ============================
+    function renderBimGrid() {
+      var datas = getBimDatas();
+      var html = '';
+      ['1','2','3','4'].forEach(function(b) {
+        var d = datas[b] || { inicio: '', fim: '' };
+        html += '<div class="bim-card">' +
+          '<h4>' + b + 'º Bimestre</h4>' +
+          '<div class="bim-dates">' +
+            '<label>Início</label>' +
+            '<input type="date" id="bim-' + b + '-inicio" value="' + d.inicio + '" />' +
+            '<label>Término</label>' +
+            '<input type="date" id="bim-' + b + '-fim" value="' + d.fim + '" />' +
+          '</div>' +
+        '</div>';
+      });
+      document.getElementById('bimGrid').innerHTML = html;
+    }
+
+    function saveBimDatas() {
+      var datas = {};
+      ['1','2','3','4'].forEach(function(b) {
+        datas[b] = {
+          inicio: document.getElementById('bim-' + b + '-inicio').value,
+          fim: document.getElementById('bim-' + b + '-fim').value
+        };
+      });
+      setBimDatas(datas);
+      showToast('Datas salvas!');
+    }
+
+    // ============================
+    // AÇÕES
+    // ============================
     function exportAllData() {
       var data = Store.exportData();
       data.config = Store.getConfig();
       data.profile = Store.getProfile();
+      data.bimDatas = getBimDatas();
       var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = 'picpaydei-backup-' + new Date().toISOString().split('T')[0] + '.json';
+      a.download = 'lidara-backup-' + new Date().toISOString().split('T')[0] + '.json';
       a.click();
       URL.revokeObjectURL(url);
     }
 
     function clearAllData() {
-      if (!confirm('ATENCAO: Isso ira apagar TODOS os dados (alunos, notas, configuracoes)!')) return;
-      if (!confirm('Tem certeza absoluta? Esta acao nao pode ser desfeita!')) return;
+      if (!confirm('ATENÇÃO: Isso irá apagar TODOS os dados (alunos, notas, configurações)!')) return;
+      if (!confirm('Tem certeza absoluta? Esta ação não pode ser desfeita!')) return;
       Store.clearAll();
       localStorage.removeItem('picpay_dei_config');
       localStorage.removeItem('picpay_dei_profile');
+      localStorage.removeItem('picpay_dei_professor');
+      localStorage.removeItem(BIM_DATAS_KEY);
       alert('Todos os dados foram apagados. Recarregando...');
       location.reload();
     }
 
-    var allExpanded = false;
-
-    function toggleAll() {
-      allExpanded = !allExpanded;
-      var btn = document.querySelector('.expand-all-btn');
-      btn.textContent = allExpanded ? 'Recolher Tudo' : 'Expandir Tudo';
-      document.querySelectorAll('.manual-card').forEach(function(card) {
-        var head = card.querySelector('.manual-card-head');
-        var body = card.querySelector('.manual-card-body');
-        if (allExpanded) {
-          head.classList.add('open');
-          body.classList.add('open');
-        } else {
-          head.classList.remove('open');
-          body.classList.remove('open');
-        }
-      });
+    // ============================
+    // TOAST
+    // ============================
+    function showToast(msg) {
+      var t = document.createElement('div');
+      t.textContent = msg;
+      t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--dark);color:#fff;padding:12px 20px;border-radius:10px;font-size:0.875rem;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.15);transition:opacity 0.3s;';
+      document.body.appendChild(t);
+      setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 2200);
     }
-
-    function toggleManualCard(el) {
-      var head = el;
-      var body = el.nextElementSibling;
-      head.classList.toggle('open');
-      body.classList.toggle('open');
-    }
-
-    var manualData = [
-      {
-        category: 'Primeiros Passos',
-        items: [
-          {
-            title: 'Entendendo a Interface',
-            content: `
-              <p>O <strong>picpay.de.i</strong> é um sistema de gerenciamento escolar com navegação intuitiva:</p>
-              <ul>
-                <li><strong>Sidebar (Menu Lateral):</strong> Acesso rápido a todas as páginas</li>
-                <li><strong>Topbar (Barra Superior):</strong> Seleção de Bimestre, Turma e Matéria</li>
-                <li><strong>Área Principal:</strong> Conteúdo da página atual</li>
-              </ul>
-              <div class="tip">
-                <p><strong>Dica:</strong> Em dispositivos móveis, clique no ícone ☰ para abrir o menu lateral.</p>
-              </div>
-            `
-          },
-          {
-            title: 'Selecionando o Contexto (Turma/Matéria/Bimestre)',
-            content: `
-              <p>Antes de qualquer ação, selecione o contexto correto na barra superior:</p>
-              <ul>
-                <li><strong>Bimestre:</strong> 1º, 2º, 3º ou 4º Bimestre</li>
-                <li><strong>Turma:</strong> 6A-6D, 8A-8C ou 9A-9D</li>
-                <li><strong>Matéria:</strong> Varia conforme a turma selecionada</li>
-              </ul>
-              <p>As matérias disponíveis por ano:</p>
-              <ul>
-                <li><strong>6º Ano:</strong> LEM, Produção de Texto</li>
-                <li><strong>8º Ano:</strong> Português, Produção de Texto</li>
-                <li><strong>9º Ano:</strong> LEM</li>
-              </ul>
-              <div class="tip">
-                <p><strong>Importante:</strong> O contexto é salvo automaticamente. Ao reabrir o site, você volta para a última seleção.</p>
-              </div>
-            `
-          }
-        ]
-      },
-      {
-        category: 'Gerenciamento de Alunos',
-        items: [
-          {
-            title: 'Cadastrando Alunos',
-            content: `
-              <p>Na página <strong>Alunos</strong>, você pode cadastrar alunos de duas formas:</p>
-              <p><strong>1. Cadastro Individual:</strong></p>
-              <ul>
-                <li>Digite o número do aluno (1-50)</li>
-                <li>Digite o nome completo</li>
-                <li>Clique em "Adicionar"</li>
-              </ul>
-              <p><strong>2. Importação por CSV:</strong></p>
-              <ul>
-                <li>Clique no botão "Importar CSV"</li>
-                <li>Selecione um arquivo .csv com o formato:</li>
-              </ul>
-              <div class="example">
-                1,João Silva<br>
-                2,Maria Santos<br>
-                3,Pedro Oliveira
-              </div>
-              <div class="tip">
-                <p><strong>Dica:</strong> Use o botão "Copiar para outro Bimestre" para duplicar a lista de alunos.</p>
-              </div>
-            `
-          },
-          {
-            title: 'Excluindo Alunos',
-            content: `
-              <p>Existem duas opções para excluir alunos:</p>
-              <ul>
-                <li><strong>Individual:</strong> Clique no ícone de lixeira ao lado do aluno</li>
-                <li><strong>Todos:</strong> Clique no botão "Apagar Todos" para remover todos os alunos da turma atual</li>
-              </ul>
-              <div class="tip">
-                <p><strong>Atenção:</strong> A exclusão é permanente. Todas as notas do aluno também serão removidas.</p>
-              </div>
-            `
-          }
-        ]
-      },
-      {
-        category: 'Sistema de Negativos',
-        items: [
-          {
-            title: 'Como Funcionam os Negativos',
-            content: `
-              <p>Os negativos são penalizações que afetam a nota de Qualitativa:</p>
-              <div class="formula-box">
-                <h4>Fórmula de Ajuste</h4>
-                <div class="formula">Quali Ajustada = Quali - (Negativos × 0.1)</div>
-              </div>
-              <p>Exemplo: Se o aluno tem Quali = 8.0 e 5 negativos:</p>
-              <div class="example">Quali Ajustada = 8.0 - (5 × 0.1) = 8.0 - 0.5 = 7.5</div>
-              <ul>
-                <li>Cada negativo reduz 0.1 ponto da Qualitativa</li>
-                <li>Máximo de 100 negativos por aluno</li>
-                <li>A Qualitativa ajustada nunca fica abaixo de 0</li>
-              </ul>
-            `
-          },
-          {
-            title: 'Adicionando/Removendo Negativos',
-            content: `
-              <p>Na página <strong>Negativos</strong>:</p>
-              <ul>
-                <li>Clique em <strong>+</strong> para adicionar um negativo</li>
-                <li>Clique em <strong>-</strong> para remover um negativo</li>
-                <li>O contador é atualizado instantaneamente</li>
-              </ul>
-              <div class="tip">
-                <p><strong>Dica:</strong> Use a visualização do Dashboard para ver quem tem mais negativos.</p>
-              </div>
-            `
-          }
-        ]
-      },
-      {
-        category: 'Verificações de Aprendizagem (VA)',
-        items: [
-          {
-            title: 'Criando uma VA',
-            content: `
-              <p>Na página <strong>VA</strong>, crie atividades avaliativas:</p>
-              <ul>
-                <li><strong>Nome:</strong> Ex: "Trabalho sobre verbos"</li>
-                <li><strong>Tipo:</strong> Trabalho, Escrita, Caderno, Apresentação, Participação, Prova ou Outro</li>
-                <li><strong>Valor Máximo:</strong> A nota máxima possível (ex: 10, 20, 100)</li>
-              </ul>
-              <div class="tip">
-                <p><strong>Importante:</strong> Ao criar uma VA no 6A, ela é automaticamente criada em 6B, 6C e 6D!</p>
-              </div>
-            `
-          },
-          {
-            title: 'Normalização de Notas',
-            content: `
-              <p>Todas as notas de VA são normalizadas para a escala 0-10:</p>
-              <div class="formula-box">
-                <h4>Fórmula de Normalização</h4>
-                <div class="formula">Nota Normalizada = (Nota Bruta / Valor Máximo) × 10</div>
-              </div>
-              <p>Exemplo: VA com valor máximo 20, aluno tirou 15:</p>
-              <div class="example">Nota Normalizada = (15 / 20) × 10 = 7.5</div>
-              <p>A média de VA é calculada como a média de todas as VAs normalizadas.</p>
-            `
-          },
-          {
-            title: 'Dashboard de VAs',
-            content: `
-              <p>Acesse <strong>↳ Dashboard VA</strong> no menu para ver:</p>
-              <ul>
-                <li>Comparativo de desempenho <strong>por VA específica</strong></li>
-                <li>Ranking das melhores notas de cada turma</li>
-                <li>Gráfico comparativo de médias por turma</li>
-                <li>Estatísticas: média geral, melhor turma, turma a melhorar</li>
-              </ul>
-              <div class="tip">
-                <p><strong>Dica:</strong> Use os filtros para navegar entre anos, matérias e bimestres.</p>
-              </div>
-            `
-          }
-        ]
-      },
-      {
-        category: 'Prova Bimestral (PB)',
-        items: [
-          {
-            title: 'Entendendo a Prova Bimestral',
-            content: `
-              <p>A Prova Bimestral é composta por duas avaliações:</p>
-              <ul>
-                <li><strong>Anglo:</strong> Peso 1</li>
-                <li><strong>Prova Bimestral:</strong> Peso 5</li>
-              </ul>
-              <div class="formula-box">
-                <h4>Fórmula da Média PB</h4>
-                <div class="formula">Média PB = (Anglo×1 + Prova×5) / 6</div>
-              </div>
-              <div class="tip">
-                <p><strong>Importante:</strong> A PB só está disponível para Português e Produção de Texto. LEM não possui PB.</p>
-              </div>
-            `
-          },
-          {
-            title: 'Lançando Notas de PB',
-            content: `
-              <p>Na página <strong>Prova Bimestral</strong>:</p>
-              <ul>
-                <li>Defina o valor máximo de cada prova (padrão: 10)</li>
-                <li>Lance as notas brutas de cada aluno</li>
-                <li>As notas são normalizadas automaticamente para 0-10</li>
-                <li>A média PB é calculada em tempo real</li>
-              </ul>
-              <p>Você também pode importar notas via CSV no formato:</p>
-              <div class="example">1,8.5<br>2,9.0<br>3,7.5</div>
-            `
-          },
-          {
-            title: 'Dashboard de PB',
-            content: `
-              <p>Acesse <strong>↳ Dashboard PB</strong> no menu para ver:</p>
-              <ul>
-                <li>Ranking de melhores notas em Anglo</li>
-                <li>Ranking de melhores notas em Prova</li>
-                <li>Ranking de melhores médias PB</li>
-                <li>Gráficos comparativos por turma</li>
-              </ul>
-            `
-          }
-        ]
-      },
-      {
-        category: 'Cálculo da Média Final',
-        items: [
-          {
-            title: 'Fórmula Completa (Português/Produção de Texto)',
-            content: `
-              <p>Para matérias com Prova Bimestral:</p>
-              <div class="formula-box">
-                <h4>Média Final</h4>
-                <div class="formula">M = (PB×35 + Quali×30 + VA×35) / 100</div>
-              </div>
-              <p>Onde:</p>
-              <ul>
-                <li><strong>PB (35%):</strong> Média da Prova Bimestral</li>
-                <li><strong>Quali (30%):</strong> Qualitativa ajustada (descontando negativos)</li>
-                <li><strong>VA (35%):</strong> Média das Verificações de Aprendizagem</li>
-              </ul>
-            `
-          },
-          {
-            title: 'Fórmula LEM (sem PB)',
-            content: `
-              <p>Para LEM, que não possui Prova Bimestral:</p>
-              <div class="formula-box">
-                <h4>Média Final - LEM</h4>
-                <div class="formula">M = (Quali×30 + VA×35) / 65</div>
-              </div>
-              <p>A pontuação é redistribuída proporcionalmente entre Qualitativa e VA.</p>
-            `
-          }
-        ]
-      },
-      {
-        category: 'Boletim e Relatórios',
-        items: [
-          {
-            title: 'Visualizando o Boletim',
-            content: `
-              <p>Na página <strong>Boletim</strong>, veja todas as notas consolidadas:</p>
-              <ul>
-                <li>Notas de PB (Anglo e Prova normalizadas)</li>
-                <li>Qualitativa original e ajustada</li>
-                <li>Média de VA</li>
-                <li>Média Final com indicador visual (verde ≥6, vermelho <6)</li>
-              </ul>
-            `
-          },
-          {
-            title: 'Gerando Relatórios',
-            content: `
-              <p>Na página <strong>Relatórios</strong>, filtre os dados por:</p>
-              <ul>
-                <li>Visão Geral (todas as turmas)</li>
-                <li>Por Sala específica</li>
-                <li>Por Ano (6º, 8º, 9º)</li>
-                <li>Por Matéria</li>
-              </ul>
-              <p>Visualize estatísticas como total de alunos, média geral, aprovados/reprovados e rankings.</p>
-            `
-          }
-        ]
-      },
-      {
-        category: 'Sincronização e Backup',
-        items: [
-          {
-            title: 'Sincronização com a Nuvem',
-            content: `
-              <p>O sistema sincroniza automaticamente com o Firebase:</p>
-              <ul>
-                <li>Indicador <span style="color:var(--green);">●</span> <strong>Nuvem</strong> = conectado</li>
-                <li>Indicador <span style="color:var(--gray-400);">●</span> <strong>Offline</strong> = sem conexão</li>
-              </ul>
-              <p>Mesmo offline, os dados são salvos localmente e sincronizados quando a conexão voltar.</p>
-              <div class="tip">
-                <p><strong>Dica:</strong> Os dados são salvos a cada alteração. Não é necessário salvar manualmente.</p>
-              </div>
-            `
-          }
-        ]
-      }
-    ];
-
-    function renderManual() {
-      var html = '';
-      var stepNum = 1;
-
-      manualData.forEach(function(category) {
-        html += '<div class="category-title">' + category.category + '</div>';
-        html += '<div class="manual-section">';
-
-        category.items.forEach(function(item) {
-          html += '<div class="manual-card">';
-          html += '<div class="manual-card-head" onclick="toggleManualCard(this)">';
-          html += '<h3><span class="step-num">' + stepNum + '</span>' + item.title + '</h3>';
-          html += '<span class="arrow">▼</span>';
-          html += '</div>';
-          html += '<div class="manual-card-body">' + item.content + '</div>';
-          html += '</div>';
-          stepNum++;
-        });
-
-        html += '</div>';
-      });
-
-      document.getElementById('manualContent').innerHTML = html;
-    }
-
-    renderManual();
   </script>
 </body>
 </html>

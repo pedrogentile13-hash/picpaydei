@@ -3,149 +3,300 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>picpay.de.i — Gestão Escolar</title>
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <title>Lidara — Gestão Escolar Inteligente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/lidara.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+    a { text-decoration: none; color: inherit; }
+  </style>
 </head>
-<body>
-  <!-- Firebase SDK -->
+<body class="landing-page">
+
+  <!-- ============================
+       NAVBAR
+       ============================ -->
+  <nav class="l-navbar">
+    <a href="#" class="l-navbar-logo">
+      <div class="logo-icon">L</div>
+      <span class="logo-name">Lidara</span>
+    </a>
+
+    <div class="l-navbar-actions">
+      <a href="pages/login.html" class="l-btn l-btn-outline">Entrar</a>
+      <a href="pages/login.html#cadastro" class="l-btn l-btn-primary">Começar grátis</a>
+    </div>
+  </nav>
+
+  <!-- ============================
+       HERO
+       ============================ -->
+  <section class="l-hero">
+    <div class="l-container">
+      <div class="l-hero-eyebrow">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Gestão escolar para o professor moderno
+      </div>
+
+      <h1>O sistema que <span>simplifica</span> a sua sala de aula</h1>
+
+      <p>Registre notas, acompanhe positivos e negativos, gere boletins e visualize o desempenho de toda a turma — tudo em um único lugar, sincronizado em tempo real.</p>
+
+      <div class="l-hero-cta">
+        <a href="pages/login.html#cadastro" class="l-btn l-btn-primary l-btn-lg">Criar conta gratuita</a>
+        <a href="pages/login.html" class="l-btn l-btn-outline l-btn-lg">Já tenho conta</a>
+      </div>
+
+      <div class="l-hero-stats">
+        <div class="l-hero-stat">
+          <div class="value">100%</div>
+          <div class="label">Na nuvem</div>
+        </div>
+        <div class="l-hero-stat">
+          <div class="value">0</div>
+          <div class="label">Planilhas</div>
+        </div>
+        <div class="l-hero-stat">
+          <div class="value">4</div>
+          <div class="label">Bimestres gerenciados</div>
+        </div>
+        <div class="l-hero-stat">
+          <div class="value">∞</div>
+          <div class="label">Turmas e Matérias</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       FEATURES
+       ============================ -->
+  <section class="l-section">
+    <div class="l-container">
+      <div style="text-align:center;max-width:560px;margin:0 auto;">
+        <span class="l-section-label">Funcionalidades</span>
+        <h2 class="l-section-title">Tudo que você precisa para gerenciar sua escola</h2>
+        <p class="l-section-sub">Ferramentas pensadas para professores, do lançamento diário de notas até o relatório final do bimestre.</p>
+      </div>
+
+      <div class="l-features-grid">
+        <div class="l-feature-card">
+          <div class="l-feature-icon" style="background:#e8f5ee;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#40c074" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          </div>
+          <h3>Gestão de Alunos</h3>
+          <p>Cadastre alunos individualmente ou por importação CSV. Os dados se propagam automaticamente para todas as matérias da turma.</p>
+        </div>
+
+        <div class="l-feature-card">
+          <div class="l-feature-icon" style="background:#fef3c7;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#f59e0b" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+          </div>
+          <h3>Positivos &amp; Negativos</h3>
+          <p>Registre ocorrências e méritos com um clique. Use o seletor múltiplo para aplicar a vários alunos de uma vez.</p>
+        </div>
+
+        <div class="l-feature-card">
+          <div class="l-feature-icon" style="background:#ede9fe;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#8b5cf6" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          </div>
+          <h3>Verificações de Aprendizagem</h3>
+          <p>Crie VAs com pesos personalizados. A média ponderada é calculada automaticamente e refletida no boletim.</p>
+        </div>
+
+        <div class="l-feature-card">
+          <div class="l-feature-icon" style="background:#dbeafe;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#3b82f6" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          </div>
+          <h3>Boletim Automático</h3>
+          <p>Visualize a média final de cada aluno em tempo real. O cálculo leva em conta PB, Qualitativa, VAs e bônus.</p>
+        </div>
+
+        <div class="l-feature-card">
+          <div class="l-feature-icon" style="background:#fee2e2;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#ef4444" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <h3>Relatórios e Dashboards</h3>
+          <p>Analise o desempenho por turma, ano ou matéria. Identifique alunos em risco antes do fechamento do bimestre.</p>
+        </div>
+
+        <div class="l-feature-card">
+          <div class="l-feature-icon" style="background:#e8f5ee;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#40c074" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-4.5-7H7a4 4 0 00-4 4z"/></svg>
+          </div>
+          <h3>Sincronização na Nuvem</h3>
+          <p>Seus dados são salvos automaticamente no Firebase. Acesse de qualquer dispositivo, a qualquer hora.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       TESTIMONIALS
+       ============================ -->
+  <section class="l-section l-section-alt">
+    <div class="l-container">
+      <div style="text-align:center;max-width:500px;margin:0 auto;">
+        <span class="l-section-label">Depoimentos</span>
+        <h2 class="l-section-title">O que dizem os professores</h2>
+      </div>
+
+      <div class="l-testimonials-grid">
+        <div class="l-testimonial-card">
+          <div class="l-testimonial-stars">★★★★★</div>
+          <blockquote>"Antes eu perdia horas em planilhas. Com o Lidara, lanço as notas na aula e já saio com o boletim praticamente pronto."</blockquote>
+          <div class="l-testimonial-author">
+            <div class="l-testimonial-avatar">AM</div>
+            <div>
+              <strong>Ana Melo</strong>
+              <span>Professora de Português</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="l-testimonial-card">
+          <div class="l-testimonial-stars">★★★★★</div>
+          <blockquote>"O controle de positivos e negativos mudou minha dinâmica de sala. Os alunos se engajam muito mais sabendo que tudo é registrado."</blockquote>
+          <div class="l-testimonial-author">
+            <div class="l-testimonial-avatar">RC</div>
+            <div>
+              <strong>Rafael Costa</strong>
+              <span>Professor de Matemática</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="l-testimonial-card">
+          <div class="l-testimonial-stars">★★★★★</div>
+          <blockquote>"Tenho 6 turmas diferentes e o Lidara organiza tudo separadamente, por matéria e bimestre. É exatamente o que precisava."</blockquote>
+          <div class="l-testimonial-author">
+            <div class="l-testimonial-avatar">JS</div>
+            <div>
+              <strong>Juliana Santos</strong>
+              <span>Professora de Biologia</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       PRICING
+       ============================ -->
+  <section class="l-section" id="precos">
+    <div class="l-container">
+      <div style="text-align:center;max-width:520px;margin:0 auto;">
+        <span class="l-section-label">Planos</span>
+        <h2 class="l-section-title">Comece gratuitamente, cresça quando quiser</h2>
+        <p class="l-section-sub">Planos pensados para professores individuais e para escolas inteiras.</p>
+      </div>
+
+      <div class="l-pricing-grid">
+        <!-- Free -->
+        <div class="l-pricing-card">
+          <h3>Free</h3>
+          <p class="l-pricing-desc">Para professores começando</p>
+          <div class="l-pricing-price">
+            <span class="currency">R$</span>
+            <span class="amount">0</span>
+            <span class="period">/mês</span>
+          </div>
+          <ul class="l-pricing-features">
+            <li>Até 2 turmas</li>
+            <li>Até 40 alunos</li>
+            <li>Positivos &amp; Negativos</li>
+            <li>Boletim básico</li>
+            <li>Sincronização na nuvem</li>
+          </ul>
+          <a href="pages/login.html#cadastro" class="l-btn l-btn-outline" style="width:100%;justify-content:center;">Criar conta grátis</a>
+        </div>
+
+        <!-- Pro (featured) -->
+        <div class="l-pricing-card featured">
+          <div class="l-pricing-badge">Mais popular</div>
+          <h3>Pro</h3>
+          <p class="l-pricing-desc" style="color:rgba(255,255,255,0.6);">Para professores exigentes</p>
+          <div class="l-pricing-price">
+            <span class="currency">R$</span>
+            <span class="amount">29</span>
+            <span class="period">/mês</span>
+          </div>
+          <ul class="l-pricing-features">
+            <li>Turmas ilimitadas</li>
+            <li>Alunos ilimitados</li>
+            <li>VA com pesos customizados</li>
+            <li>Dashboards avançados</li>
+            <li>Relatórios por ano/matéria</li>
+            <li>Exportação de dados</li>
+          </ul>
+          <a href="pages/login.html#cadastro" class="l-btn l-btn-primary" style="width:100%;justify-content:center;">Começar 14 dias grátis</a>
+        </div>
+
+        <!-- Escola -->
+        <div class="l-pricing-card">
+          <h3>Escola</h3>
+          <p class="l-pricing-desc">Para instituições de ensino</p>
+          <div class="l-pricing-price">
+            <span class="amount" style="font-size:1.8rem;font-weight:800;color:var(--lidara-dark);">Sob consulta</span>
+          </div>
+          <ul class="l-pricing-features">
+            <li>Múltiplos professores</li>
+            <li>Painel administrativo</li>
+            <li>Relatórios consolidados</li>
+            <li>Integração com sistemas</li>
+            <li>Suporte prioritário</li>
+            <li>Treinamento da equipe</li>
+          </ul>
+          <a href="mailto:contato@lidara.app" class="l-btn l-btn-dark" style="width:100%;justify-content:center;">Falar com comercial</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       CTA FINAL
+       ============================ -->
+  <section class="l-section" style="background:linear-gradient(135deg, var(--lidara-dark) 0%, var(--lidara-mid) 100%);padding:72px 24px;">
+    <div class="l-container" style="text-align:center;">
+      <h2 style="font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;color:#fff;letter-spacing:-0.03em;margin-bottom:16px;">
+        Pronto para transformar sua gestão de notas?
+      </h2>
+      <p style="font-size:1rem;color:rgba(255,255,255,0.7);margin-bottom:32px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.6;">
+        Crie sua conta em 1 minuto. Sem cartão de crédito. Comece a usar hoje mesmo.
+      </p>
+      <a href="pages/login.html#cadastro" class="l-btn l-btn-primary l-btn-lg">Criar conta gratuita agora</a>
+    </div>
+  </section>
+
+  <!-- ============================
+       FOOTER
+       ============================ -->
+  <footer class="l-footer">
+    <div class="l-footer-inner">
+      <a href="#" class="l-footer-brand">
+        <div class="logo-icon">L</div>
+        <span>Lidara</span>
+      </a>
+      <p class="l-footer-copy">&copy; 2026 Lidara. Todos os direitos reservados.</p>
+      <div class="l-footer-links">
+        <a href="pages/login.html">Entrar</a>
+        <a href="pages/login.html#cadastro">Cadastro</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Firebase auth check — redirect if already logged in -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="assets/js/firebase-config.js"></script>
-  <script src="assets/js/store.js"></script>
-  <script src="assets/js/components.js"></script>
-  <script src="assets/js/auth-guard.js"></script>
-
-  <div id="app" style="visibility:hidden;"></div>
-
   <script>
-    document.getElementById('app').innerHTML =
-      Components.sidebar('home') +
-      '<div class="main-content">' +
-        '<header class="topbar">' +
-          '<div style="display:flex;align-items:center;gap:12px;">' +
-            '<button class="hamburger" onclick="toggleSidebar()">' +
-              '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>' +
-            '</button>' +
-            '<div><h2 class="topbar-title">Início</h2>' +
-            '<span style="font-size:0.65rem;color:var(--gray-400);font-weight:600;">Ano Letivo ' + Store.ANO_LETIVO + '</span></div>' +
-          '</div>' +
-        '</header>' +
-        '<div class="page-container">' +
-
-          '<div style="text-align:center;padding:48px 20px 32px;">' +
-            '<div style="width:80px;height:80px;background:var(--green);border-radius:24px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 30px rgba(17,199,111,0.3);">' +
-              '<span style="font-size:2.2rem;font-weight:900;color:#fff;">P</span>' +
-            '</div>' +
-            '<h1 style="font-size:2.5rem;font-weight:900;color:var(--dark);letter-spacing:-0.03em;">picpay.de.i</h1>' +
-            '<p style="font-size:1.1rem;color:var(--gray-500);margin-top:8px;font-weight:500;">Sistema de Gestão Escolar</p>' +
-            '<p style="font-size:0.85rem;color:var(--green);margin-top:4px;font-weight:700;">Ano Letivo ' + Store.ANO_LETIVO + '</p>' +
-          '</div>' +
-
-          '<div class="summary-grid" style="max-width:700px;margin:0 auto 40px;">' +
-            '<div class="summary-card" style="cursor:pointer;" onclick="location.href=\'pages/alunos.html\'">' +
-              '<div class="label">Total de Alunos</div>' +
-              '<div class="value dark" id="stat-alunos">0</div>' +
-            '</div>' +
-            '<div class="summary-card" style="cursor:pointer;" onclick="location.href=\'pages/negativos.html\'">' +
-              '<div class="label">Total de Negativos</div>' +
-              '<div class="value red" id="stat-negativos">0</div>' +
-            '</div>' +
-            '<div class="summary-card" style="cursor:pointer;" onclick="location.href=\'pages/dashboard.html\'">' +
-              '<div class="label">Turmas Ativas</div>' +
-              '<div class="value green" id="stat-turmas">0</div>' +
-            '</div>' +
-            '<div class="summary-card" style="cursor:pointer;" onclick="location.href=\'pages/relatorios.html\'">' +
-              '<div class="label">Relatórios</div>' +
-              '<div class="value dark">' +
-                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:32px;height:32px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-
-          '<div style="max-width:900px;margin:0 auto;">' +
-            '<h3 style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-400);margin-bottom:20px;text-align:center;">Acesso Rápido</h3>' +
-
-            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">' +
-              '<a href="pages/negativos.html" class="card" style="display:flex;flex-direction:column;align-items:center;padding:28px 20px;text-decoration:none;text-align:center;border:2px solid transparent;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#EF4444\'" onmouseout="this.style.borderColor=\'transparent\'">' +
-                '<div style="width:56px;height:56px;background:#FEE2E2;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#EF4444" style="width:28px;height:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>' +
-                '</div>' +
-                '<div style="font-weight:700;font-size:1rem;color:var(--dark);">Negativos</div>' +
-                '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px;">Registrar ocorrências</div>' +
-              '</a>' +
-
-              '<a href="pages/positivos.html" class="card" style="display:flex;flex-direction:column;align-items:center;padding:28px 20px;text-decoration:none;text-align:center;border:2px solid transparent;transition:all 0.2s;" onmouseover="this.style.borderColor=\'var(--green)\'" onmouseout="this.style.borderColor=\'transparent\'">' +
-                '<div style="width:56px;height:56px;background:var(--light);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:28px;height:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>' +
-                '</div>' +
-                '<div style="font-weight:700;font-size:1rem;color:var(--dark);">Positivos</div>' +
-                '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px;">Registrar méritos</div>' +
-              '</a>' +
-
-              '<a href="pages/qualitativa.html" class="card" style="display:flex;flex-direction:column;align-items:center;padding:28px 20px;text-decoration:none;text-align:center;border:2px solid transparent;transition:all 0.2s;" onmouseover="this.style.borderColor=\'#F59E0B\'" onmouseout="this.style.borderColor=\'transparent\'">' +
-                '<div style="width:56px;height:56px;background:#FEF3C7;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#F59E0B" style="width:28px;height:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>' +
-                '</div>' +
-                '<div style="font-weight:700;font-size:1rem;color:var(--dark);">Qualitativa</div>' +
-                '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px;">Nota de participação</div>' +
-              '</a>' +
-            '</div>' +
-
-            '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">' +
-              '<a href="pages/pb.html" class="card" style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">' +
-                '<div style="width:40px;height:40px;background:#EDE9FE;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#8B5CF6" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>' +
-                '</div>' +
-                '<div>' +
-                  '<div style="font-weight:600;font-size:0.85rem;color:var(--dark);">Prova Bimestral</div>' +
-                '</div>' +
-              '</a>' +
-
-              '<a href="pages/va.html" class="card" style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">' +
-                '<div style="width:40px;height:40px;background:#DBEAFE;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#3B82F6" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>' +
-                '</div>' +
-                '<div>' +
-                  '<div style="font-weight:600;font-size:0.85rem;color:var(--dark);">VA</div>' +
-                '</div>' +
-              '</a>' +
-
-              '<a href="pages/boletim.html" class="card" style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">' +
-                '<div style="width:40px;height:40px;background:var(--light);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="var(--green)" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>' +
-                '</div>' +
-                '<div>' +
-                  '<div style="font-weight:600;font-size:0.85rem;color:var(--dark);">Boletim</div>' +
-                '</div>' +
-              '</a>' +
-
-              '<a href="pages/alunos.html" class="card" style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">' +
-                '<div style="width:40px;height:40px;background:#F3F4F6;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#6B7280" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>' +
-                '</div>' +
-                '<div>' +
-                  '<div style="font-weight:600;font-size:0.85rem;color:var(--dark);">Alunos</div>' +
-                '</div>' +
-              '</a>' +
-            '</div>' +
-          '</div>' +
-
-        '</div>' +
-        Components.footer() +
-      '</div>';
-
-    function updateStats() {
-      var stats = Store.getAllStats();
-      document.getElementById('stat-alunos').textContent = stats.totalAlunos;
-      document.getElementById('stat-negativos').textContent = stats.totalNegativos;
-      document.getElementById('stat-turmas').textContent = stats.turmasCount;
-    }
-    updateStats();
-
-    // Sync from cloud on load
-    Store.loadFromCloud(function(success) {
-      if (success) updateStats();
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        window.location.href = 'pages/dashboard.html';
+      }
     });
   </script>
 </body>

@@ -1,5 +1,5 @@
 /* ============================
-   picpay.de.i — Firebase Config
+   Lidara — Firebase Config
    ============================ */
 
 const firebaseConfig = {

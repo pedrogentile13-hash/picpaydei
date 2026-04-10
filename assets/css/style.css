@@ -1,15 +1,15 @@
 /* ============================
-   picpay.de.i — Global Styles
+   Lidara — Global Styles
    ============================ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  --green: #11C76F;
-  --green-hover: #0FAF60;
-  --dark: #005542;
-  --dark-hover: #004435;
-  --light: #E8FAF0;
-  --bg: #F0FDF4;
+  --green: #40c074;
+  --green-hover: #34a862;
+  --dark: #1a3d2b;
+  --dark-hover: #2d6a4f;
+  --light: #e8f5ee;
+  --bg: #f4faf7;
   --red: #EF4444;
   --orange: #F97316;
   --gray-50: #F9FAFB;

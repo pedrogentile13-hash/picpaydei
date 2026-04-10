@@ -1,5 +1,5 @@
 /* ============================
-   picpay.de.i — Data Store
+   Lidara — Data Store
    Shared across all pages via localStorage + Firebase
    ============================ */
 
