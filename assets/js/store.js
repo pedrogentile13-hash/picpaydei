@@ -28,42 +28,89 @@ const Store = (() => {
   // Pesos for weighted average
   const PESOS = { pb: 35, quali: 30, va: 35 };
 
-  // All available years
-  const ANOS_DISPONIVEIS = ['6', '7', '8', '9'];
+  // ─── Estrutura de turmas flexível ───────────────────────
+  // Segmentos e suas séries padrão para escolas brasileiras
+  const SEGMENTOS = {
+    'F1': { label: 'Fundamental I',  series: ['2','3','4','5'] },
+    'F2': { label: 'Fundamental II', series: ['6','7','8','9'] },
+    'EM': { label: 'Ensino Médio',   series: ['1','2','3']     }
+  };
 
-  // All available classes
+  // Letras de turma disponíveis por padrão
+  const LETRAS_TURMA = ['A','B','C','D'];
+
+  // Código interno → exibição amigável
+  // Exemplos: "6F2A" → "6º Ano A", "1EMA" → "1º EM A", "2F1B" → "2º Ano B"
+  function _formatTurma(codigo) {
+    if (!codigo) return codigo;
+    var m;
+    // Ensino Médio: 1EMA, 2EMB …
+    m = codigo.match(/^(\d)EM([A-Z])$/);
+    if (m) return m[1] + '\u00ba EM ' + m[2];
+    // Fundamental: 6F2A, 3F1B … (série + segmento + letra)
+    m = codigo.match(/^(\d)F[12]([A-Z])$/);
+    if (m) return m[1] + '\u00ba Ano ' + m[2];
+    // Formato legado "6A", "8B" etc.
+    m = codigo.match(/^(\d)([A-Z])$/);
+    if (m) return m[1] + '\u00ba Ano ' + m[2];
+    return codigo;
+  }
+
+  // Gera lista padrão de turmas quando professor não configurou nada
+  function _getTurmasPadrao() {
+    var lista = [];
+    Object.keys(SEGMENTOS).forEach(function(seg) {
+      SEGMENTOS[seg].series.forEach(function(serie) {
+        LETRAS_TURMA.forEach(function(letra) {
+          if (seg === 'EM') {
+            lista.push(serie + 'EM' + letra);
+          } else {
+            lista.push(serie + seg + letra);
+          }
+        });
+      });
+    });
+    return lista;
+  }
+  // ─────────────────────────────────────────────────────────
+
+  // Legacy aliases mantidos para compatibilidade
+  const ANOS_DISPONIVEIS = ['6', '7', '8', '9'];
   const TURMAS_DISPONIVEIS = ['A', 'B', 'C', 'D', 'E'];
 
-  // All subjects in the system (from image)
+  // ─── Matérias universais ──────────────────────────────────
+  // Matérias comuns em escolas brasileiras (sem hardcode de escola)
   const TODAS_MATERIAS = [
-    'Lingua Portuguesa',
-    'Matematica',
-    'Historia',
+    'Língua Portuguesa',
+    'Matemática',
+    'História',
     'Geografia',
-    'Educacao Fisica',
+    'Ciências',
+    'Educação Física',
     'Artes',
+    'Inglês',
     'Biologia',
-    'Quimica',
-    'Iniciacao Cientifica',
-    'Educacao Socioemocional',
-    'Producao de Texto',
-    'Fisica',
-    'Educacao Financeira',
-    'Pensamento Computacional',
-    'Ingles'
+    'Química',
+    'Física',
+    'Filosofia',
+    'Sociologia',
+    'Redação',
+    'Literatura'
   ];
 
-  // Subjects that have Prova Bimestral (from image - those with filled PB column)
+  // Subjects that have Prova Bimestral by default
   const MATERIAS_COM_PB = [
-    'Lingua Portuguesa',
-    'Matematica',
-    'Historia',
+    'Língua Portuguesa',
+    'Matemática',
+    'História',
     'Geografia',
+    'Ciências',
     'Biologia',
-    'Quimica',
-    'Producao de Texto',
-    'Fisica',
-    'Ingles'
+    'Química',
+    'Física',
+    'Inglês',
+    'Redação',
+    'Literatura'
   ];
 
   const VA_TIPOS = ['Trabalho', 'Escrita', 'Caderno', 'Apresentacao', 'Participacao', 'Prova', 'Outro'];
@@ -87,24 +134,38 @@ const Store = (() => {
   // Get configured turmas based on professor's selections
   function _getTurmasConfiguradas() {
     var prof = _loadProfessor();
-    if (!prof || !prof.anos || !prof.turmas) {
-      return ['6A', '6B', '6C', '6D', '7A', '7B', '7C', '7D', '8A', '8B', '8C', '8D', '9A', '9B', '9C', '9D'];
+    // New format: prof.turmasConfig = ['6F2A','6F2B',...]
+    if (prof && prof.turmasConfig && prof.turmasConfig.length > 0) {
+      return prof.turmasConfig.slice().sort();
     }
-    var turmas = [];
-    prof.anos.forEach(function(ano) {
-      prof.turmas.forEach(function(letra) {
-        turmas.push(ano + letra);
+    // Legacy format: prof.anos + prof.turmas (letter only)
+    if (prof && prof.anos && prof.anos.length > 0 && prof.turmas && prof.turmas.length > 0) {
+      var turmas = [];
+      prof.anos.forEach(function(ano) {
+        prof.turmas.forEach(function(letra) {
+          turmas.push(ano + letra);
+        });
       });
-    });
-    return turmas.sort();
+      return turmas.sort();
+    }
+    return _getTurmasPadrao();
   }
 
-  // Get configured materias for a specific year
+  // Get configured materias for a turma/série
   function _getMateriasConfiguradas(ano) {
     var prof = _loadProfessor();
-    if (!prof || !prof.materias) {
-      return TODAS_MATERIAS;
+    if (!prof || !prof.materias || prof.materias.length === 0) {
+      // Return all materias (universal + custom)
+      var custom = _loadMateriasCustom();
+      var todas = TODAS_MATERIAS.slice();
+      custom.forEach(function(m) { if (todas.indexOf(m) === -1) todas.push(m); });
+      return todas;
     }
+    // New format: prof.materias is a flat array of subject names
+    if (typeof prof.materias[0] === 'string') {
+      return prof.materias;
+    }
+    // Legacy format: array of {nome, anos:[...]}
     var materias = [];
     prof.materias.forEach(function(m) {
       if (m.anos && m.anos.indexOf(ano) !== -1) {
@@ -257,6 +318,36 @@ const Store = (() => {
 
   // =========== PUBLIC API ===========
 
+  // =========== NOTA CONFIG (pesos configuráveis) ===========
+  const NOTA_CONFIG_KEY = 'picpay_dei_nota_config';
+
+  function _loadNotaConfig() {
+    try {
+      var raw = localStorage.getItem(NOTA_CONFIG_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return {
+      usarPB: true,
+      pesoPB: 35,
+      pesoQuali: 30,
+      pesoVA: 35,
+      notaMinima: 6.0,
+      usarAnglo: true
+    };
+  }
+  // ──────────────────────────────────────────────────────────
+
+  // =========== MATÉRIAS CUSTOMIZADAS ===========
+  const MATERIAS_CUSTOM_KEY = 'picpay_dei_materias_custom';
+
+  function _loadMateriasCustom() {
+    try {
+      var raw = localStorage.getItem(MATERIAS_CUSTOM_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) { return []; }
+  }
+  // ──────────────────────────────────────────────────────────
+
   return {
     ANO_LETIVO: ANO_LETIVO,
     BIMESTRES: BIMESTRES,
@@ -268,11 +359,43 @@ const Store = (() => {
     TODAS_MATERIAS: TODAS_MATERIAS,
     ANOS_DISPONIVEIS: ANOS_DISPONIVEIS,
     TURMAS_DISPONIVEIS: TURMAS_DISPONIVEIS,
+    SEGMENTOS: SEGMENTOS,
+    LETRAS_TURMA: LETRAS_TURMA,
 
     // Dynamic getters
     get TURMAS() { return _getTurmasConfiguradas(); },
 
+    // ─── formatTurma: código → exibição ───────────────────
+    formatTurma: function(codigo) { return _formatTurma(codigo); },
+
+    // ─── Nota config (pesos configuráveis) ────────────────
+    getNotaConfig: function() { return _loadNotaConfig(); },
+
+    setNotaConfig: function(cfg) {
+      localStorage.setItem(NOTA_CONFIG_KEY, JSON.stringify(cfg));
+      if (_syncEnabled) _firestoreSave('config', 'nota_config', cfg);
+    },
+
+    // ─── Matérias customizadas ────────────────────────────
+    getMateriasCustom: function() { return _loadMateriasCustom(); },
+
+    setMateriasCustom: function(lista) {
+      localStorage.setItem(MATERIAS_CUSTOM_KEY, JSON.stringify(lista));
+    },
+
+    getTodosMaterias: function() {
+      var custom = _loadMateriasCustom();
+      var todas = TODAS_MATERIAS.slice();
+      custom.forEach(function(m) {
+        if (todas.indexOf(m) === -1) todas.push(m);
+      });
+      return todas;
+    },
+
     hasPB: function(materia) {
+      var cfg = _loadNotaConfig();
+      // Se professor desativou PB globalmente, retorna false
+      if (cfg && cfg.usarPB === false) return false;
       return MATERIAS_COM_PB.indexOf(materia) !== -1;
     },
 
@@ -682,20 +805,22 @@ const Store = (() => {
       return +Math.min(10, Math.max(0, student.quali + bonus - desconto)).toFixed(2);
     },
 
-    // Full media calculation
-    // For matérias with PB: M = (PB×35 + Quali×30 + VA×35) / 100
-    // For LEM (no PB):       M = (Quali×30 + VA×35) / 65
+    // Full media calculation using configurable weights
     calcMediaFull: function(turma, materia, bimestre, student) {
+      var cfg = _loadNotaConfig();
+      var pesoPB    = cfg.pesoPB    || PESOS.pb;
+      var pesoQuali = cfg.pesoQuali || PESOS.quali;
+      var pesoVA    = cfg.pesoVA    || PESOS.va;
+
       var positivos = student.positivos || 0;
       var qualiAjustada = Math.min(10, Math.max(0, student.quali + positivos * 0.1 - student.negativos * 0.1));
       var vaMedia = this.getVAMedia(turma, materia, bimestre, student.numero);
 
       if (this.hasPB(materia)) {
         var pbMedia = this.getPBMedia(turma, materia, bimestre, student.numero);
-        return +((pbMedia * PESOS.pb + qualiAjustada * PESOS.quali + vaMedia * PESOS.va) / (PESOS.pb + PESOS.quali + PESOS.va)).toFixed(1);
+        return +((pbMedia * pesoPB + qualiAjustada * pesoQuali + vaMedia * pesoVA) / (pesoPB + pesoQuali + pesoVA)).toFixed(1);
       } else {
-        // LEM: no PB
-        return +((qualiAjustada * PESOS.quali + vaMedia * PESOS.va) / (PESOS.quali + PESOS.va)).toFixed(1);
+        return +((qualiAjustada * pesoQuali + vaMedia * pesoVA) / (pesoQuali + pesoVA)).toFixed(1);
       }
     },
 

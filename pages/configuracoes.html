@@ -50,31 +50,150 @@
 
   <script>
     var config = Store.getConfig();
+    var notaCfg = Store.getNotaConfig();
+
+    // ─── Build Turmas section HTML ────────────────────────
+    function buildTurmasSection() {
+      var segs = Store.SEGMENTOS;
+      var segOpts = Object.keys(segs).map(function(k) {
+        return '<option value="' + k + '">' + segs[k].label + '</option>';
+      }).join('');
+
+      var prof = Store.getProfessor();
+      var turmasAtivas = (prof.turmasConfig || []).slice();
+      var turmasHTML = turmasAtivas.length > 0
+        ? turmasAtivas.map(function(t) {
+            return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-page);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.8rem;font-weight:600;">' +
+              Store.formatTurma(t) +
+              '<button onclick="removeTurma(\'' + t + '\')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:0.9rem;line-height:1;padding:0 0 0 4px;">×</button>' +
+            '</span>';
+          }).join('')
+        : '<span style="font-size:0.82rem;color:var(--gray-400);font-style:italic;">Nenhuma turma adicionada. Usando padrão do sistema.</span>';
+
+      return '<div class="card" style="margin-bottom:24px;">' +
+        '<div class="card-header"><h3>Turmas</h3></div>' +
+        '<div class="card-body">' +
+          '<div class="form-row" style="margin-bottom:16px;">' +
+            '<div class="form-group">' +
+              '<label>Segmento</label>' +
+              '<select id="addSeg" onchange="updateSerieOpts()">' + segOpts + '</select>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label>Série</label>' +
+              '<select id="addSerie"></select>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label>Turma</label>' +
+              '<select id="addLetra">' +
+              Store.LETRAS_TURMA.concat(['E']).map(function(l) { return '<option>' + l + '</option>'; }).join('') +
+              '</select>' +
+            '</div>' +
+            '<button class="btn btn-primary" onclick="addTurma()" style="align-self:flex-end;">+ Adicionar</button>' +
+          '</div>' +
+          '<div id="turmasAtivas" style="display:flex;flex-wrap:wrap;gap:8px;">' + turmasHTML + '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    // ─── Build Fórmula de Notas section ──────────────────
+    function buildFormulaSection() {
+      var cfg = notaCfg;
+      return '<div class="card" style="margin-bottom:24px;">' +
+        '<div class="card-header"><h3>Fórmula de Notas</h3></div>' +
+        '<div class="card-body">' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;">' +
+
+            '<div>' +
+              '<label style="display:flex;align-items:center;gap:10px;margin-bottom:16px;cursor:pointer;">' +
+                '<input type="checkbox" id="chkUsarPB" ' + (cfg.usarPB ? 'checked' : '') + ' onchange="togglePBFields()" style="width:18px;height:18px;accent-color:var(--lidara-green);">' +
+                '<span style="font-weight:600;font-size:0.88rem;">Usar Prova Bimestral</span>' +
+              '</label>' +
+              '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;">' +
+                '<input type="checkbox" id="chkUsarAnglo" ' + (cfg.usarAnglo !== false ? 'checked' : '') + ' style="width:18px;height:18px;accent-color:var(--lidara-green);">' +
+                '<span style="font-weight:600;font-size:0.88rem;">Sistema Anglo (PB = Anglo×1 + Prova×5)</span>' +
+              '</label>' +
+            '</div>' +
+
+            '<div id="pesoFields">' +
+              '<div class="form-row" style="flex-wrap:nowrap;">' +
+                '<div class="form-group" id="pesoPBGroup">' +
+                  '<label>Peso PB (%)</label>' +
+                  '<input type="number" id="inputPesoPB" value="' + cfg.pesoPB + '" min="0" max="100" style="width:90px;">' +
+                '</div>' +
+                '<div class="form-group">' +
+                  '<label>Peso Quali (%)</label>' +
+                  '<input type="number" id="inputPesoQuali" value="' + cfg.pesoQuali + '" min="0" max="100" style="width:90px;">' +
+                '</div>' +
+                '<div class="form-group">' +
+                  '<label>Peso VA (%)</label>' +
+                  '<input type="number" id="inputPesoVA" value="' + cfg.pesoVA + '" min="0" max="100" style="width:90px;">' +
+                '</div>' +
+              '</div>' +
+              '<span id="pesoSomaMsg" style="font-size:0.75rem;color:var(--gray-400);">Soma dos pesos deve ser 100%</span>' +
+            '</div>' +
+
+            '<div class="form-group">' +
+              '<label>Nota Mínima para Aprovação</label>' +
+              '<input type="number" id="inputNotaMin" value="' + (cfg.notaMinima || 6.0) + '" min="0" max="10" step="0.1" style="width:120px;">' +
+            '</div>' +
+
+          '</div>' +
+          '<div style="margin-top:20px;">' +
+            '<button class="btn btn-primary" onclick="saveFormula()">Salvar Fórmula</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    // ─── Build Matérias section ───────────────────────────
+    function buildMateriasSection() {
+      var custom = Store.getMateriasCustom();
+      var customHTML = custom.length > 0
+        ? custom.map(function(m) {
+            return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-page);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.8rem;font-weight:600;">' +
+              m +
+              '<button onclick="removeMateria(\'' + m.replace(/'/g, "\\'") + '\')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:0.9rem;line-height:1;padding:0 0 0 4px;">×</button>' +
+            '</span>';
+          }).join('')
+        : '<span style="font-size:0.82rem;color:var(--gray-400);font-style:italic;">Nenhuma matéria customizada.</span>';
+
+      return '<div class="card" style="margin-bottom:32px;">' +
+        '<div class="card-header"><h3>Matérias Customizadas</h3></div>' +
+        '<div class="card-body">' +
+          '<p style="font-size:0.82rem;color:var(--gray-500);margin-bottom:12px;">Matérias padrão já incluídas. Adicione abaixo matérias específicas da sua escola.</p>' +
+          '<div class="form-row" style="margin-bottom:16px;">' +
+            '<div class="form-group" style="flex:1;">' +
+              '<label>Nome da Matéria</label>' +
+              '<input type="text" id="inputNovaMateria" placeholder="Ex: Iniciação Científica" />' +
+            '</div>' +
+            '<button class="btn btn-primary" onclick="addMateria()" style="align-self:flex-end;">+ Adicionar</button>' +
+          '</div>' +
+          '<div id="materiasCustomList" style="display:flex;flex-wrap:wrap;gap:8px;">' + customHTML + '</div>' +
+        '</div>' +
+      '</div>';
+    }
 
     document.getElementById('app').innerHTML =
       Components.sidebar('configuracoes') +
       '<div class="main-content">' +
-        Components.topbar('Configuracoes', false) +
+        Components.topbar('Configurações', false) +
         '<div class="page-container">' +
 
-          // Settings Card
-          '<div class="card" style="margin-bottom:32px;">' +
-            '<div class="card-header">' +
-              '<h3>Configuracoes do Sistema</h3>' +
-            '</div>' +
-            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:8px 0;">' +
+          // ── Sistema ──
+          '<div class="card" style="margin-bottom:24px;">' +
+            '<div class="card-header"><h3>Sistema</h3></div>' +
+            '<div class="card-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;">' +
 
-              '<div class="form-group" style="display:flex;flex-direction:column;gap:6px;">' +
-                '<label style="font-size:0.78rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;">Ano Letivo</label>' +
+              '<div class="form-group">' +
+                '<label>Ano Letivo</label>' +
                 '<div style="display:flex;gap:8px;">' +
-                  '<input type="number" id="inputAnoLetivo" value="' + config.anoLetivo + '" min="2020" max="2050" style="flex:1;padding:12px 14px;border:2px solid var(--gray-200);border-radius:10px;font-size:1rem;font-weight:700;outline:none;" />' +
+                  '<input type="number" id="inputAnoLetivo" value="' + config.anoLetivo + '" min="2020" max="2050" />' +
                   '<button class="btn btn-primary" onclick="saveAnoLetivo()">Salvar</button>' +
                 '</div>' +
-                '<span style="font-size:0.75rem;color:var(--gray-400);">O ano letivo afeta todo o sistema</span>' +
               '</div>' +
 
-              '<div class="form-group" style="display:flex;flex-direction:column;gap:6px;">' +
-                '<label style="font-size:0.78rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;">Acoes</label>' +
+              '<div class="form-group">' +
+                '<label>Ações</label>' +
                 '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
                   '<a href="perfil.html" class="btn btn-outline" style="text-decoration:none;">Meu Perfil</a>' +
                   '<button class="btn btn-outline" onclick="exportAllData()">Exportar Dados</button>' +
@@ -85,10 +204,14 @@
             '</div>' +
           '</div>' +
 
+          buildTurmasSection() +
+          buildFormulaSection() +
+          buildMateriasSection() +
+
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">' +
             '<div>' +
-              '<h2 style="font-size:1.2rem;font-weight:800;color:var(--dark);margin-bottom:4px;">Manual de Instrucoes</h2>' +
-              '<p style="font-size:0.85rem;color:var(--gray-500);">Aprenda a usar todas as funcionalidades do picpay.de.i</p>' +
+              '<h2 style="font-size:1.2rem;font-weight:800;color:var(--lidara-dark);margin-bottom:4px;">Manual de Instruções</h2>' +
+              '<p style="font-size:0.85rem;color:var(--gray-500);">Aprenda a usar todas as funcionalidades do Lidara</p>' +
             '</div>' +
             '<button class="expand-all-btn" onclick="toggleAll()">Expandir Tudo</button>' +
           '</div>' +
@@ -124,13 +247,144 @@
     }
 
     function clearAllData() {
-      if (!confirm('ATENCAO: Isso ira apagar TODOS os dados (alunos, notas, configuracoes)!')) return;
-      if (!confirm('Tem certeza absoluta? Esta acao nao pode ser desfeita!')) return;
+      if (!confirm('ATENÇÃO: Isso irá apagar TODOS os dados (alunos, notas, configurações)!')) return;
+      if (!confirm('Tem certeza absoluta? Esta ação não pode ser desfeita!')) return;
       Store.clearAll();
       localStorage.removeItem('picpay_dei_config');
       localStorage.removeItem('picpay_dei_profile');
       alert('Todos os dados foram apagados. Recarregando...');
       location.reload();
+    }
+
+    // ─── Turmas ──────────────────────────────────────────
+    function updateSerieOpts() {
+      var seg = document.getElementById('addSeg').value;
+      var segs = Store.SEGMENTOS;
+      var opts = segs[seg].series.map(function(s) { return '<option value="' + s + '">' + s + '</option>'; }).join('');
+      document.getElementById('addSerie').innerHTML = opts;
+    }
+    // Init serie opts on load
+    setTimeout(updateSerieOpts, 0);
+
+    function addTurma() {
+      var seg = document.getElementById('addSeg').value;
+      var serie = document.getElementById('addSerie').value;
+      var letra = document.getElementById('addLetra').value;
+      var codigo = seg === 'EM' ? (serie + 'EM' + letra) : (serie + seg + letra);
+      var prof = Store.getProfessor();
+      prof.turmasConfig = prof.turmasConfig || [];
+      if (prof.turmasConfig.indexOf(codigo) !== -1) {
+        alert('Turma ' + Store.formatTurma(codigo) + ' já existe.');
+        return;
+      }
+      prof.turmasConfig.push(codigo);
+      Store.setProfessor(prof);
+      refreshTurmasAtivas();
+    }
+
+    function removeTurma(codigo) {
+      var prof = Store.getProfessor();
+      prof.turmasConfig = (prof.turmasConfig || []).filter(function(t) { return t !== codigo; });
+      Store.setProfessor(prof);
+      refreshTurmasAtivas();
+    }
+
+    function refreshTurmasAtivas() {
+      var prof = Store.getProfessor();
+      var turmasAtivas = (prof.turmasConfig || []);
+      var el = document.getElementById('turmasAtivas');
+      if (!el) return;
+      if (turmasAtivas.length === 0) {
+        el.innerHTML = '<span style="font-size:0.82rem;color:var(--gray-400);font-style:italic;">Nenhuma turma adicionada. Usando padrão do sistema.</span>';
+        return;
+      }
+      el.innerHTML = turmasAtivas.map(function(t) {
+        return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-page);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.8rem;font-weight:600;">' +
+          Store.formatTurma(t) +
+          '<button onclick="removeTurma(\'' + t + '\')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:0.9rem;line-height:1;padding:0 0 0 4px;">×</button>' +
+        '</span>';
+      }).join('');
+    }
+
+    // ─── Fórmula ─────────────────────────────────────────
+    function togglePBFields() {
+      var usarPB = document.getElementById('chkUsarPB').checked;
+      var pbGroup = document.getElementById('pesoPBGroup');
+      if (pbGroup) pbGroup.style.display = usarPB ? '' : 'none';
+      updateSomaMsg();
+    }
+
+    function updateSomaMsg() {
+      var usarPB = document.getElementById('chkUsarPB').checked;
+      var pb = usarPB ? (parseInt(document.getElementById('inputPesoPB').value) || 0) : 0;
+      var q = parseInt(document.getElementById('inputPesoQuali').value) || 0;
+      var v = parseInt(document.getElementById('inputPesoVA').value) || 0;
+      var soma = pb + q + v;
+      var msg = document.getElementById('pesoSomaMsg');
+      if (msg) {
+        msg.textContent = 'Soma dos pesos: ' + soma + '% ' + (soma === 100 ? '✓' : '(deve ser 100%)');
+        msg.style.color = soma === 100 ? 'var(--lidara-green)' : 'var(--red)';
+      }
+    }
+
+    // Add listeners after DOM ready
+    setTimeout(function() {
+      ['inputPesoPB','inputPesoQuali','inputPesoVA'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateSomaMsg);
+      });
+      togglePBFields();
+      updateSomaMsg();
+    }, 0);
+
+    function saveFormula() {
+      var usarPB = document.getElementById('chkUsarPB').checked;
+      var pesoPB = parseInt(document.getElementById('inputPesoPB').value) || 0;
+      var pesoQ = parseInt(document.getElementById('inputPesoQuali').value) || 0;
+      var pesoVA = parseInt(document.getElementById('inputPesoVA').value) || 0;
+      var soma = (usarPB ? pesoPB : 0) + pesoQ + pesoVA;
+      if (soma !== 100) {
+        alert('A soma dos pesos deve ser exatamente 100%. Atual: ' + soma + '%');
+        return;
+      }
+      var notaMin = parseFloat(document.getElementById('inputNotaMin').value) || 6.0;
+      var usarAnglo = document.getElementById('chkUsarAnglo').checked;
+      Store.setNotaConfig({ usarPB: usarPB, pesoPB: pesoPB, pesoQuali: pesoQ, pesoVA: pesoVA, notaMinima: notaMin, usarAnglo: usarAnglo });
+      alert('Fórmula de notas salva!');
+    }
+
+    // ─── Matérias customizadas ────────────────────────────
+    function addMateria() {
+      var nome = document.getElementById('inputNovaMateria').value.trim();
+      if (!nome) return;
+      var custom = Store.getMateriasCustom();
+      if (custom.indexOf(nome) !== -1) { alert('Matéria já existe.'); return; }
+      custom.push(nome);
+      Store.setMateriasCustom(custom);
+      document.getElementById('inputNovaMateria').value = '';
+      refreshMateriasCustom();
+    }
+
+    function removeMateria(nome) {
+      var custom = Store.getMateriasCustom().filter(function(m) { return m !== nome; });
+      Store.setMateriasCustom(custom);
+      refreshMateriasCustom();
+    }
+
+    function refreshMateriasCustom() {
+      var custom = Store.getMateriasCustom();
+      var el = document.getElementById('materiasCustomList');
+      if (!el) return;
+      if (custom.length === 0) {
+        el.innerHTML = '<span style="font-size:0.82rem;color:var(--gray-400);font-style:italic;">Nenhuma matéria customizada.</span>';
+        return;
+      }
+      el.innerHTML = custom.map(function(m) {
+        return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg-page);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.8rem;font-weight:600;">' +
+          m +
+          '<button onclick="removeMateria(\'' + m.replace(/'/g, "\\'") + '\')" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:0.9rem;line-height:1;padding:0 0 0 4px;">×</button>' +
+        '</span>';
+      }).join('');
     }
 
     var allExpanded = false;
