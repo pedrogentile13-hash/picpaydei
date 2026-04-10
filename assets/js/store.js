@@ -867,11 +867,13 @@ const Store = (() => {
     },
 
     getAllMaterias: function() {
-      var all = {};
-      Object.keys(materiasPor).forEach(function(serie) {
-        materiasPor[serie].forEach(function(m) { all[m] = true; });
-      });
-      return Object.keys(all);
+      var prof = _loadProfessor();
+      if (prof && prof.materias && prof.materias.length > 0) {
+        var all = {};
+        prof.materias.forEach(function(m) { all[m.nome] = true; });
+        return Object.keys(all);
+      }
+      return TODAS_MATERIAS.slice();
     },
 
     exportData: function() {

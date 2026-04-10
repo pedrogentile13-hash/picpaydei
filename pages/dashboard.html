@@ -165,50 +165,81 @@
         '<span style="font-weight:700;font-size:0.85rem;' + valueColor + '">' + valueText + '</span></div>';
     }
 
+    function showEmptyState() {
+      var msg = '<div style="padding:48px 20px;text-align:center;color:var(--gray-400);">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:48px;height:48px;margin:0 auto 16px;display:block;opacity:0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>' +
+        '<p style="font-size:1rem;font-weight:600;color:var(--gray-500);margin-bottom:8px;">Nenhum dado lan\u00e7ado ainda</p>' +
+        '<p style="font-size:0.85rem;">Cadastre alunos e lan\u00e7e notas para visualizar o dashboard.</p>' +
+        '</div>';
+      document.getElementById('c-total').textContent = '0';
+      document.getElementById('c-negs').textContent = '0';
+      document.getElementById('c-media').textContent = '0.0';
+      document.getElementById('c-abaixo').textContent = '0';
+      document.getElementById('c-melhor').textContent = '0.0';
+      document.getElementById('c-melhor-nome').textContent = '\u2014';
+      document.getElementById('leg-ap').textContent = '0';
+      document.getElementById('leg-rp').textContent = '0';
+      document.getElementById('rankMelhores').innerHTML = msg;
+      document.getElementById('rankNegativos').innerHTML = msg;
+      if (chartDoughnut) { chartDoughnut.destroy(); chartDoughnut = null; }
+      if (chartBar) { chartBar.destroy(); chartBar = null; }
+    }
+
     function render() {
-      var stats = Store.getFilteredStats(currentFilter);
-      document.getElementById('c-total').textContent = stats.totalAlunos;
-      document.getElementById('c-negs').textContent = stats.totalNegativos;
-      document.getElementById('c-media').textContent = stats.media;
-      document.getElementById('c-abaixo').textContent = stats.abaixo;
-      document.getElementById('c-melhor').textContent = stats.melhorNota.toFixed(1);
-      document.getElementById('c-melhor-nome').textContent = stats.melhorAluno ? stats.melhorAluno.nome : '\u2014';
-      document.getElementById('leg-ap').textContent = stats.aprovados;
-      document.getElementById('leg-rp').textContent = stats.abaixo;
+      try {
+        var stats = Store.getFilteredStats(currentFilter);
 
-      if (chartDoughnut) chartDoughnut.destroy();
-      chartDoughnut = new Chart(document.getElementById('chartDoughnut'), {
-        type: 'doughnut',
-        data: { labels: ['Aprovados', 'Reprovados'], datasets: [{ data: [stats.aprovados, stats.abaixo], backgroundColor: ['#11C76F', '#F87171'], borderWidth: 0, hoverOffset: 8 }] },
-        options: { cutout: '65%', responsive: true, plugins: { legend: { display: false } } },
-      });
+        if (stats.totalAlunos === 0) {
+          showEmptyState();
+          return;
+        }
 
-      var filtered = Store.getFilteredStudents(currentFilter);
-      var ranges = { '0-2': 0, '2-4': 0, '4-6': 0, '6-8': 0, '8-10': 0 };
-      filtered.forEach(function(s) {
-        if (s.media < 2) ranges['0-2']++;
-        else if (s.media < 4) ranges['2-4']++;
-        else if (s.media < 6) ranges['4-6']++;
-        else if (s.media < 8) ranges['6-8']++;
-        else ranges['8-10']++;
-      });
+        document.getElementById('c-total').textContent = stats.totalAlunos;
+        document.getElementById('c-negs').textContent = stats.totalNegativos;
+        document.getElementById('c-media').textContent = stats.media;
+        document.getElementById('c-abaixo').textContent = stats.abaixo;
+        document.getElementById('c-melhor').textContent = stats.melhorNota.toFixed(1);
+        document.getElementById('c-melhor-nome').textContent = stats.melhorAluno ? stats.melhorAluno.nome : '\u2014';
+        document.getElementById('leg-ap').textContent = stats.aprovados;
+        document.getElementById('leg-rp').textContent = stats.abaixo;
 
-      if (chartBar) chartBar.destroy();
-      chartBar = new Chart(document.getElementById('chartBar'), {
-        type: 'bar',
-        data: { labels: Object.keys(ranges), datasets: [{ label: 'Alunos', data: Object.values(ranges), backgroundColor: ['#FCA5A5', '#FDBA74', '#FDE68A', '#86EFAC', '#11C76F'], borderRadius: 6, borderSkipped: false }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } },
-      });
+        if (chartDoughnut) chartDoughnut.destroy();
+        chartDoughnut = new Chart(document.getElementById('chartDoughnut'), {
+          type: 'doughnut',
+          data: { labels: ['Aprovados', 'Reprovados'], datasets: [{ data: [stats.aprovados, stats.abaixo], backgroundColor: ['#11C76F', '#F87171'], borderWidth: 0, hoverOffset: 8 }] },
+          options: { cutout: '65%', responsive: true, plugins: { legend: { display: false } } },
+        });
 
-      var rm = document.getElementById('rankMelhores');
-      rm.innerHTML = stats.topMelhores.length > 0
-        ? stats.topMelhores.map(function(item, i) { return buildRankItem(item, i, 'media'); }).join('')
-        : '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p>';
+        var filtered = Store.getFilteredStudents(currentFilter);
+        var ranges = { '0-2': 0, '2-4': 0, '4-6': 0, '6-8': 0, '8-10': 0 };
+        filtered.forEach(function(s) {
+          if (s.media < 2) ranges['0-2']++;
+          else if (s.media < 4) ranges['2-4']++;
+          else if (s.media < 6) ranges['4-6']++;
+          else if (s.media < 8) ranges['6-8']++;
+          else ranges['8-10']++;
+        });
 
-      var rn = document.getElementById('rankNegativos');
-      rn.innerHTML = stats.topMenosNegativos.length > 0
-        ? stats.topMenosNegativos.map(function(item, i) { return buildRankItem(item, i, 'negativos'); }).join('')
-        : '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p>';
+        if (chartBar) chartBar.destroy();
+        chartBar = new Chart(document.getElementById('chartBar'), {
+          type: 'bar',
+          data: { labels: Object.keys(ranges), datasets: [{ label: 'Alunos', data: Object.values(ranges), backgroundColor: ['#FCA5A5', '#FDBA74', '#FDE68A', '#86EFAC', '#11C76F'], borderRadius: 6, borderSkipped: false }] },
+          options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } },
+        });
+
+        var rm = document.getElementById('rankMelhores');
+        rm.innerHTML = stats.topMelhores.length > 0
+          ? stats.topMelhores.map(function(item, i) { return buildRankItem(item, i, 'media'); }).join('')
+          : '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p>';
+
+        var rn = document.getElementById('rankNegativos');
+        rn.innerHTML = stats.topMenosNegativos.length > 0
+          ? stats.topMenosNegativos.map(function(item, i) { return buildRankItem(item, i, 'negativos'); }).join('')
+          : '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p>';
+      } catch(e) {
+        console.error('Dashboard render error:', e);
+        showEmptyState();
+      }
     }
 
     render();
