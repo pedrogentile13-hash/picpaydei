@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>picpay.de.i — Gestão Escolar</title>
+  <title>Lidara — Gestão Escolar</title>
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
@@ -22,24 +22,16 @@
     document.getElementById('app').innerHTML =
       Components.sidebar('home') +
       '<div class="main-content">' +
-        '<header class="topbar">' +
-          '<div style="display:flex;align-items:center;gap:12px;">' +
-            '<button class="hamburger" onclick="toggleSidebar()">' +
-              '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>' +
-            '</button>' +
-            '<div><h2 class="topbar-title">Início</h2>' +
-            '<span style="font-size:0.65rem;color:var(--gray-400);font-weight:600;">Ano Letivo ' + Store.ANO_LETIVO + '</span></div>' +
-          '</div>' +
-        '</header>' +
+        Components.topbar('Início', false) +
         '<div class="page-container">' +
 
           '<div style="text-align:center;padding:48px 20px 32px;">' +
-            '<div style="width:80px;height:80px;background:var(--green);border-radius:24px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 30px rgba(17,199,111,0.3);">' +
-              '<span style="font-size:2.2rem;font-weight:900;color:#fff;">P</span>' +
+            '<div style="width:80px;height:80px;background:var(--lidara-dark);border-radius:24px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 30px rgba(26,61,43,0.3);">' +
+              '<span style="font-size:1.5rem;font-weight:900;color:#fff;">Li</span>' +
             '</div>' +
-            '<h1 style="font-size:2.5rem;font-weight:900;color:var(--dark);letter-spacing:-0.03em;">picpay.de.i</h1>' +
+            '<h1 style="font-size:2.5rem;font-weight:900;color:var(--lidara-dark);letter-spacing:-0.03em;">Lidara</h1>' +
             '<p style="font-size:1.1rem;color:var(--gray-500);margin-top:8px;font-weight:500;">Sistema de Gestão Escolar</p>' +
-            '<p style="font-size:0.85rem;color:var(--green);margin-top:4px;font-weight:700;">Ano Letivo ' + Store.ANO_LETIVO + '</p>' +
+            '<p style="font-size:0.85rem;color:var(--lidara-green);margin-top:4px;font-weight:700;">Ano Letivo ' + Store.ANO_LETIVO + '</p>' +
           '</div>' +
 
           '<div class="summary-grid" style="max-width:700px;margin:0 auto 40px;">' +

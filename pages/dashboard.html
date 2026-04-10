@@ -44,21 +44,15 @@
     document.getElementById('app').innerHTML =
       Components.sidebar('dashboard') +
       '<div class="main-content">' +
-        '<header class="topbar">' +
-          '<div style="display:flex;align-items:center;gap:12px;">' +
-            '<button class="hamburger" onclick="toggleSidebar()">' +
-              '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>' +
-            '</button>' +
-            '<div><h2 class="topbar-title">Dashboard</h2>' +
-            '<span style="font-size:0.65rem;color:var(--gray-400);font-weight:600;">Ano Letivo ' + Store.ANO_LETIVO + '</span></div>' +
-          '</div>' +
-          '<div class="topbar-controls">' +
-            '<div class="topbar-select">' +
+        '<div class="subheader">' +
+          '<h2 class="subheader-title">Dashboard</h2>' +
+          '<div class="subheader-controls">' +
+            '<div class="subheader-select">' +
               '<label>Bimestre</label>' +
               '<select id="dashBimestre" onchange="onFilterChange()">' + bimOpts + '</select>' +
             '</div>' +
           '</div>' +
-        '</header>' +
+        '</div>' +
         '<div class="page-container">' +
 
           '<div class="card" style="margin-bottom:20px;">' +
