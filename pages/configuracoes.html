@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configurações — picpay.de.i</title>
+  <title>Configurações — Lidara</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
   <style>
     .manual-section { margin-bottom:24px; }
@@ -241,7 +241,7 @@
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = 'picpaydei-backup-' + new Date().toISOString().split('T')[0] + '.json';
+      a.download = 'lidara-backup-' + new Date().toISOString().split('T')[0] + '.json';
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -250,8 +250,8 @@
       if (!confirm('ATENÇÃO: Isso irá apagar TODOS os dados (alunos, notas, configurações)!')) return;
       if (!confirm('Tem certeza absoluta? Esta ação não pode ser desfeita!')) return;
       Store.clearAll();
-      localStorage.removeItem('picpay_dei_config');
-      localStorage.removeItem('picpay_dei_profile');
+      localStorage.removeItem('lidara_config');
+      localStorage.removeItem('lidara_profile');
       alert('Todos os dados foram apagados. Recarregando...');
       location.reload();
     }
@@ -420,7 +420,7 @@
           {
             title: 'Entendendo a Interface',
             content: `
-              <p>O <strong>picpay.de.i</strong> é um sistema de gerenciamento escolar com navegação intuitiva:</p>
+              <p>O <strong>Lidara</strong> é um sistema de gerenciamento escolar com navegação intuitiva:</p>
               <ul>
                 <li><strong>Sidebar (Menu Lateral):</strong> Acesso rápido a todas as páginas</li>
                 <li><strong>Topbar (Barra Superior):</strong> Seleção de Bimestre, Turma e Matéria</li>

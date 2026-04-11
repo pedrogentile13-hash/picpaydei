@@ -1,16 +1,38 @@
 /* ============================
-   picpay.de.i — Data Store
+   Lidara — Data Store
    Shared across all pages via localStorage + Firebase
    ============================ */
 
 const Store = (() => {
-  const STORAGE_KEY = 'picpay_dei_data';
-  const SETTINGS_KEY = 'picpay_dei_settings';
-  const VA_KEY = 'picpay_dei_vas';
-  const PB_KEY = 'picpay_dei_pbs';
-  const PROFILE_KEY = 'picpay_dei_profile';
-  const CONFIG_KEY = 'picpay_dei_config';
-  const PROFESSOR_KEY = 'picpay_dei_professor';
+  const STORAGE_KEY   = 'lidara_data';
+  const SETTINGS_KEY  = 'lidara_settings';
+  const VA_KEY        = 'lidara_vas';
+  const PB_KEY        = 'lidara_pbs';
+  const PROFILE_KEY   = 'lidara_profile';
+  const CONFIG_KEY    = 'lidara_config';
+  const PROFESSOR_KEY = 'lidara_professor';
+
+  // ─── Migração automática das chaves picpay_dei_* → lidara_* ──
+  (function _migrate() {
+    var map = {
+      'picpay_dei_data':         'lidara_data',
+      'picpay_dei_settings':     'lidara_settings',
+      'picpay_dei_vas':          'lidara_vas',
+      'picpay_dei_pbs':          'lidara_pbs',
+      'picpay_dei_profile':      'lidara_profile',
+      'picpay_dei_config':       'lidara_config',
+      'picpay_dei_professor':    'lidara_professor',
+      'picpay_dei_nota_config':  'lidara_nota_config',
+      'picpay_dei_materias_custom': 'lidara_materias_custom'
+    };
+    Object.keys(map).forEach(function(oldKey) {
+      var newKey = map[oldKey];
+      if (localStorage.getItem(oldKey) !== null && localStorage.getItem(newKey) === null) {
+        localStorage.setItem(newKey, localStorage.getItem(oldKey));
+        localStorage.removeItem(oldKey);
+      }
+    });
+  })();
 
   // Load dynamic ANO_LETIVO from config (default 2026)
   function _loadConfig() {
@@ -319,7 +341,7 @@ const Store = (() => {
   // =========== PUBLIC API ===========
 
   // =========== NOTA CONFIG (pesos configuráveis) ===========
-  const NOTA_CONFIG_KEY = 'picpay_dei_nota_config';
+  const NOTA_CONFIG_KEY = 'lidara_nota_config';
 
   function _loadNotaConfig() {
     try {
@@ -338,7 +360,7 @@ const Store = (() => {
   // ──────────────────────────────────────────────────────────
 
   // =========== MATÉRIAS CUSTOMIZADAS ===========
-  const MATERIAS_CUSTOM_KEY = 'picpay_dei_materias_custom';
+  const MATERIAS_CUSTOM_KEY = 'lidara_materias_custom';
 
   function _loadMateriasCustom() {
     try {

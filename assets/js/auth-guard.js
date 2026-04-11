@@ -1,5 +1,5 @@
 /* ============================
-   picpay.de.i — Auth Guard
+   Lidara — Auth Guard
    Redirects to login if not authenticated
    Redirects to setup if professor not configured
    ============================ */
