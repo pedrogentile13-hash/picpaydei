@@ -425,7 +425,11 @@ const Store = (() => {
 
     isProfessorConfigured: function() {
       var prof = _loadProfessor();
-      return prof && prof.anos && prof.anos.length > 0 && prof.materias && prof.materias.length > 0;
+      if (!prof) return false;
+      // New format: turmasConfig array
+      if (prof.turmasConfig && prof.turmasConfig.length > 0) return true;
+      // Old format: anos + materias
+      return !!(prof.anos && prof.anos.length > 0 && prof.materias && prof.materias.length > 0);
     },
 
     getProfessor: function() {
@@ -1016,9 +1020,13 @@ const Store = (() => {
     getAllMaterias: function() {
       var prof = _loadProfessor();
       if (prof && prof.materias && prof.materias.length > 0) {
+        // New format: array of strings
+        if (typeof prof.materias[0] === 'string') return prof.materias.slice();
+        // Old format: array of {nome, anos:[...]}
         var all = {};
-        prof.materias.forEach(function(m) { all[m.nome] = true; });
-        return Object.keys(all);
+        prof.materias.forEach(function(m) { if (m && m.nome) all[m.nome] = true; });
+        var keys = Object.keys(all);
+        if (keys.length > 0) return keys;
       }
       return TODAS_MATERIAS.slice();
     },
