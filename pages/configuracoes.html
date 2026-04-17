@@ -105,6 +105,31 @@
       cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--dark);
     }
     .checkbox-list input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--green); }
+
+    /* Notas config */
+    .turmas-selector { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+    .turmas-selector .cfg-field { margin: 0; }
+
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+      .cfg-row { grid-template-columns: 1fr !important; }
+      .turmas-selector { grid-template-columns: 1fr !important; }
+      .sidebar-nav { gap: 2px; }
+      .sidebar-nav a { padding: 6px 10px; font-size: 0.75rem; }
+      .sidebar-nav a svg { width: 16px; height: 16px; }
+      .sidebar-logo .text h1 { font-size: 0.85rem; }
+      .topbar { padding: 8px 16px; }
+      .topbar-controls { flex-wrap: wrap; }
+      .topbar-select { flex: 1 1 auto; min-width: 120px; }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar { padding: 0 12px; }
+      .sidebar-nav a { padding: 4px 6px; }
+      .sidebar-nav a svg { display: none; }
+      .topbar-title { font-size: 0.9rem; }
+      .topbar-select { font-size: 0.7rem; }
+    }
   </style>
 </head>
 <body>
@@ -210,6 +235,56 @@
             '</div>' +
           '</div>' +
 
+          // ── FÓRMULA DE NOTAS ─────────────────────
+          '<div class="card cfg-section">' +
+            '<div class="card-header"><h3>Fórmula de Notas</h3>' +
+              '<span style="font-size:0.75rem;color:var(--gray-400);">Customize os pesos de cálculo</span>' +
+            '</div>' +
+            '<div style="margin-bottom:16px;">' +
+              '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px;">' +
+                '<input type="checkbox" id="chkUsarPB" onchange="onUsarPBChange()" style="width:18px;height:18px;" />' +
+                '<span style="font-weight:600;color:var(--dark);">Usar Prova Bimestral</span>' +
+              '</label>' +
+              '<div id="pesosComPB" style="display:none;margin-top:12px;padding:14px;background:var(--gray-50);border-radius:10px;">' +
+                '<p style="font-size:0.75rem;font-weight:700;color:var(--gray-500);margin-bottom:12px;">Defina os pesos (devem somar 100%)</p>' +
+                '<div class="cfg-row" style="grid-template-columns:repeat(3,1fr);gap:12px;">' +
+                  '<div class="cfg-field">' +
+                    '<label>PB (%)</label>' +
+                    '<input type="number" id="pesoPB" min="0" max="100" value="35" />' +
+                  '</div>' +
+                  '<div class="cfg-field">' +
+                    '<label>Quali (%)</label>' +
+                    '<input type="number" id="pesoQuali" min="0" max="100" value="30" />' +
+                  '</div>' +
+                  '<div class="cfg-field">' +
+                    '<label>VA (%)</label>' +
+                    '<input type="number" id="pesoVA" min="0" max="100" value="35" />' +
+                  '</div>' +
+                '</div>' +
+                '<p id="validacaoPesos" style="font-size:0.75rem;color:var(--green);margin-top:8px;">✓ Soma = 100%</p>' +
+              '</div>' +
+              '<div id="pesosSemPB" style="display:none;margin-top:12px;padding:14px;background:var(--gray-50);border-radius:10px;">' +
+                '<p style="font-size:0.75rem;font-weight:700;color:var(--gray-500);margin-bottom:12px;">Sem Prova Bimestral (defina os pesos)</p>' +
+                '<div class="cfg-row" style="grid-template-columns:repeat(2,1fr);gap:12px;">' +
+                  '<div class="cfg-field">' +
+                    '<label>Quali (%)</label>' +
+                    '<input type="number" id="pesoQualiSemPB" min="0" max="100" value="30" />' +
+                  '</div>' +
+                  '<div class="cfg-field">' +
+                    '<label>VA (%)</label>' +
+                    '<input type="number" id="pesoVASemPB" min="0" max="100" value="70" />' +
+                  '</div>' +
+                '</div>' +
+                '<p id="validacaoPesosSemPB" style="font-size:0.75rem;color:var(--green);margin-top:8px;">✓ Soma = 100%</p>' +
+              '</div>' +
+            '</div>' +
+            '<div class="cfg-field" style="margin-bottom:16px;">' +
+              '<label>Nota Mínima para Aprovação</label>' +
+              '<input type="number" id="notaMinimaAprovacao" min="0" max="10" step="0.1" value="6.0" />' +
+            '</div>' +
+            '<button class="btn btn-primary" onclick="saveGradesConfig()">Salvar Configuração de Notas</button>' +
+          '</div>' +
+
           // ── TURMAS ──────────────────────────────
           '<div class="card cfg-section">' +
             '<div class="card-header"><h3>Turmas Configuradas</h3>' +
@@ -297,6 +372,17 @@
       renderTurmasGeradas();
       renderMaterias();
       renderBimGrid();
+      renderGradesConfig();
+
+      // Adicionar listeners para validação em tempo real
+      ['pesoPB', 'pesoQuali', 'pesoVA'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', updatePesosValidation);
+      });
+      ['pesoQualiSemPB', 'pesoVASemPB'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', updatePesosValidation);
+      });
 
       Store.loadFromCloud(function(success) {
         if (success) {
@@ -306,6 +392,7 @@
           renderTurmasTags();
           renderTurmasGeradas();
           renderMaterias();
+          renderGradesConfig();
         }
       });
     })();
@@ -548,6 +635,87 @@
       });
       setBimDatas(datas);
       showToast('Datas salvas!');
+    }
+
+    // ============================
+    // GRADES CONFIG
+    // ============================
+    function renderGradesConfig() {
+      var cfg = Store.getGradesConfig();
+      document.getElementById('chkUsarPB').checked = cfg.usarPB;
+      document.getElementById('pesoPB').value = cfg.pesosPB.pb;
+      document.getElementById('pesoQuali').value = cfg.pesosPB.quali;
+      document.getElementById('pesoVA').value = cfg.pesosPB.va;
+      document.getElementById('pesoQualiSemPB').value = cfg.pesosLEM.quali;
+      document.getElementById('pesoVASemPB').value = cfg.pesosLEM.va;
+      document.getElementById('notaMinimaAprovacao').value = cfg.notaMinimaAprovacao;
+      onUsarPBChange();
+      updatePesosValidation();
+    }
+
+    function onUsarPBChange() {
+      var usar = document.getElementById('chkUsarPB').checked;
+      document.getElementById('pesosComPB').style.display = usar ? 'block' : 'none';
+      document.getElementById('pesosSemPB').style.display = usar ? 'none' : 'block';
+      updatePesosValidation();
+    }
+
+    function updatePesosValidation() {
+      var usar = document.getElementById('chkUsarPB').checked;
+      if (usar) {
+        var pb = parseInt(document.getElementById('pesoPB').value) || 0;
+        var quali = parseInt(document.getElementById('pesoQuali').value) || 0;
+        var va = parseInt(document.getElementById('pesoVA').value) || 0;
+        var soma = pb + quali + va;
+        var el = document.getElementById('validacaoPesos');
+        if (soma === 100) {
+          el.style.color = 'var(--green)';
+          el.innerHTML = '✓ Soma = 100%';
+        } else {
+          el.style.color = 'var(--red)';
+          el.innerHTML = '✗ Soma = ' + soma + '% (deve ser 100%)';
+        }
+      } else {
+        var quali = parseInt(document.getElementById('pesoQualiSemPB').value) || 0;
+        var va = parseInt(document.getElementById('pesoVASemPB').value) || 0;
+        var soma = quali + va;
+        var el = document.getElementById('validacaoPesosSemPB');
+        if (soma === 100) {
+          el.style.color = 'var(--green)';
+          el.innerHTML = '✓ Soma = 100%';
+        } else {
+          el.style.color = 'var(--red)';
+          el.innerHTML = '✗ Soma = ' + soma + '% (deve ser 100%)';
+        }
+      }
+    }
+
+    function saveGradesConfig() {
+      var usar = document.getElementById('chkUsarPB').checked;
+      var cfg = {
+        usarPB: usar,
+        pesosPB: {
+          pb: parseInt(document.getElementById('pesoPB').value) || 35,
+          quali: parseInt(document.getElementById('pesoQuali').value) || 30,
+          va: parseInt(document.getElementById('pesoVA').value) || 35
+        },
+        pesosLEM: {
+          quali: parseInt(document.getElementById('pesoQualiSemPB').value) || 30,
+          va: parseInt(document.getElementById('pesoVASemPB').value) || 70
+        },
+        usarAnglo: true,
+        notaMinimaAprovacao: parseFloat(document.getElementById('notaMinimaAprovacao').value) || 6.0
+      };
+
+      // Validar somas
+      var somaComPB = cfg.pesosPB.pb + cfg.pesosPB.quali + cfg.pesosPB.va;
+      var somaSemPB = cfg.pesosLEM.quali + cfg.pesosLEM.va;
+
+      if (usar && somaComPB !== 100) { alert('Com PB: pesos devem somar 100% (atualmente ' + somaComPB + '%)'); return; }
+      if (!usar && somaSemPB !== 100) { alert('Sem PB: pesos devem somar 100% (atualmente ' + somaSemPB + '%)'); return; }
+
+      Store.setGradesConfig(cfg);
+      showToast('Configuração de notas salva!');
     }
 
     // ============================
