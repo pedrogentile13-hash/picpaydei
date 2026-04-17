@@ -11,6 +11,7 @@ const Store = (() => {
   const PROFILE_KEY = 'picpay_dei_profile';
   const CONFIG_KEY = 'picpay_dei_config';
   const PROFESSOR_KEY = 'picpay_dei_professor';
+  const GRADES_CONFIG_KEY = 'lidara_grades_config';
 
   // Load dynamic ANO_LETIVO from config (default 2026)
   function _loadConfig() {
@@ -18,6 +19,26 @@ const Store = (() => {
       var raw = localStorage.getItem(CONFIG_KEY);
       return raw ? JSON.parse(raw) : { anoLetivo: 2026 };
     } catch(e) { return { anoLetivo: 2026 }; }
+  }
+
+  // Load grades configuration (customizable formula)
+  function _loadGradesConfig() {
+    try {
+      var raw = localStorage.getItem(GRADES_CONFIG_KEY);
+      return raw ? JSON.parse(raw) : {
+        usarPB: true,
+        pesosPB: { pb: 35, quali: 30, va: 35 },
+        pesosLEM: { quali: 30, va: 70 },
+        usarAnglo: true,
+        notaMinimaAprovacao: 6.0
+      };
+    } catch(e) {
+      return { usarPB: true, pesosPB: { pb: 35, quali: 30, va: 35 }, pesosLEM: { quali: 30, va: 70 }, usarAnglo: true, notaMinimaAprovacao: 6.0 };
+    }
+  }
+
+  function _saveGradesConfig(cfg) {
+    localStorage.setItem(GRADES_CONFIG_KEY, JSON.stringify(cfg));
   }
 
   var ANO_LETIVO = _loadConfig().anoLetivo;
@@ -734,20 +755,23 @@ const Store = (() => {
       return +Math.min(10, Math.max(0, student.quali + bonus - desconto)).toFixed(2);
     },
 
-    // Full media calculation
-    // For matérias with PB: M = (PB×35 + Quali×30 + VA×35) / 100
-    // For LEM (no PB):       M = (Quali×30 + VA×35) / 65
+    // Full media calculation - uses configurable weights
     calcMediaFull: function(turma, materia, bimestre, student) {
+      var cfg = _loadGradesConfig();
       var positivos = student.positivos || 0;
       var qualiAjustada = Math.min(10, Math.max(0, student.quali + positivos * 0.1 - student.negativos * 0.1));
       var vaMedia = this.getVAMedia(turma, materia, bimestre, student.numero);
 
-      if (this.hasPB(materia)) {
+      if (cfg.usarPB && this.hasPB(materia)) {
         var pbMedia = this.getPBMedia(turma, materia, bimestre, student.numero);
-        return +((pbMedia * PESOS.pb + qualiAjustada * PESOS.quali + vaMedia * PESOS.va) / (PESOS.pb + PESOS.quali + PESOS.va)).toFixed(1);
+        var pesos = cfg.pesosPB || PESOS;
+        var totalPesos = pesos.pb + pesos.quali + pesos.va;
+        return +((pbMedia * pesos.pb + qualiAjustada * pesos.quali + vaMedia * pesos.va) / totalPesos).toFixed(1);
       } else {
-        // LEM: no PB
-        return +((qualiAjustada * PESOS.quali + vaMedia * PESOS.va) / (PESOS.quali + PESOS.va)).toFixed(1);
+        // No PB: use alternative weights
+        var pesos = cfg.pesosLEM || { quali: 30, va: 70 };
+        var totalPesos = pesos.quali + pesos.va;
+        return +((qualiAjustada * pesos.quali + vaMedia * pesos.va) / totalPesos).toFixed(1);
       }
     },
 
@@ -1001,6 +1025,19 @@ const Store = (() => {
         console.error('Config sync error:', err);
         if (callback) callback(false);
       });
+    },
+
+    // =========== CONFIGURABLE GRADES ===========
+
+    getGradesConfig: function() {
+      return _loadGradesConfig();
+    },
+
+    setGradesConfig: function(config) {
+      _saveGradesConfig(config);
+      if (_syncEnabled) {
+        _firestoreSave('config', 'gradesConfig', config);
+      }
     }
   };
 })();
