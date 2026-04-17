@@ -12,19 +12,41 @@ const Store = (() => {
   const CONFIG_KEY = 'picpay_dei_config';
   const PROFESSOR_KEY = 'picpay_dei_professor';
   const GRADES_CONFIG_KEY = 'lidara_grades_config';
+  const YEARS_CONFIG_KEY = 'lidara_years_config';
 
   // Load dynamic ANO_LETIVO from config (default 2026)
   function _loadConfig() {
     try {
       var raw = localStorage.getItem(CONFIG_KEY);
-      return raw ? JSON.parse(raw) : { anoLetivo: 2026 };
-    } catch(e) { return { anoLetivo: 2026 }; }
+      return raw ? JSON.parse(raw) : { anoLetivo: 2026, activeYear: 2026 };
+    } catch(e) { return { anoLetivo: 2026, activeYear: 2026 }; }
   }
 
-  // Load grades configuration (customizable formula)
-  function _loadGradesConfig() {
+  // Load all years configuration
+  function _loadYearsConfig() {
     try {
-      var raw = localStorage.getItem(GRADES_CONFIG_KEY);
+      var raw = localStorage.getItem(YEARS_CONFIG_KEY);
+      if (raw) return JSON.parse(raw);
+      // Initialize with current year
+      var config = _loadConfig();
+      var ano = config.activeYear || 2026;
+      return {
+        activeYear: ano,
+        years: [ano]
+      };
+    } catch(e) {
+      return { activeYear: 2026, years: [2026] };
+    }
+  }
+
+  function _saveYearsConfig(cfg) {
+    localStorage.setItem(YEARS_CONFIG_KEY, JSON.stringify(cfg));
+  }
+
+  // Load grades configuration for a specific year (customizable formula)
+  function _loadGradesConfig(year) {
+    try {
+      var raw = localStorage.getItem(GRADES_CONFIG_KEY + '_' + year);
       return raw ? JSON.parse(raw) : {
         usarPB: true,
         pesosPB: { pb: 35, quali: 30, va: 35 },
@@ -37,11 +59,12 @@ const Store = (() => {
     }
   }
 
-  function _saveGradesConfig(cfg) {
-    localStorage.setItem(GRADES_CONFIG_KEY, JSON.stringify(cfg));
+  function _saveGradesConfig(year, cfg) {
+    localStorage.setItem(GRADES_CONFIG_KEY + '_' + year, JSON.stringify(cfg));
   }
 
-  var ANO_LETIVO = _loadConfig().anoLetivo;
+  var _yearsConfig = _loadYearsConfig();
+  var ANO_LETIVO = _yearsConfig.activeYear || 2026;
 
   const BIMESTRES = ['1', '2', '3', '4'];
   const BIMESTRE_LABELS = { '1': '1º Bimestre', '2': '2º Bimestre', '3': '3º Bimestre', '4': '4º Bimestre' };
@@ -757,7 +780,7 @@ const Store = (() => {
 
     // Full media calculation - uses configurable weights
     calcMediaFull: function(turma, materia, bimestre, student) {
-      var cfg = _loadGradesConfig();
+      var cfg = _loadGradesConfig(ANO_LETIVO);
       var positivos = student.positivos || 0;
       var qualiAjustada = Math.min(10, Math.max(0, student.quali + positivos * 0.1 - student.negativos * 0.1));
       var vaMedia = this.getVAMedia(turma, materia, bimestre, student.numero);
@@ -1029,15 +1052,75 @@ const Store = (() => {
 
     // =========== CONFIGURABLE GRADES ===========
 
-    getGradesConfig: function() {
-      return _loadGradesConfig();
+    getGradesConfig: function(year) {
+      if (!year) year = ANO_LETIVO;
+      return _loadGradesConfig(year);
     },
 
-    setGradesConfig: function(config) {
-      _saveGradesConfig(config);
+    setGradesConfig: function(config, year) {
+      if (!year) year = ANO_LETIVO;
+      _saveGradesConfig(year, config);
       if (_syncEnabled) {
-        _firestoreSave('config', 'gradesConfig', config);
+        _firestoreSave('config', 'gradesConfig_' + year, config);
       }
+    },
+
+    // =========== MULTI-YEAR MANAGEMENT ===========
+
+    getYearsConfig: function() {
+      return _yearsConfig;
+    },
+
+    getActiveYear: function() {
+      return ANO_LETIVO;
+    },
+
+    setActiveYear: function(year) {
+      if (_yearsConfig.years.indexOf(year) === -1) {
+        _yearsConfig.years.push(year);
+      }
+      _yearsConfig.activeYear = year;
+      ANO_LETIVO = year;
+      _saveYearsConfig(_yearsConfig);
+      if (_syncEnabled) {
+        _firestoreSave('config', 'yearsConfig', _yearsConfig);
+      }
+    },
+
+    createNewYear: function(year) {
+      if (_yearsConfig.years.indexOf(year) !== -1) return false;
+      _yearsConfig.years.push(year);
+      _yearsConfig.activeYear = year;
+      ANO_LETIVO = year;
+      _saveYearsConfig(_yearsConfig);
+      // Initialize grades config for new year with defaults
+      _saveGradesConfig(year, {
+        usarPB: true,
+        pesosPB: { pb: 35, quali: 30, va: 35 },
+        pesosLEM: { quali: 30, va: 70 },
+        usarAnglo: true,
+        notaMinimaAprovacao: 6.0
+      });
+      if (_syncEnabled) {
+        _firestoreSave('config', 'yearsConfig', _yearsConfig);
+      }
+      return true;
+    },
+
+    deleteYear: function(year) {
+      var idx = _yearsConfig.years.indexOf(year);
+      if (idx === -1) return false;
+      _yearsConfig.years.splice(idx, 1);
+      if (_yearsConfig.activeYear === year && _yearsConfig.years.length > 0) {
+        _yearsConfig.activeYear = _yearsConfig.years[0];
+        ANO_LETIVO = _yearsConfig.activeYear;
+      }
+      _saveYearsConfig(_yearsConfig);
+      localStorage.removeItem(GRADES_CONFIG_KEY + '_' + year);
+      if (_syncEnabled) {
+        _firestoreSave('config', 'yearsConfig', _yearsConfig);
+      }
+      return true;
     }
   };
 })();

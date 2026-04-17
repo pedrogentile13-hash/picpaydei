@@ -218,17 +218,27 @@
                 '<input type="text" id="inputEscola" placeholder="Ex: Colégio São Paulo" />' +
                 '<span class="cfg-hint">Aparece no cabeçalho dos relatórios</span>' +
               '</div>' +
-              '<div class="cfg-field">' +
-                '<label>Ano Letivo</label>' +
-                '<div style="display:flex;gap:8px;">' +
-                  '<input type="number" id="inputAnoLetivo" min="2020" max="2050" style="flex:1;" />' +
-                  '<button class="btn btn-primary" onclick="saveAnoLetivo()">Salvar</button>' +
-                '</div>' +
-                '<span class="cfg-hint">Afeta todo o sistema</span>' +
-              '</div>' +
             '</div>' +
             '<div style="margin-top:16px;display:flex;gap:8px;">' +
               '<button class="btn btn-primary" onclick="saveEscola()">Salvar Escola</button>' +
+            '</div>' +
+          '</div>' +
+
+          // ── ANOS LETIVOS ────────────────────────
+          '<div class="card cfg-section">' +
+            '<div class="card-header"><h3>Anos Letivos</h3>' +
+              '<span style="font-size:0.75rem;color:var(--gray-400);">Gerenciar múltiplos anos</span>' +
+            '</div>' +
+            '<div style="margin-bottom:20px;">' +
+              '<p style="font-size:0.8rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">Criar Novo Ano Letivo</p>' +
+              '<div style="display:flex;gap:8px;">' +
+                '<input type="number" id="inputNovoAnoLetivo" min="2020" max="2050" placeholder="Ano (ex: 2026)" />' +
+                '<button class="btn btn-primary" onclick="createNewYear()">+ Criar</button>' +
+              '</div>' +
+            '</div>' +
+            '<div style="padding:14px;background:var(--light);border-radius:10px;">' +
+              '<p style="font-size:0.8rem;font-weight:700;color:var(--dark);margin-bottom:10px;">Anos Disponíveis:</p>' +
+              '<div id="yearsListDisplay" style="display:flex;flex-wrap:wrap;gap:8px;"></div>' +
             '</div>' +
           '</div>' +
 
@@ -367,8 +377,8 @@
       var profile = Store.getProfile();
       var config = Store.getConfig();
       document.getElementById('inputEscola').value = profile.escola || '';
-      document.getElementById('inputAnoLetivo').value = config.anoLetivo || 2026;
 
+      renderYearsList();
       renderAnosTags();
       renderTurmasTags();
       renderTurmasGeradas();
@@ -391,6 +401,7 @@
         if (success) {
           var p = Store.getProfile();
           document.getElementById('inputEscola').value = p.escola || '';
+          renderYearsList();
           renderAnosTags();
           renderTurmasTags();
           renderTurmasGeradas();
@@ -411,12 +422,57 @@
       showToast('Escola salva!');
     }
 
-    function saveAnoLetivo() {
-      var ano = parseInt(document.getElementById('inputAnoLetivo').value);
+    // ============================
+    // ANOS LETIVOS
+    // ============================
+    function renderYearsList() {
+      var yearsConfig = Store.getYearsConfig();
+      var activeYear = Store.getActiveYear();
+      var years = yearsConfig.years || [];
+      var html = '';
+      years.sort(function(a, b) { return b - a; });
+      years.forEach(function(y) {
+        var active = y === activeYear;
+        var badge = active ? '<span style="background:var(--green);color:#fff;font-size:0.65rem;padding:2px 8px;border-radius:4px;font-weight:700;margin-left:4px;">Ativo</span>' : '';
+        html += '<span class="tag' + (active ? ' tag-green' : '') + '">' +
+          y + ' ' + (active ? '(Ativo)' : '') +
+          '<button onclick="switchYear(' + y + ')">Usar</button>' +
+          (years.length > 1 ? '<button onclick="deleteYear(' + y + ')">×</button>' : '') +
+        '</span>';
+      });
+      var el = document.getElementById('yearsListDisplay');
+      if (el) el.innerHTML = html || '<span style="font-size:0.8rem;color:var(--gray-400);">Nenhum ano criado</span>';
+    }
+
+    function createNewYear() {
+      var ano = parseInt(document.getElementById('inputNovoAnoLetivo').value);
       if (ano < 2020 || ano > 2050) { alert('Ano inválido (2020–2050).'); return; }
-      Store.setAnoLetivo(ano);
-      showToast('Ano letivo atualizado! Recarregando...');
+      var yearsConfig = Store.getYearsConfig();
+      if (yearsConfig.years.indexOf(ano) !== -1) { alert('Este ano já existe.'); return; }
+      if (Store.createNewYear(ano)) {
+        showToast('Ano letivo ' + ano + ' criado!');
+        document.getElementById('inputNovoAnoLetivo').value = '';
+        renderYearsList();
+      } else {
+        alert('Erro ao criar novo ano.');
+      }
+    }
+
+    function switchYear(year) {
+      Store.setActiveYear(year);
+      showToast('Ano letivo alterado para ' + year + '. Recarregando...');
       setTimeout(function() { location.reload(); }, 800);
+    }
+
+    function deleteYear(year) {
+      if (!confirm('Tem certeza que deseja deletar o ano ' + year + '? Esta ação não pode ser desfeita.')) return;
+      if (Store.deleteYear(year)) {
+        showToast('Ano deletado!');
+        renderYearsList();
+        renderGradesConfig();
+      } else {
+        alert('Erro ao deletar ano.');
+      }
     }
 
     // ============================
@@ -783,7 +839,7 @@
       if (usar && somaComPB !== 100) { alert('Com PB: pesos devem somar 100% (atualmente ' + somaComPB + '%)'); return; }
       if (!usar && somaSemPB !== 100) { alert('Sem PB: pesos devem somar 100% (atualmente ' + somaSemPB + '%)'); return; }
 
-      Store.setGradesConfig(cfg);
+      Store.setGradesConfig(cfg, Store.getActiveYear());
       showToast('Configuração de notas salva!');
     }
 

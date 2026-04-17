@@ -343,12 +343,107 @@
       html += '</div>';
       html += '</div>';
 
+      // Step 5: Grades Configuration
+      html += '<div class="step-card">';
+      html += '<div class="step-header">';
+      html += '<div class="step-number">5</div>';
+      html += '<div><h3 class="step-title">Fórmula de Cálculo de Notas</h3>';
+      html += '<p class="step-desc">Configure como as notas serão calculadas</p></div>';
+      html += '</div>';
+
+      html += '<div class="form-group" style="margin-bottom:16px;">';
+      html += '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:0;">';
+      html += '<input type="checkbox" id="usarPB" ' + (config.gradesConfig && config.gradesConfig.usarPB ? 'checked' : 'checked') + ' onchange="updateGradesConfig()" style="width:18px;height:18px;cursor:pointer;"/>';
+      html += '<span style="font-weight:600;color:var(--dark);">Usar Prova Bimestral (PB)</span>';
+      html += '</label>';
+      html += '</div>';
+
+      html += '<div id="pesosPBSection" style="background:var(--light);border-radius:12px;padding:18px;margin-bottom:16px;">';
+      html += '<h4 style="font-size:0.9rem;font-weight:700;color:var(--dark);margin-bottom:14px;">Pesos (com PB)</h4>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">';
+      html += '<div class="form-group" style="margin-bottom:0;"><label>PB (%)</label><input type="number" id="pesoPB" value="' + (config.gradesConfig && config.gradesConfig.pesosPB ? config.gradesConfig.pesosPB.pb : 35) + '" min="0" max="100" onchange="updateGradesConfig()" /></div>';
+      html += '<div class="form-group" style="margin-bottom:0;"><label>Quali (%)</label><input type="number" id="pesoQuali" value="' + (config.gradesConfig && config.gradesConfig.pesosPB ? config.gradesConfig.pesosPB.quali : 30) + '" min="0" max="100" onchange="updateGradesConfig()" /></div>';
+      html += '<div class="form-group" style="margin-bottom:0;"><label>VA (%)</label><input type="number" id="pesoVA" value="' + (config.gradesConfig && config.gradesConfig.pesosPB ? config.gradesConfig.pesosPB.va : 35) + '" min="0" max="100" onchange="updateGradesConfig()" /></div>';
+      html += '</div>';
+      html += '<div id="pbValidation" style="font-size:0.75rem;color:var(--orange);margin-top:10px;font-weight:600;"></div>';
+      html += '</div>';
+
+      html += '<div id="pesosLEMSection" style="background:var(--light);border-radius:12px;padding:18px;margin-bottom:16px;display:none;">';
+      html += '<h4 style="font-size:0.9rem;font-weight:700;color:var(--dark);margin-bottom:14px;">Pesos (sem PB - Línguas/Eletivas)</h4>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">';
+      html += '<div class="form-group" style="margin-bottom:0;"><label>Quali (%)</label><input type="number" id="pesoQualiLEM" value="' + (config.gradesConfig && config.gradesConfig.pesosLEM ? config.gradesConfig.pesosLEM.quali : 30) + '" min="0" max="100" onchange="updateGradesConfig()" /></div>';
+      html += '<div class="form-group" style="margin-bottom:0;"><label>VA (%)</label><input type="number" id="pesoVALEM" value="' + (config.gradesConfig && config.gradesConfig.pesosLEM ? config.gradesConfig.pesosLEM.va : 70) + '" min="0" max="100" onchange="updateGradesConfig()" /></div>';
+      html += '</div>';
+      html += '<div id="lemValidation" style="font-size:0.75rem;color:var(--orange);margin-top:10px;font-weight:600;"></div>';
+      html += '</div>';
+
+      html += '<div class="form-group">';
+      html += '<label>Nota Mínima para Aprovação</label>';
+      html += '<input type="number" id="notaMinimaAprovacao" value="' + (config.gradesConfig && config.gradesConfig.notaMinimaAprovacao ? config.gradesConfig.notaMinimaAprovacao : 6.0) + '" min="0" max="10" step="0.1" onchange="updateGradesConfig()" />';
+      html += '</div>';
+
+      html += '</div>';
+      html += '</div>';
+
       // Actions
       html += '<div class="setup-actions">';
-      html += '<button class="btn btn-primary btn-large" onclick="saveConfig()">Salvar e Continuar</button>';
+      html += '<button class="btn btn-primary btn-large" onclick="saveConfig()">Finalizar Configuração</button>';
       html += '</div>';
 
       document.getElementById('setupContent').innerHTML = html;
+    }
+
+    function updateGradesConfig() {
+      var usarPB = document.getElementById('usarPB').checked;
+      var pbSection = document.getElementById('pesosPBSection');
+      var lemSection = document.getElementById('pesosLEMSection');
+
+      if (usarPB) {
+        pbSection.style.display = 'block';
+        lemSection.style.display = 'none';
+      } else {
+        pbSection.style.display = 'none';
+        lemSection.style.display = 'block';
+      }
+
+      // Validate PB
+      if (usarPB) {
+        var pb = parseInt(document.getElementById('pesoPB').value) || 0;
+        var quali = parseInt(document.getElementById('pesoQuali').value) || 0;
+        var va = parseInt(document.getElementById('pesoVA').value) || 0;
+        var total = pb + quali + va;
+        var msg = document.getElementById('pbValidation');
+        if (total !== 100) {
+          msg.textContent = 'Total deve ser 100% (atualmente ' + total + '%)';
+        } else {
+          msg.textContent = '';
+        }
+      } else {
+        var quali = parseInt(document.getElementById('pesoQualiLEM').value) || 0;
+        var va = parseInt(document.getElementById('pesoVALEM').value) || 0;
+        var total = quali + va;
+        var msg = document.getElementById('lemValidation');
+        if (total !== 100) {
+          msg.textContent = 'Total deve ser 100% (atualmente ' + total + '%)';
+        } else {
+          msg.textContent = '';
+        }
+      }
+
+      // Update config
+      config.gradesConfig = {
+        usarPB: usarPB,
+        pesosPB: {
+          pb: parseInt(document.getElementById('pesoPB').value) || 35,
+          quali: parseInt(document.getElementById('pesoQuali').value) || 30,
+          va: parseInt(document.getElementById('pesoVA').value) || 35
+        },
+        pesosLEM: {
+          quali: parseInt(document.getElementById('pesoQualiLEM').value) || 30,
+          va: parseInt(document.getElementById('pesoVALEM').value) || 70
+        },
+        notaMinimaAprovacao: parseFloat(document.getElementById('notaMinimaAprovacao').value) || 6.0
+      };
     }
 
     function toggleAno(ano) {
@@ -421,6 +516,31 @@
         return;
       }
 
+      // Update grades config from form
+      updateGradesConfig();
+
+      // Validate grades config
+      if (config.gradesConfig.usarPB) {
+        var pb = config.gradesConfig.pesosPB.pb;
+        var quali = config.gradesConfig.pesosPB.quali;
+        var va = config.gradesConfig.pesosPB.va;
+        if (pb + quali + va !== 100) {
+          alert('Com PB: os pesos devem somar 100%');
+          return;
+        }
+      } else {
+        var quali = config.gradesConfig.pesosLEM.quali;
+        var va = config.gradesConfig.pesosLEM.va;
+        if (quali + va !== 100) {
+          alert('Sem PB: os pesos devem somar 100%');
+          return;
+        }
+      }
+
+      // Create new year with configuration
+      var currentYear = new Date().getFullYear();
+      Store.createNewYear(currentYear);
+      Store.setGradesConfig(config.gradesConfig, currentYear);
       Store.setProfessor(config);
       alert('Configuracao salva com sucesso!');
       window.location.href = '../index.html';
