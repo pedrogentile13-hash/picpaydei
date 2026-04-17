@@ -182,15 +182,12 @@
       Store.setProfessor(prof);
     }
 
-    var TODAS_MATERIAS = [
-      'Lingua Portuguesa','Matematica','Historia','Geografia',
-      'Educacao Fisica','Artes','Biologia','Quimica',
-      'Iniciacao Cientifica','Educacao Socioemocional','Producao de Texto',
-      'Fisica','Educacao Financeira','Pensamento Computacional','Ingles'
-    ];
-
-    var ANOS_DISPONIVEIS = ['6','7','8','9'];
-    var TURMAS_DISPONIVEIS = ['A','B','C','D','E'];
+    // Sync with Store
+    var TODAS_MATERIAS = Store.TODAS_MATERIAS;
+    var SEGMENTS = Store.SEGMENTS;
+    var CLASSES = Store.CLASSES;
+    var ANOS_DISPONIVEIS = Store.ANOS_DISPONIVEIS;
+    var TURMAS_DISPONIVEIS = Store.TURMAS_DISPONIVEIS;
 
     var BIM_DATAS_KEY = 'lidara_bim_datas';
 
@@ -288,35 +285,40 @@
           // ── TURMAS ──────────────────────────────
           '<div class="card cfg-section">' +
             '<div class="card-header"><h3>Turmas Configuradas</h3>' +
-              '<span style="font-size:0.75rem;color:var(--gray-400);">Anos e letras ativas</span>' +
+              '<span style="font-size:0.75rem;color:var(--gray-400);">Selecione segmento, série e turma</span>' +
             '</div>' +
 
             '<div style="margin-bottom:20px;">' +
-              '<p style="font-size:0.8rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Anos</p>' +
-              '<div class="tag-list" id="tagAnosList"></div>' +
-              '<div class="add-row">' +
-                '<select id="selectAddAno">' +
-                  ANOS_DISPONIVEIS.map(function(a){ return '<option value="'+a+'">'+a+'º Ano</option>'; }).join('') +
-                '</select>' +
-                '<button class="btn btn-outline" onclick="addAno()">+ Adicionar Ano</button>' +
+              '<p style="font-size:0.8rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">Adicionar Turma</p>' +
+              '<div class="cfg-row" style="grid-template-columns: 2fr 2fr 1fr 1fr; gap: 12px;">' +
+                '<div class="cfg-field">' +
+                  '<label>Segmento</label>' +
+                  '<select id="selectSegmento" onchange="onSegmentoChange()">' +
+                    '<option value="">— Selecione —</option>' +
+                    '<option value="FI">Fundamental I (2º-5º)</option>' +
+                    '<option value="FII">Fundamental II (6º-9º)</option>' +
+                    '<option value="EM">Ensino Médio (1º-3º)</option>' +
+                  '</select>' +
+                '</div>' +
+                '<div class="cfg-field">' +
+                  '<label>Série</label>' +
+                  '<select id="selectSerie">' +
+                    '<option value="">— Selecione segmento —</option>' +
+                  '</select>' +
+                '</div>' +
+                '<div class="cfg-field">' +
+                  '<label>Turma</label>' +
+                  '<select id="selectClasse">' +
+                    CLASSES.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('') +
+                  '</select>' +
+                '</div>' +
+                '<button class="btn btn-outline" onclick="addTurmaNew()" style="align-self:flex-end;">+ Adicionar</button>' +
               '</div>' +
-            '</div>' +
-
-            '<div>' +
-              '<p style="font-size:0.8rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">Letras de Turma</p>' +
-              '<div class="tag-list" id="tagTurmasList"></div>' +
-              '<div class="add-row">' +
-                '<select id="selectAddTurma">' +
-                  TURMAS_DISPONIVEIS.map(function(t){ return '<option value="'+t+'">Turma '+t+'</option>'; }).join('') +
-                '</select>' +
-                '<button class="btn btn-outline" onclick="addTurma()">+ Adicionar Turma</button>' +
-              '</div>' +
-              '<p style="margin-top:12px;font-size:0.75rem;color:var(--gray-400);">* A combinação de anos × letras gera as turmas (ex: 6A, 6B, 9C)</p>' +
             '</div>' +
 
             '<div style="margin-top:20px;padding:14px;background:var(--light);border-radius:10px;">' +
-              '<p style="font-size:0.8rem;font-weight:700;color:var(--dark);margin-bottom:8px;">Turmas geradas:</p>' +
-              '<div id="turmasGeradasList" style="display:flex;flex-wrap:wrap;gap:6px;"></div>' +
+              '<p style="font-size:0.8rem;font-weight:700;color:var(--dark);margin-bottom:8px;">Turmas Ativas:</p>' +
+              '<div id="turmasListaAtivas" style="display:flex;flex-wrap:wrap;gap:6px;"></div>' +
             '</div>' +
           '</div>' +
 
@@ -370,6 +372,7 @@
       renderAnosTags();
       renderTurmasTags();
       renderTurmasGeradas();
+      renderTurmasAtivas();
       renderMaterias();
       renderBimGrid();
       renderGradesConfig();
@@ -391,6 +394,7 @@
           renderAnosTags();
           renderTurmasTags();
           renderTurmasGeradas();
+          renderTurmasAtivas();
           renderMaterias();
           renderGradesConfig();
         }
@@ -499,7 +503,71 @@
         el.innerHTML = '<span style="font-size:0.8rem;color:var(--gray-400);">Nenhuma turma gerada ainda</span>';
       } else {
         el.innerHTML = geradas.map(function(t) {
-          return '<span style="background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:4px 10px;font-size:0.8rem;font-weight:700;color:var(--dark);">' + t + '</span>';
+          return '<span style="background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:4px 10px;font-size:0.8rem;font-weight:700;color:var(--dark);">' + Store.formatTurma(t) + '</span>';
+        }).join('');
+      }
+    }
+
+    // New turmas system (Segmento + Série + Turma)
+    function onSegmentoChange() {
+      var seg = document.getElementById('selectSegmento').value;
+      var selSerie = document.getElementById('selectSerie');
+      if (!seg) {
+        selSerie.innerHTML = '<option value="">— Selecione segmento —</option>';
+        return;
+      }
+      var anos = SEGMENTS[seg]?.anos || [];
+      selSerie.innerHTML = anos.map(function(a) {
+        var label = a.length > 1 ? a + 'º' : a + 'º';
+        return '<option value="' + a + '">' + label + ' Ano</option>';
+      }).join('');
+    }
+
+    function addTurmaNew() {
+      var seg = document.getElementById('selectSegmento').value;
+      var serie = document.getElementById('selectSerie').value;
+      var classe = document.getElementById('selectClasse').value;
+      if (!seg || !serie || !classe) { alert('Selecione segmento, série e turma.'); return; }
+
+      var codigo = Store.parseTurma(seg, serie, classe);
+      if (!codigo) { alert('Erro ao gerar código da turma.'); return; }
+
+      var prof = getProf();
+      if (!prof.turmas) prof.turmas = [];
+      if (!prof.anos) prof.anos = [];
+
+      // Add to anos if not present
+      if (prof.anos.indexOf(serie) === -1) {
+        prof.anos.push(serie);
+        prof.anos.sort();
+      }
+
+      saveProf(prof);
+      renderTurmasAtivas();
+      renderTurmasGeradas();
+      document.getElementById('selectSegmento').value = '';
+      document.getElementById('selectSerie').value = '';
+      showToast('Turma adicionada!');
+    }
+
+    function renderTurmasAtivas() {
+      var prof = getProf();
+      var turmas = prof.turmas || [];
+      var turmasAtivas = [];
+
+      // Generate all possible turmas from current config
+      prof.anos?.forEach(function(ano) {
+        turmas.forEach(function(letra) {
+          turmasAtivas.push(ano + letra);
+        });
+      });
+
+      var el = document.getElementById('turmasListaAtivas');
+      if (turmasAtivas.length === 0) {
+        el.innerHTML = '<span style="font-size:0.8rem;color:var(--gray-400);">Nenhuma turma configurada</span>';
+      } else {
+        el.innerHTML = turmasAtivas.sort().map(function(t) {
+          return '<span style="background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;color:var(--dark);">' + Store.formatTurma(t) + '</span>';
         }).join('');
       }
     }
