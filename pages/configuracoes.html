@@ -516,7 +516,8 @@
         selSerie.innerHTML = '<option value="">— Selecione segmento —</option>';
         return;
       }
-      var anos = SEGMENTS[seg]?.anos || [];
+      var segData = SEGMENTS[seg];
+      var anos = segData && segData.anos ? segData.anos : [];
       selSerie.innerHTML = anos.map(function(a) {
         var label = a.length > 1 ? a + 'º' : a + 'º';
         return '<option value="' + a + '">' + label + ' Ano</option>';
