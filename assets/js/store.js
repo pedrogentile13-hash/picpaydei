@@ -34,36 +34,35 @@ const Store = (() => {
   // All available classes
   const TURMAS_DISPONIVEIS = ['A', 'B', 'C', 'D', 'E'];
 
-  // All subjects in the system (from image)
+  // All subjects in the system (universal, school-agnostic)
   const TODAS_MATERIAS = [
-    'Lingua Portuguesa',
-    'Matematica',
-    'Historia',
+    'Língua Portuguesa',
+    'Matemática',
+    'História',
     'Geografia',
-    'Educacao Fisica',
+    'Ciências',
+    'Educação Física',
     'Artes',
+    'Inglês',
     'Biologia',
-    'Quimica',
-    'Iniciacao Cientifica',
-    'Educacao Socioemocional',
-    'Producao de Texto',
-    'Fisica',
-    'Educacao Financeira',
-    'Pensamento Computacional',
-    'Ingles'
+    'Química',
+    'Física',
+    'Filosofia',
+    'Sociologia',
+    'Redação',
+    'Literatura'
   ];
 
-  // Subjects that have Prova Bimestral (from image - those with filled PB column)
+  // Subjects that have Prova Bimestral by default (configurable per school)
   const MATERIAS_COM_PB = [
-    'Lingua Portuguesa',
-    'Matematica',
-    'Historia',
+    'Língua Portuguesa',
+    'Matemática',
+    'História',
     'Geografia',
     'Biologia',
-    'Quimica',
-    'Producao de Texto',
-    'Fisica',
-    'Ingles'
+    'Química',
+    'Física',
+    'Inglês'
   ];
 
   const VA_TIPOS = ['Trabalho', 'Escrita', 'Caderno', 'Apresentacao', 'Participacao', 'Prova', 'Outro'];
@@ -867,10 +866,14 @@ const Store = (() => {
     },
 
     getAllMaterias: function() {
+      var prof = _loadProfessor();
       var all = {};
-      Object.keys(materiasPor).forEach(function(serie) {
-        materiasPor[serie].forEach(function(m) { all[m] = true; });
-      });
+      if (prof && prof.materias && prof.materias.length > 0) {
+        prof.materias.forEach(function(m) { all[m.nome] = true; });
+        return Object.keys(all);
+      }
+      // Fallback to all available subjects
+      TODAS_MATERIAS.forEach(function(m) { all[m] = true; });
       return Object.keys(all);
     },
 
