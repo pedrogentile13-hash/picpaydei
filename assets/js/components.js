@@ -72,7 +72,7 @@ const Components = (() => {
     var controlsHTML = '';
     if (showControls === true) {
       var turmaOptions = Store.TURMAS.map(function(t) {
-        return '<option value="' + t + '"' + (t === settings.turma ? ' selected' : '') + '>' + t.replace(/(\d)(\w)/, '$1\u00ba$2') + '</option>';
+        return '<option value="' + t + '"' + (t === settings.turma ? ' selected' : '') + '>' + Store.formatTurma(t) + '</option>';
       }).join('');
       var bimOptions = Store.BIMESTRES.map(function(b) {
         return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>';

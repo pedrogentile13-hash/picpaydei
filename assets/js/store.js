@@ -28,10 +28,18 @@ const Store = (() => {
   // Pesos for weighted average
   const PESOS = { pb: 35, quali: 30, va: 35 };
 
-  // All available years
-  const ANOS_DISPONIVEIS = ['6', '7', '8', '9'];
+  // Flexible school segments and years
+  const SEGMENTS = {
+    'FI': { label: 'Fundamental I', anos: ['2', '3', '4', '5'] },
+    'FII': { label: 'Fundamental II', anos: ['6', '7', '8', '9'] },
+    'EM': { label: 'Ensino Médio', anos: ['1', '2', '3'] }
+  };
 
-  // All available classes
+  // All available class letters
+  const CLASSES = ['A', 'B', 'C', 'D', 'E'];
+
+  // Legacy: kept for compatibility
+  const ANOS_DISPONIVEIS = ['6', '7', '8', '9'];
   const TURMAS_DISPONIVEIS = ['A', 'B', 'C', 'D', 'E'];
 
   // All subjects in the system (universal, school-agnostic)
@@ -267,12 +275,57 @@ const Store = (() => {
     TODAS_MATERIAS: TODAS_MATERIAS,
     ANOS_DISPONIVEIS: ANOS_DISPONIVEIS,
     TURMAS_DISPONIVEIS: TURMAS_DISPONIVEIS,
+    SEGMENTS: SEGMENTS,
+    CLASSES: CLASSES,
 
     // Dynamic getters
     get TURMAS() { return _getTurmasConfiguradas(); },
 
     hasPB: function(materia) {
       return MATERIAS_COM_PB.indexOf(materia) !== -1;
+    },
+
+    // Format turma code to display (e.g., "2F1A" -> "2º Ano A")
+    formatTurma: function(codigo) {
+      if (!codigo) return codigo;
+      // Handle old format: "6A" -> "6º Ano A"
+      if (codigo.length === 2 && !isNaN(codigo[0])) {
+        var year = codigo[0];
+        var classe = codigo[1];
+        var segment = year >= 6 ? 'Fundamental II' : 'Fundamental I';
+        return year + 'º Ano ' + classe;
+      }
+      // Handle new format with segment prefix
+      if (codigo.includes('F')) {
+        var parts = codigo.match(/(\d)F([12])(\w)/);
+        if (parts) {
+          var year = parts[1];
+          var subseg = parts[2];
+          var classe = parts[3];
+          var label = subseg === '1' ? 'Fundamental I' : 'Fundamental II';
+          return year + 'º Ano ' + classe;
+        }
+      }
+      if (codigo.includes('EM')) {
+        var parts = codigo.match(/(\d)EM(\w)/);
+        if (parts) {
+          var year = parts[1];
+          var classe = parts[2];
+          return year + 'º EM ' + classe;
+        }
+      }
+      return codigo;
+    },
+
+    // Parse turma selection to code
+    parseTurma: function(segment, year, classe) {
+      if (segment === 'FI' || segment === 'FII') {
+        return year + 'F' + (segment === 'FI' ? '1' : '2') + classe;
+      }
+      if (segment === 'EM') {
+        return year + 'EM' + classe;
+      }
+      return null;
     },
 
     // =========== PROFESSOR CONFIG ===========
