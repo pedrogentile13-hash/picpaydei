@@ -1,243 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuracao Inicial — Lidara</title>
-  <link rel="stylesheet" href="../assets/css/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuração Inicial — Lidara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
   <style>
-    body { background: var(--bg); min-height: 100vh; padding: 20px; }
-    .setup-container { max-width: 800px; margin: 0 auto; }
-    .setup-header {
-      text-align: center;
-      padding: 32px 20px;
-      margin-bottom: 24px;
-    }
-    .setup-logo {
-      width: 80px;
-      height: 80px;
-      background: var(--green);
-      border-radius: 24px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 30px rgba(17,199,111,0.3);
-    }
-    .setup-logo span { font-size: 2.2rem; font-weight: 900; color: #fff; }
-    .setup-title { font-size: 1.8rem; font-weight: 900; color: var(--dark); margin: 0 0 8px; }
-    .setup-subtitle { font-size: 1rem; color: var(--gray-500); margin: 0; }
-    .step-card {
-      background: #fff;
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      margin-bottom: 20px;
-      border: 1px solid var(--gray-100);
-    }
-    .step-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-    .step-number {
-      width: 40px;
-      height: 40px;
-      background: var(--green);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      color: #fff;
-      font-size: 1.1rem;
-      flex-shrink: 0;
-    }
-    .step-title { font-size: 1.1rem; font-weight: 700; color: var(--dark); margin: 0; }
-    .step-desc { font-size: 0.85rem; color: var(--gray-500); margin: 4px 0 0; }
-    .checkbox-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 10px;
-    }
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      background: var(--gray-50);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 2px solid transparent;
-    }
-    .checkbox-item:hover { background: var(--light); }
-    .checkbox-item.selected {
-      background: var(--light);
-      border-color: var(--green);
-    }
+    body { min-height: 100vh; }
+    .setup-wrap { max-width: 720px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    .setup-header { text-align: center; margin-bottom: 48px; padding-top: 20px; }
+    .setup-brand { font-family: 'Instrument Serif', serif; font-size: 36px; font-style: italic; display: inline-flex; align-items: baseline; gap: 4px; margin-bottom: 24px; }
+    .setup-brand .star { font-size: 20px; color: var(--accent); }
+    .setup-header h1 { font-family: 'Inter Tight', sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .setup-header p { color: var(--muted); font-size: 15px; }
+
+    .progress-bar { display: flex; gap: 8px; margin-bottom: 40px; }
+    .progress-step { flex: 1; height: 4px; background: var(--paper-2); border-radius: 2px; transition: background 0.3s; }
+    .progress-step.active { background: var(--accent); }
+    .progress-step.done { background: var(--green-deep); }
+
+    .step-card { background: var(--paper); border: 1px solid var(--ink); border-radius: 20px; padding: 32px; margin-bottom: 20px; }
+    .step-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green-deep); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+    .step-num::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+    .step-title { font-family: 'Inter Tight', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .step-desc { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+
+    .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+    .checkbox-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--paper-2); border-radius: 12px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+    .checkbox-item:hover { border-color: var(--ink); }
+    .checkbox-item.selected { background: var(--ink); color: var(--paper); border-color: var(--ink); }
     .checkbox-item input { display: none; }
-    .checkbox-item .check {
-      width: 22px;
-      height: 22px;
-      border: 2px solid var(--gray-300);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      flex-shrink: 0;
-    }
-    .checkbox-item.selected .check {
-      background: var(--green);
-      border-color: var(--green);
-    }
+    .checkbox-item .check { width: 20px; height: 20px; border: 2px solid var(--muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .checkbox-item.selected .check { background: var(--accent); border-color: var(--accent); }
     .checkbox-item .check svg { display: none; }
     .checkbox-item.selected .check svg { display: block; }
-    .checkbox-item span { font-weight: 600; font-size: 0.9rem; color: var(--dark); }
-    .materia-config {
-      background: var(--gray-50);
-      border-radius: 12px;
-      padding: 16px;
-      margin-top: 12px;
-    }
-    .materia-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .materia-name { font-weight: 700; color: var(--dark); font-size: 0.95rem; }
-    .materia-badge {
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 6px;
-      background: var(--green);
-      color: #fff;
-    }
-    .materia-badge.no-pb {
-      background: var(--gray-300);
-      color: var(--gray-600);
-    }
-    .materia-anos {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .ano-toggle {
-      padding: 8px 16px;
-      border: 2px solid var(--gray-200);
-      border-radius: 8px;
-      background: #fff;
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: var(--gray-500);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .ano-toggle:hover { border-color: var(--green); color: var(--green); }
-    .ano-toggle.active {
-      background: var(--green);
-      border-color: var(--green);
-      color: #fff;
-    }
-    .form-group { margin-bottom: 20px; }
-    .form-group label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--gray-500);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 8px;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 14px 16px;
-      border: 2px solid var(--gray-200);
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 500;
-      outline: none;
-      transition: border-color 0.2s;
-      box-sizing: border-box;
-    }
-    .form-group input:focus { border-color: var(--green); }
-    .setup-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      margin-top: 32px;
-    }
-    .btn-large {
-      padding: 16px 48px;
-      font-size: 1rem;
-    }
-    .materias-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .selected-summary {
-      background: var(--light);
-      border-radius: 10px;
-      padding: 16px;
-      margin-top: 16px;
-    }
-    .selected-summary h4 {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--gray-500);
-      margin: 0 0 8px;
-      text-transform: uppercase;
-    }
-    .selected-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .selected-tag {
-      background: var(--green);
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
+    .checkbox-item span { font-size: 13px; font-weight: 600; }
+
+    .materia-config { background: var(--paper-2); border-radius: 14px; padding: 18px; margin-bottom: 12px; }
+    .materia-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .materia-name { font-weight: 600; font-size: 14px; }
+    .materia-badge { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; padding: 4px 8px; border-radius: 6px; background: var(--green-deep); color: var(--paper); }
+    .materia-badge.no-pb { background: var(--paper-3); color: var(--muted); }
+    .materia-anos { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ano-toggle { padding: 8px 14px; border: 1px solid var(--ink); border-radius: 8px; background: var(--paper); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .ano-toggle:hover { background: var(--paper-2); }
+    .ano-toggle.active { background: var(--ink); color: var(--paper); }
+
+    .selected-summary { background: var(--green-deep); color: var(--paper); border-radius: 14px; padding: 18px; margin-top: 20px; }
+    .selected-summary h4 { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.7; margin-bottom: 10px; }
+    .selected-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .selected-tag { background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+
+    .pesos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+    .pesos-grid.two-col { grid-template-columns: repeat(2, 1fr); }
+    .peso-box { background: var(--paper-2); border-radius: 12px; padding: 14px; }
+    .peso-box label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green-deep); margin-bottom: 8px; }
+    .peso-box input { width: 100%; padding: 10px; border: 1px solid var(--ink); border-radius: 8px; font-size: 16px; text-align: center; font-family: 'Instrument Serif', serif; font-style: italic; background: var(--paper); }
+
+    .validation-msg { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); margin-top: 10px; }
+
+    .setup-actions { display: flex; gap: 12px; justify-content: center; margin-top: 40px; }
   </style>
 </head>
 <body>
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="../assets/js/firebase-config.js"></script>
   <script src="../assets/js/store.js"></script>
 
-  <div class="setup-container">
+  <div class="setup-wrap">
     <div class="setup-header">
-      <div class="setup-logo"><span>L</span></div>
-      <h1 class="setup-title">Bem-vindo ao Lidara</h1>
-      <p class="setup-subtitle">Configure suas turmas e materias para comecar</p>
+      <div class="setup-brand"><span>Lidara</span><span class="star">✦</span></div>
+      <h1>Bem-vindo ao Lidara</h1>
+      <p>Configure suas turmas e matérias para começar</p>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-step done"></div>
+      <div class="progress-step done"></div>
+      <div class="progress-step active"></div>
+      <div class="progress-step"></div>
+      <div class="progress-step"></div>
     </div>
 
     <div id="setupContent"></div>
   </div>
 
   <script>
-    var config = {
-      nome: '',
-      anos: [],
-      turmas: [],
-      materias: []
-    };
-
-    // Load existing config if any
+    var config = { nome: '', anos: [], turmas: [], materias: [] };
     var existingConfig = Store.getProfessor();
-    if (existingConfig && existingConfig.anos) {
-      config = existingConfig;
-    }
+    if (existingConfig && existingConfig.anos) config = existingConfig;
 
     var allMaterias = Store.TODAS_MATERIAS;
     var materiasComPB = Store.MATERIAS_COM_PB;
@@ -247,59 +103,45 @@
 
       // Step 1: Nome
       html += '<div class="step-card">';
-      html += '<div class="step-header">';
-      html += '<div class="step-number">1</div>';
-      html += '<div><h3 class="step-title">Seu Nome</h3>';
-      html += '<p class="step-desc">Como voce quer ser identificado no sistema</p></div>';
-      html += '</div>';
-      html += '<div class="form-group" style="margin-bottom:0;">';
-      html += '<input type="text" id="inputNome" value="' + (config.nome || '') + '" placeholder="Ex: Professor Silva" onchange="config.nome=this.value" />';
-      html += '</div>';
+      html += '<div class="step-num">Passo 01</div>';
+      html += '<h3 class="step-title">Seu Nome</h3>';
+      html += '<p class="step-desc">Como você quer ser identificado no sistema</p>';
+      html += '<div class="field" style="margin-bottom:0;"><input type="text" id="inputNome" value="' + (config.nome || '') + '" placeholder="Ex: Professor Silva" onchange="config.nome=this.value"></div>';
       html += '</div>';
 
       // Step 2: Anos
       html += '<div class="step-card">';
-      html += '<div class="step-header">';
-      html += '<div class="step-number">2</div>';
-      html += '<div><h3 class="step-title">Anos que Leciona</h3>';
-      html += '<p class="step-desc">Selecione os anos em que voce da aula</p></div>';
-      html += '</div>';
+      html += '<div class="step-num">Passo 02</div>';
+      html += '<h3 class="step-title">Anos que Leciona</h3>';
+      html += '<p class="step-desc">Selecione os anos em que você dá aula</p>';
       html += '<div class="checkbox-grid">';
       Store.ANOS_DISPONIVEIS.forEach(function(ano) {
         var selected = config.anos.indexOf(ano) !== -1;
         html += '<label class="checkbox-item' + (selected ? ' selected' : '') + '" onclick="toggleAno(\'' + ano + '\')">';
-        html += '<div class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>';
-        html += '<span>' + ano + 'o Ano</span>';
-        html += '</label>';
+        html += '<div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>';
+        html += '<span>' + ano + 'º Ano</span></label>';
       });
-      html += '</div>';
-      html += '</div>';
+      html += '</div></div>';
 
       // Step 3: Turmas
       html += '<div class="step-card">';
-      html += '<div class="step-header">';
-      html += '<div class="step-number">3</div>';
-      html += '<div><h3 class="step-title">Turmas que Administra</h3>';
-      html += '<p class="step-desc">Selecione as letras das turmas (A, B, C, D, E)</p></div>';
-      html += '</div>';
+      html += '<div class="step-num">Passo 03</div>';
+      html += '<h3 class="step-title">Turmas que Administra</h3>';
+      html += '<p class="step-desc">Selecione as letras das turmas</p>';
       html += '<div class="checkbox-grid">';
       Store.TURMAS_DISPONIVEIS.forEach(function(letra) {
         var selected = config.turmas.indexOf(letra) !== -1;
         html += '<label class="checkbox-item' + (selected ? ' selected' : '') + '" onclick="toggleTurma(\'' + letra + '\')">';
-        html += '<div class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>';
-        html += '<span>Turma ' + letra + '</span>';
-        html += '</label>';
+        html += '<div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>';
+        html += '<span>Turma ' + letra + '</span></label>';
       });
       html += '</div>';
 
-      // Show combined turmas
       if (config.anos.length > 0 && config.turmas.length > 0) {
-        html += '<div class="selected-summary">';
-        html += '<h4>Turmas Configuradas</h4>';
-        html += '<div class="selected-tags">';
+        html += '<div class="selected-summary"><h4>Turmas Configuradas</h4><div class="selected-tags">';
         config.anos.forEach(function(ano) {
           config.turmas.forEach(function(letra) {
-            html += '<span class="selected-tag">' + ano + 'o ' + letra + '</span>';
+            html += '<span class="selected-tag">' + ano + 'º ' + letra + '</span>';
           });
         });
         html += '</div></div>';
@@ -308,242 +150,154 @@
 
       // Step 4: Materias
       html += '<div class="step-card">';
-      html += '<div class="step-header">';
-      html += '<div class="step-number">4</div>';
-      html += '<div><h3 class="step-title">Materias que Leciona</h3>';
-      html += '<p class="step-desc">Selecione as materias e os anos em que da aula de cada uma</p></div>';
-      html += '</div>';
-      html += '<div class="materias-list">';
+      html += '<div class="step-num">Passo 04</div>';
+      html += '<h3 class="step-title">Matérias que Leciona</h3>';
+      html += '<p class="step-desc">Selecione as matérias e os anos em que dá aula de cada uma</p>';
 
       allMaterias.forEach(function(materia) {
         var materiaConfig = config.materias.find(function(m) { return m.nome === materia; });
-        var isSelected = materiaConfig && materiaConfig.anos && materiaConfig.anos.length > 0;
         var hasPB = materiasComPB.indexOf(materia) !== -1;
 
         html += '<div class="materia-config">';
         html += '<div class="materia-header">';
         html += '<span class="materia-name">' + materia + '</span>';
-        html += '<span class="materia-badge' + (hasPB ? '' : ' no-pb') + '">' + (hasPB ? 'Com PB' : 'Sem PB') + '</span>';
-        html += '</div>';
-        html += '<div class="materia-anos">';
-
-        config.anos.forEach(function(ano) {
-          var active = materiaConfig && materiaConfig.anos && materiaConfig.anos.indexOf(ano) !== -1;
-          html += '<button class="ano-toggle' + (active ? ' active' : '') + '" onclick="toggleMateriaAno(\'' + materia + '\', \'' + ano + '\')">' + ano + 'o Ano</button>';
-        });
+        html += '<span class="materia-badge' + (hasPB ? '' : ' no-pb') + '">' + (hasPB ? 'COM PB' : 'SEM PB') + '</span>';
+        html += '</div><div class="materia-anos">';
 
         if (config.anos.length === 0) {
-          html += '<span style="font-size:0.8rem;color:var(--gray-400);">Selecione os anos primeiro</span>';
+          html += '<span style="font-size:12px;color:var(--muted);">Selecione os anos primeiro</span>';
+        } else {
+          config.anos.forEach(function(ano) {
+            var active = materiaConfig && materiaConfig.anos && materiaConfig.anos.indexOf(ano) !== -1;
+            html += '<button class="ano-toggle' + (active ? ' active' : '') + '" onclick="toggleMateriaAno(\'' + materia + '\', \'' + ano + '\')">' + ano + 'º Ano</button>';
+          });
         }
-
-        html += '</div>';
-        html += '</div>';
+        html += '</div></div>';
       });
-
-      html += '</div>';
       html += '</div>';
 
-      // Step 5: Grades Configuration
+      // Step 5: Grades Config
       html += '<div class="step-card">';
-      html += '<div class="step-header">';
-      html += '<div class="step-number">5</div>';
-      html += '<div><h3 class="step-title">Fórmula de Cálculo de Notas</h3>';
-      html += '<p class="step-desc">Configure como as notas serão calculadas</p></div>';
+      html += '<div class="step-num">Passo 05</div>';
+      html += '<h3 class="step-title">Fórmula de Cálculo</h3>';
+      html += '<p class="step-desc">Configure como as notas serão calculadas</p>';
+
+      html += '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:20px;font-size:14px;font-weight:500;">';
+      html += '<input type="checkbox" id="usarPB" ' + (config.gradesConfig && config.gradesConfig.usarPB === false ? '' : 'checked') + ' onchange="updateGradesConfig()" style="width:18px;height:18px;">';
+      html += 'Usar Prova Bimestral (PB)</label>';
+
+      html += '<div id="pesosPBSection"><div class="pesos-grid">';
+      html += '<div class="peso-box"><label>PB (%)</label><input type="number" id="pesoPB" value="' + (config.gradesConfig && config.gradesConfig.pesosPB ? config.gradesConfig.pesosPB.pb : 35) + '" min="0" max="100" onchange="updateGradesConfig()"></div>';
+      html += '<div class="peso-box"><label>Quali (%)</label><input type="number" id="pesoQuali" value="' + (config.gradesConfig && config.gradesConfig.pesosPB ? config.gradesConfig.pesosPB.quali : 30) + '" min="0" max="100" onchange="updateGradesConfig()"></div>';
+      html += '<div class="peso-box"><label>VA (%)</label><input type="number" id="pesoVA" value="' + (config.gradesConfig && config.gradesConfig.pesosPB ? config.gradesConfig.pesosPB.va : 35) + '" min="0" max="100" onchange="updateGradesConfig()"></div>';
+      html += '</div><div id="pbValidation" class="validation-msg"></div></div>';
+
+      html += '<div id="pesosLEMSection" style="display:none;"><div class="pesos-grid two-col">';
+      html += '<div class="peso-box"><label>Quali (%)</label><input type="number" id="pesoQualiLEM" value="' + (config.gradesConfig && config.gradesConfig.pesosLEM ? config.gradesConfig.pesosLEM.quali : 30) + '" min="0" max="100" onchange="updateGradesConfig()"></div>';
+      html += '<div class="peso-box"><label>VA (%)</label><input type="number" id="pesoVALEM" value="' + (config.gradesConfig && config.gradesConfig.pesosLEM ? config.gradesConfig.pesosLEM.va : 70) + '" min="0" max="100" onchange="updateGradesConfig()"></div>';
+      html += '</div><div id="lemValidation" class="validation-msg"></div></div>';
+
+      html += '<div class="field" style="margin-top:20px;"><label>Nota Mínima para Aprovação</label>';
+      html += '<input type="number" id="notaMinimaAprovacao" value="' + (config.gradesConfig && config.gradesConfig.notaMinimaAprovacao ? config.gradesConfig.notaMinimaAprovacao : 6.0) + '" min="0" max="10" step="0.1" onchange="updateGradesConfig()"></div>';
       html += '</div>';
 
-      html += '<div class="form-group" style="margin-bottom:16px;">';
-      html += '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:0;">';
-      html += '<input type="checkbox" id="usarPB" ' + (config.gradesConfig && config.gradesConfig.usarPB ? 'checked' : 'checked') + ' onchange="updateGradesConfig()" style="width:18px;height:18px;cursor:pointer;"/>';
-      html += '<span style="font-weight:600;color:var(--dark);">Usar Prova Bimestral (PB)</span>';
-      html += '</label>';
-      html += '</div>';
-
-      html += '<div id="pesosPBSection" style="background:var(--light);border-radius:12px;padding:18px;margin-bottom:16px;">';
-      html += '<h4 style="font-size:0.9rem;font-weight:700;color:var(--dark);margin-bottom:14px;">Pesos (com PB)</h4>';
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">';
-      html += '<div class="form-group" style="margin-bottom:0;"><label>PB (%)</label><input type="number" id="pesoPB" value="' + (config.gradesConfig && config.gradesConfig.pesosPB ? config.gradesConfig.pesosPB.pb : 35) + '" min="0" max="100" onchange="updateGradesConfig()" /></div>';
-      html += '<div class="form-group" style="margin-bottom:0;"><label>Quali (%)</label><input type="number" id="pesoQuali" value="' + (config.gradesConfig && config.gradesConfig.pesosPB ? config.gradesConfig.pesosPB.quali : 30) + '" min="0" max="100" onchange="updateGradesConfig()" /></div>';
-      html += '<div class="form-group" style="margin-bottom:0;"><label>VA (%)</label><input type="number" id="pesoVA" value="' + (config.gradesConfig && config.gradesConfig.pesosPB ? config.gradesConfig.pesosPB.va : 35) + '" min="0" max="100" onchange="updateGradesConfig()" /></div>';
-      html += '</div>';
-      html += '<div id="pbValidation" style="font-size:0.75rem;color:var(--orange);margin-top:10px;font-weight:600;"></div>';
-      html += '</div>';
-
-      html += '<div id="pesosLEMSection" style="background:var(--light);border-radius:12px;padding:18px;margin-bottom:16px;display:none;">';
-      html += '<h4 style="font-size:0.9rem;font-weight:700;color:var(--dark);margin-bottom:14px;">Pesos (sem PB - Línguas/Eletivas)</h4>';
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">';
-      html += '<div class="form-group" style="margin-bottom:0;"><label>Quali (%)</label><input type="number" id="pesoQualiLEM" value="' + (config.gradesConfig && config.gradesConfig.pesosLEM ? config.gradesConfig.pesosLEM.quali : 30) + '" min="0" max="100" onchange="updateGradesConfig()" /></div>';
-      html += '<div class="form-group" style="margin-bottom:0;"><label>VA (%)</label><input type="number" id="pesoVALEM" value="' + (config.gradesConfig && config.gradesConfig.pesosLEM ? config.gradesConfig.pesosLEM.va : 70) + '" min="0" max="100" onchange="updateGradesConfig()" /></div>';
-      html += '</div>';
-      html += '<div id="lemValidation" style="font-size:0.75rem;color:var(--orange);margin-top:10px;font-weight:600;"></div>';
-      html += '</div>';
-
-      html += '<div class="form-group">';
-      html += '<label>Nota Mínima para Aprovação</label>';
-      html += '<input type="number" id="notaMinimaAprovacao" value="' + (config.gradesConfig && config.gradesConfig.notaMinimaAprovacao ? config.gradesConfig.notaMinimaAprovacao : 6.0) + '" min="0" max="10" step="0.1" onchange="updateGradesConfig()" />';
-      html += '</div>';
-
-      html += '</div>';
-      html += '</div>';
-
-      // Actions
       html += '<div class="setup-actions">';
-      html += '<button class="btn btn-primary btn-large" onclick="saveConfig()">Finalizar Configuração</button>';
+      html += '<button class="btn btn-pri" onclick="saveConfig()">Finalizar Configuração</button>';
       html += '</div>';
 
       document.getElementById('setupContent').innerHTML = html;
+      updateProgressBar();
+    }
+
+    function updateProgressBar() {
+      var steps = document.querySelectorAll('.progress-step');
+      var filled = 0;
+      if (config.nome) filled++;
+      if (config.anos.length > 0) filled++;
+      if (config.turmas.length > 0) filled++;
+      if (config.materias.some(function(m) { return m.anos && m.anos.length > 0; })) filled++;
+      filled++; // grades config always has defaults
+
+      steps.forEach(function(step, i) {
+        step.className = 'progress-step';
+        if (i < filled - 1) step.classList.add('done');
+        else if (i === filled - 1) step.classList.add('active');
+      });
     }
 
     function updateGradesConfig() {
       var usarPB = document.getElementById('usarPB').checked;
-      var pbSection = document.getElementById('pesosPBSection');
-      var lemSection = document.getElementById('pesosLEMSection');
+      document.getElementById('pesosPBSection').style.display = usarPB ? 'block' : 'none';
+      document.getElementById('pesosLEMSection').style.display = usarPB ? 'none' : 'block';
 
-      if (usarPB) {
-        pbSection.style.display = 'block';
-        lemSection.style.display = 'none';
-      } else {
-        pbSection.style.display = 'none';
-        lemSection.style.display = 'block';
-      }
-
-      // Validate PB
       if (usarPB) {
         var pb = parseInt(document.getElementById('pesoPB').value) || 0;
         var quali = parseInt(document.getElementById('pesoQuali').value) || 0;
         var va = parseInt(document.getElementById('pesoVA').value) || 0;
         var total = pb + quali + va;
-        var msg = document.getElementById('pbValidation');
-        if (total !== 100) {
-          msg.textContent = 'Total deve ser 100% (atualmente ' + total + '%)';
-        } else {
-          msg.textContent = '';
-        }
+        document.getElementById('pbValidation').textContent = total !== 100 ? 'Total deve ser 100% (atualmente ' + total + '%)' : '';
       } else {
         var quali = parseInt(document.getElementById('pesoQualiLEM').value) || 0;
         var va = parseInt(document.getElementById('pesoVALEM').value) || 0;
         var total = quali + va;
-        var msg = document.getElementById('lemValidation');
-        if (total !== 100) {
-          msg.textContent = 'Total deve ser 100% (atualmente ' + total + '%)';
-        } else {
-          msg.textContent = '';
-        }
+        document.getElementById('lemValidation').textContent = total !== 100 ? 'Total deve ser 100% (atualmente ' + total + '%)' : '';
       }
 
-      // Update config
       config.gradesConfig = {
         usarPB: usarPB,
-        pesosPB: {
-          pb: parseInt(document.getElementById('pesoPB').value) || 35,
-          quali: parseInt(document.getElementById('pesoQuali').value) || 30,
-          va: parseInt(document.getElementById('pesoVA').value) || 35
-        },
-        pesosLEM: {
-          quali: parseInt(document.getElementById('pesoQualiLEM').value) || 30,
-          va: parseInt(document.getElementById('pesoVALEM').value) || 70
-        },
+        pesosPB: { pb: parseInt(document.getElementById('pesoPB').value) || 35, quali: parseInt(document.getElementById('pesoQuali').value) || 30, va: parseInt(document.getElementById('pesoVA').value) || 35 },
+        pesosLEM: { quali: parseInt(document.getElementById('pesoQualiLEM').value) || 30, va: parseInt(document.getElementById('pesoVALEM').value) || 70 },
         notaMinimaAprovacao: parseFloat(document.getElementById('notaMinimaAprovacao').value) || 6.0
       };
     }
 
     function toggleAno(ano) {
       var idx = config.anos.indexOf(ano);
-      if (idx === -1) {
-        config.anos.push(ano);
-        config.anos.sort();
-      } else {
-        config.anos.splice(idx, 1);
-        // Remove this ano from all materias
-        config.materias.forEach(function(m) {
-          var i = m.anos.indexOf(ano);
-          if (i !== -1) m.anos.splice(i, 1);
-        });
-      }
+      if (idx === -1) { config.anos.push(ano); config.anos.sort(); }
+      else { config.anos.splice(idx, 1); config.materias.forEach(function(m) { var i = m.anos.indexOf(ano); if (i !== -1) m.anos.splice(i, 1); }); }
       render();
     }
 
     function toggleTurma(letra) {
       var idx = config.turmas.indexOf(letra);
-      if (idx === -1) {
-        config.turmas.push(letra);
-        config.turmas.sort();
-      } else {
-        config.turmas.splice(idx, 1);
-      }
+      if (idx === -1) { config.turmas.push(letra); config.turmas.sort(); }
+      else { config.turmas.splice(idx, 1); }
       render();
     }
 
     function toggleMateriaAno(materia, ano) {
       var materiaConfig = config.materias.find(function(m) { return m.nome === materia; });
-      if (!materiaConfig) {
-        materiaConfig = { nome: materia, anos: [] };
-        config.materias.push(materiaConfig);
-      }
-
+      if (!materiaConfig) { materiaConfig = { nome: materia, anos: [] }; config.materias.push(materiaConfig); }
       var idx = materiaConfig.anos.indexOf(ano);
-      if (idx === -1) {
-        materiaConfig.anos.push(ano);
-        materiaConfig.anos.sort();
-      } else {
-        materiaConfig.anos.splice(idx, 1);
-      }
+      if (idx === -1) { materiaConfig.anos.push(ano); materiaConfig.anos.sort(); }
+      else { materiaConfig.anos.splice(idx, 1); }
       render();
     }
 
     function saveConfig() {
       config.nome = document.getElementById('inputNome').value.trim();
+      if (!config.nome) return alert('Por favor, informe seu nome.');
+      if (config.anos.length === 0) return alert('Selecione pelo menos um ano.');
+      if (config.turmas.length === 0) return alert('Selecione pelo menos uma turma.');
 
-      if (!config.nome) {
-        alert('Por favor, informe seu nome.');
-        return;
-      }
-      if (config.anos.length === 0) {
-        alert('Selecione pelo menos um ano.');
-        return;
-      }
-      if (config.turmas.length === 0) {
-        alert('Selecione pelo menos uma turma.');
-        return;
-      }
+      config.materias = config.materias.filter(function(m) { return m.anos && m.anos.length > 0; });
+      if (config.materias.length === 0) return alert('Selecione pelo menos uma matéria.');
 
-      // Filter out materias with no anos selected
-      config.materias = config.materias.filter(function(m) {
-        return m.anos && m.anos.length > 0;
-      });
-
-      if (config.materias.length === 0) {
-        alert('Selecione pelo menos uma materia e os anos em que leciona.');
-        return;
-      }
-
-      // Update grades config from form
       updateGradesConfig();
-
-      // Validate grades config
       if (config.gradesConfig.usarPB) {
-        var pb = config.gradesConfig.pesosPB.pb;
-        var quali = config.gradesConfig.pesosPB.quali;
-        var va = config.gradesConfig.pesosPB.va;
-        if (pb + quali + va !== 100) {
-          alert('Com PB: os pesos devem somar 100%');
-          return;
-        }
+        var t = config.gradesConfig.pesosPB.pb + config.gradesConfig.pesosPB.quali + config.gradesConfig.pesosPB.va;
+        if (t !== 100) return alert('Com PB: os pesos devem somar 100%');
       } else {
-        var quali = config.gradesConfig.pesosLEM.quali;
-        var va = config.gradesConfig.pesosLEM.va;
-        if (quali + va !== 100) {
-          alert('Sem PB: os pesos devem somar 100%');
-          return;
-        }
+        var t = config.gradesConfig.pesosLEM.quali + config.gradesConfig.pesosLEM.va;
+        if (t !== 100) return alert('Sem PB: os pesos devem somar 100%');
       }
 
-      // Create new year with configuration
       var currentYear = new Date().getFullYear();
       Store.createNewYear(currentYear);
       Store.setGradesConfig(config.gradesConfig, currentYear);
       Store.setProfessor(config);
-      alert('Configuracao salva com sucesso!');
-      window.location.href = '../index.html';
+      alert('Configuração salva com sucesso!');
+      window.location.href = 'dashboard.html';
     }
 
     render();

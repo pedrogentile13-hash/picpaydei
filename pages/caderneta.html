@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caderneta — Lidara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    .attendance-grid { display: grid; grid-template-columns: 60px 200px repeat(20, 36px); gap: 2px; font-size: 12px; }
+    .attendance-header { background: var(--paper-2); padding: 8px 4px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; border-radius: 4px; }
+    .attendance-name { background: var(--paper-2); padding: 8px; font-weight: 500; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .attendance-num { background: var(--ink); color: var(--paper); padding: 8px 4px; text-align: center; font-family: 'Instrument Serif', serif; font-style: italic; border-radius: 4px; }
+    .attendance-cell { width: 36px; height: 36px; border: 1px solid var(--rule); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+    .attendance-cell:hover { background: var(--paper-2); }
+    .attendance-cell.present { background: var(--green-deep); color: var(--paper); border-color: var(--green-deep); }
+    .attendance-cell.absent { background: var(--red); color: var(--paper); border-color: var(--red); }
+    .attendance-cell.justified { background: var(--amber); color: var(--paper); border-color: var(--amber); }
+    .legend { display: flex; gap: 20px; font-size: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+
+  <div class="tape">
+    <div class="tape-track">
+      <span>Caderneta Digital</span><span>Controle de Presença</span><span>Lidara</span>
+      <span>Caderneta Digital</span><span>Controle de Presença</span><span>Lidara</span>
+    </div>
+  </div>
+
+  <nav class="app-nav">
+    <a href="../index.html" class="brand"><span class="brand-mark">Lidara</span><span class="brand-asterisk">✦</span></a>
+    <div class="app-nav-links">
+      <a href="dashboard.html" class="app-nav-link">Painel</a>
+      <a href="alunos.html" class="app-nav-link">Alunos</a>
+      <a href="caderneta.html" class="app-nav-link active">Caderneta</a>
+      <a href="plano.html" class="app-nav-link">Plano de Aula</a>
+      <a href="calendario.html" class="app-nav-link">Calendário</a>
+      <a href="boletim.html" class="app-nav-link">Boletim</a>
+      <a href="coordenacao.html" class="app-nav-link">Coordenação</a>
+    </div>
+    <div class="app-nav-right">
+      <button class="user-pill"><div class="user-avatar" id="userAvatar">P</div><span id="userName">Professor</span></button>
+    </div>
+  </nav>
+
+  <header class="page-head">
+    <div class="num">Gestão → Caderneta</div>
+    <h1>Caderneta <span class="it">Digital</span></h1>
+    <p class="sub">Controle de presença diário. Clique nas células para alternar entre presente, ausente e justificado.</p>
+  </header>
+
+  <div class="filters">
+    <span class="filters-label">Filtros</span>
+    <div class="pill-select"><select id="selectBimestre" onchange="handleBimestreChange()"></select></div>
+    <div class="pill-select"><select id="selectTurma" onchange="handleTurmaChange()"></select></div>
+    <div class="pill-select"><select id="selectMateria" onchange="handleMateriaChange()"></select></div>
+    <div style="flex:1;"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green-deep);"></div>Presente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red);"></div>Ausente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--amber);"></div>Justificado</div>
+    </div>
+  </div>
+
+  <main class="content">
+    <div class="grid-12">
+      <!-- Stats -->
+      <div class="stat span-3">
+        <div class="label">Alunos</div>
+        <div class="val" id="stat-total">0</div>
+      </div>
+      <div class="stat span-3" style="background:var(--green-deep);color:var(--paper);">
+        <div class="label" style="color:rgba(255,255,255,0.7);">Média Presenças</div>
+        <div class="val" id="stat-presenca">0<span class="it">%</span></div>
+      </div>
+      <div class="stat span-3">
+        <div class="label">Total Aulas</div>
+        <div class="val" id="stat-aulas">20</div>
+      </div>
+      <div class="stat span-3" style="background:var(--accent);color:var(--paper);">
+        <div class="label" style="color:rgba(255,255,255,0.7);">Aula Atual</div>
+        <div class="val" id="stat-atual">1</div>
+      </div>
+
+      <!-- Attendance Grid -->
+      <div class="span-12" style="overflow-x:auto;">
+        <div id="attendanceGrid" class="attendance-grid"></div>
+        <div id="emptyState" style="text-align:center;padding:60px 20px;color:var(--muted);font-style:italic;">
+          Nenhum aluno cadastrado. Vá em <a href="alunos.html" style="color:var(--accent);">Alunos</a> para adicionar.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer"><span>Lidara © 2026</span><span>Sincronizado</span></footer>
+
+  <script>
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('userName').textContent = user.displayName || user.email;
+        document.getElementById('userAvatar').textContent = (user.displayName || user.email || 'P').charAt(0).toUpperCase();
+      }
+    });
+
+    var settings = Store.getSettings();
+    document.getElementById('selectBimestre').innerHTML = Store.BIMESTRES.map(function(b) { return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>'; }).join('');
+    document.getElementById('selectTurma').innerHTML = Store.TURMAS.map(function(t) { return '<option value="' + t + '"' + (t === settings.turma ? ' selected' : '') + '>' + Store.formatTurma(t) + '</option>'; }).join('');
+    function updateMateriaSelect() {
+      var turma = document.getElementById('selectTurma').value;
+      document.getElementById('selectMateria').innerHTML = Store.getMaterias(turma).map(function(m) { return '<option value="' + m + '"' + (m === settings.materia ? ' selected' : '') + '>' + m + '</option>'; }).join('');
+    }
+    updateMateriaSelect();
+    function handleBimestreChange() { settings.bimestre = document.getElementById('selectBimestre').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function handleTurmaChange() { settings.turma = document.getElementById('selectTurma').value; updateMateriaSelect(); Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function handleMateriaChange() { settings.materia = document.getElementById('selectMateria').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function getCurrentContext() { return { turma: document.getElementById('selectTurma').value, materia: document.getElementById('selectMateria').value, bimestre: document.getElementById('selectBimestre').value }; }
+
+    var TOTAL_AULAS = 20;
+
+    function toggleAttendance(numero, aula) {
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      var student = students.find(function(s) { return s.numero === numero; });
+      if (!student) return;
+      if (!student.attendance) student.attendance = {};
+      var current = student.attendance[aula] || '';
+      var next = current === '' ? 'P' : (current === 'P' ? 'A' : (current === 'A' ? 'J' : ''));
+      student.attendance[aula] = next;
+      Store.setStudents(ctx.turma, ctx.materia, ctx.bimestre, students);
+      render();
+    }
+
+    function render() {
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      var grid = document.getElementById('attendanceGrid');
+      var empty = document.getElementById('emptyState');
+
+      document.getElementById('stat-total').textContent = students.length;
+      document.getElementById('stat-aulas').textContent = TOTAL_AULAS;
+
+      if (students.length === 0) {
+        grid.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+
+      var html = '';
+      // Header row
+      html += '<div class="attendance-header"></div><div class="attendance-header">Nome</div>';
+      for (var i = 1; i <= TOTAL_AULAS; i++) {
+        html += '<div class="attendance-header">' + i + '</div>';
+      }
+
+      var totalPresent = 0, totalCells = 0;
+      students.forEach(function(s) {
+        html += '<div class="attendance-num">' + s.numero + '</div>';
+        html += '<div class="attendance-name">' + s.nome + '</div>';
+        for (var i = 1; i <= TOTAL_AULAS; i++) {
+          var status = (s.attendance && s.attendance[i]) || '';
+          var cls = status === 'P' ? 'present' : (status === 'A' ? 'absent' : (status === 'J' ? 'justified' : ''));
+          var label = status === 'P' ? '✓' : (status === 'A' ? '✗' : (status === 'J' ? 'J' : ''));
+          html += '<div class="attendance-cell ' + cls + '" onclick="toggleAttendance(' + s.numero + ',' + i + ')">' + label + '</div>';
+          if (status === 'P' || status === 'J') totalPresent++;
+          if (status) totalCells++;
+        }
+      });
+
+      grid.innerHTML = html;
+      grid.style.gridTemplateColumns = '60px 200px repeat(' + TOTAL_AULAS + ', 36px)';
+
+      var avgPresence = totalCells > 0 ? Math.round(totalPresent / totalCells * 100) : 0;
+      document.getElementById('stat-presenca').innerHTML = avgPresence + '<span class="it">%</span>';
+
+      var currentAula = 1;
+      students.forEach(function(s) {
+        for (var i = TOTAL_AULAS; i >= 1; i--) {
+          if (s.attendance && s.attendance[i]) { currentAula = Math.max(currentAula, i); break; }
+        }
+      });
+      document.getElementById('stat-atual').textContent = currentAula;
+    }
+
+    render();
+    Store.loadFromCloud(function(success) { if (success) render(); });
+  </script>
+</body>
+</html>

@@ -1,312 +1,243 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VA — Lidara</title>
-  <link rel="stylesheet" href="../assets/css/style.css" />
-  <style>
-    .va-card { background:#fff; border-radius:1.25rem; border:1px solid var(--gray-100); margin-bottom:16px; overflow:hidden; }
-    .va-card-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--gray-50); border-bottom:1px solid var(--gray-100); cursor:pointer; }
-    .va-card-head:hover { background:var(--light); }
-    .va-card-body { padding:16px 20px; }
-    .va-tipo-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; }
-    .norm-cell { font-size:0.7rem; color:var(--gray-400); margin-top:2px; }
-    .csv-upload-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:8px; font-size:0.72rem; font-weight:600; border:1px solid var(--gray-200); background:#fff; color:var(--gray-600); cursor:pointer; transition:all 0.15s; }
-    .csv-upload-btn:hover { border-color:var(--green); color:var(--green); }
-  </style>
-</head>
-<body>
-  <!-- Firebase SDK -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    .va-card { border: 1px solid var(--ink); border-radius: 16px; margin-bottom: 16px; overflow: hidden; }
+    .va-card-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--paper-2); cursor: pointer; transition: background 0.15s; }
+    .va-card-head:hover { background: var(--paper-3); }
+    .va-card-body { padding: 20px; border-top: 1px solid var(--rule); }
+    .va-tipo { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 20px; }
+    .va-tipo.trabalho { background: var(--green-deep); color: var(--paper); }
+    .va-tipo.prova { background: var(--accent); color: var(--paper); }
+    .va-tipo.apresentacao { background: var(--ink); color: var(--paper); }
+  </style>
+</head>
+<body>
   <script src="../assets/js/firebase-config.js"></script>
   <script src="../assets/js/store.js"></script>
-  <script src="../assets/js/components.js"></script>
   <script src="../assets/js/auth-guard.js"></script>
 
-  <div id="app" style="visibility:hidden;"></div>
+  <div class="tape">
+    <div class="tape-track">
+      <span>Verificações de Aprendizagem</span><span>Trabalhos e Provas</span><span>Lidara</span>
+      <span>Verificações de Aprendizagem</span><span>Trabalhos e Provas</span><span>Lidara</span>
+    </div>
+  </div>
+
+  <nav class="app-nav">
+    <a href="../index.html" class="brand"><span class="brand-mark">Lidara</span><span class="brand-asterisk">✦</span></a>
+    <div class="app-nav-links">
+      <a href="dashboard.html" class="app-nav-link">Painel</a>
+      <a href="alunos.html" class="app-nav-link">Alunos</a>
+      <a href="negativos.html" class="app-nav-link">Negativos</a>
+      <a href="positivos.html" class="app-nav-link">Positivos</a>
+      <a href="pb.html" class="app-nav-link">PB</a>
+      <a href="va.html" class="app-nav-link active">VA</a>
+      <a href="boletim.html" class="app-nav-link">Boletim</a>
+      <a href="coordenacao.html" class="app-nav-link">Coordenação</a>
+    </div>
+    <div class="app-nav-right">
+      <button class="user-pill"><div class="user-avatar" id="userAvatar">P</div><span id="userName">Professor</span></button>
+    </div>
+  </nav>
+
+  <header class="page-head">
+    <div class="num">Lançamentos → VA</div>
+    <h1>Verificações de <span class="it">Aprendizagem</span></h1>
+    <p class="sub">Crie VAs com pesos personalizados. A média ponderada é calculada automaticamente.</p>
+  </header>
+
+  <div class="filters">
+    <span class="filters-label">Filtros</span>
+    <div class="pill-select"><select id="selectBimestre" onchange="handleBimestreChange()"></select></div>
+    <div class="pill-select"><select id="selectTurma" onchange="handleTurmaChange()"></select></div>
+    <div class="pill-select"><select id="selectMateria" onchange="handleMateriaChange()"></select></div>
+  </div>
+
+  <main class="content">
+    <div class="grid-12">
+      <!-- Create VA Card -->
+      <div class="card span-12">
+        <div class="card-num">→ Cadastrar Nova VA</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-top:16px;">
+          <div class="field" style="flex:1;min-width:180px;margin-bottom:0;">
+            <label>Nome da VA</label>
+            <input type="text" id="inputVANome" placeholder="Ex: Trabalho sobre verbos">
+          </div>
+          <div class="field" style="width:140px;margin-bottom:0;">
+            <label>Tipo</label>
+            <select id="inputVATipo"></select>
+          </div>
+          <div class="field" style="width:100px;margin-bottom:0;">
+            <label>Peso</label>
+            <input type="number" id="inputVAPeso" value="1" min="1" max="10" style="text-align:center;">
+          </div>
+          <div class="field" style="width:100px;margin-bottom:0;">
+            <label>Nota Máx</label>
+            <input type="number" id="inputVAMax" value="10" min="1" max="100" style="text-align:center;">
+          </div>
+          <button class="btn btn-pri" onclick="createVA()">+ Criar VA</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat span-4">
+        <div class="label">VAs Criadas</div>
+        <div class="val" id="stat-vas">0</div>
+      </div>
+      <div class="stat span-4">
+        <div class="label">Soma dos Pesos</div>
+        <div class="val" id="stat-pesos">0</div>
+      </div>
+      <div class="stat span-4" style="background:var(--green-deep);color:var(--paper);">
+        <div class="label" style="color:rgba(255,255,255,0.7);">Média Geral VA</div>
+        <div class="val" id="stat-media">0<span class="it">.0</span></div>
+      </div>
+
+      <!-- VA List -->
+      <div class="span-12" id="vaList"></div>
+
+      <div id="emptyState" class="span-12" style="text-align:center;padding:60px 20px;color:var(--muted);font-style:italic;">
+        Nenhuma VA criada. Adicione uma acima.
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer"><span>Lidara © 2026</span><span>Sincronizado</span></footer>
 
   <script>
-    document.getElementById('app').innerHTML =
-      Components.sidebar('va') +
-      '<div class="main-content">' +
-        Components.topbar('Verificações de Aprendizagem') +
-        '<div class="page-container">' +
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('userName').textContent = user.displayName || user.email;
+        document.getElementById('userAvatar').textContent = (user.displayName || user.email || 'P').charAt(0).toUpperCase();
+      }
+    });
 
-          '<div class="card" style="margin-bottom:20px;">' +
-            '<div class="card-header"><h3>Cadastrar Nova VA</h3></div>' +
-            '<div class="card-body">' +
-              '<div class="form-row">' +
-                '<div class="form-group" style="flex:1;min-width:180px;">' +
-                  '<label>Nome da VA</label>' +
-                  '<input type="text" id="inputVANome" placeholder="Ex: Trabalho sobre verbos" />' +
-                '</div>' +
-                '<div class="form-group" style="width:160px;">' +
-                  '<label>Tipo</label>' +
-                  '<select id="inputVATipo">' +
-                    Store.VA_TIPOS.map(function(t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') +
-                  '</select>' +
-                '</div>' +
-                '<div class="form-group" style="width:120px;">' +
-                  '<label>Valor (0 a X)</label>' +
-                  '<input type="number" id="inputVAValor" min="0.1" max="100" step="0.1" placeholder="10" />' +
-                '</div>' +
-                '<div class="form-group" style="width:100px;">' +
-                  '<label>Peso</label>' +
-                  '<input type="number" id="inputVAPeso" min="0.1" max="10" step="0.1" value="1" placeholder="1" />' +
-                '</div>' +
-                '<button class="btn btn-primary" onclick="addVA()" style="align-self:flex-end;">+ Criar VA</button>' +
-              '</div>' +
-              '<p style="margin-top:8px;font-size:0.72rem;color:var(--gray-400);">A nota de cada aluno será normalizada para 0-10. No boletim, VA = média ponderada (pelo peso) de todas as VAs.</p>' +
-            '</div>' +
-          '</div>' +
+    var settings = Store.getSettings();
+    document.getElementById('selectBimestre').innerHTML = Store.BIMESTRES.map(function(b) { return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>'; }).join('');
+    document.getElementById('selectTurma').innerHTML = Store.TURMAS.map(function(t) { return '<option value="' + t + '"' + (t === settings.turma ? ' selected' : '') + '>' + Store.formatTurma(t) + '</option>'; }).join('');
+    document.getElementById('inputVATipo').innerHTML = Store.VA_TIPOS.map(function(t) { return '<option value="' + t + '">' + t + '</option>'; }).join('');
 
-          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">' +
-            '<h3 style="font-size:0.9rem;font-weight:700;color:var(--dark);">VAs Cadastradas</h3>' +
-            '<span id="vaCount" style="font-size:0.8rem;color:var(--gray-400);font-weight:600;">0 VA(s)</span>' +
-          '</div>' +
+    function updateMateriaSelect() {
+      var turma = document.getElementById('selectTurma').value;
+      document.getElementById('selectMateria').innerHTML = Store.getMaterias(turma).map(function(m) { return '<option value="' + m + '"' + (m === settings.materia ? ' selected' : '') + '>' + m + '</option>'; }).join('');
+    }
+    updateMateriaSelect();
+    function handleBimestreChange() { settings.bimestre = document.getElementById('selectBimestre').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function handleTurmaChange() { settings.turma = document.getElementById('selectTurma').value; updateMateriaSelect(); Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function handleMateriaChange() { settings.materia = document.getElementById('selectMateria').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function getCurrentContext() { return { turma: document.getElementById('selectTurma').value, materia: document.getElementById('selectMateria').value, bimestre: document.getElementById('selectBimestre').value }; }
 
-          '<div id="vaList"></div>' +
-          '<div id="emptyState" class="card" style="padding:40px;text-align:center;color:var(--gray-400);font-style:italic;">Nenhuma VA cadastrada neste bimestre.</div>' +
+    var openVAs = {};
 
-        '</div>' +
-        Components.footer() +
-      '</div>';
-
-    initSelects();
-
-    function onContextChange() { render(); }
-
-    function addVA() {
-      var ctx = getCurrentContext();
+    function createVA() {
       var nome = document.getElementById('inputVANome').value.trim();
       var tipo = document.getElementById('inputVATipo').value;
-      var valor = parseFloat(document.getElementById('inputVAValor').value);
-      var peso = parseFloat(document.getElementById('inputVAPeso').value) || 1;
+      var peso = parseInt(document.getElementById('inputVAPeso').value) || 1;
+      var max = parseInt(document.getElementById('inputVAMax').value) || 10;
       if (!nome) return alert('Informe o nome da VA.');
-      if (!valor || valor <= 0) return alert('Informe o valor máximo da VA (maior que 0).');
-      Store.addVA(ctx.turma, ctx.materia, ctx.bimestre, nome, tipo, valor, peso);
+      var ctx = getCurrentContext();
+      Store.createVA(ctx.turma, ctx.materia, ctx.bimestre, nome, tipo, peso, max);
       document.getElementById('inputVANome').value = '';
-      document.getElementById('inputVAValor').value = '';
-      document.getElementById('inputVAPeso').value = '1';
       render();
     }
 
-    function updatePeso(vaId, el) {
+    function deleteVA(vaId) {
+      if (!confirm('Excluir esta VA e todas as notas?')) return;
       var ctx = getCurrentContext();
-      Store.updateVAPeso(ctx.turma, ctx.materia, ctx.bimestre, vaId, el.value);
+      Store.deleteVA(ctx.turma, ctx.materia, ctx.bimestre, vaId);
       render();
-    }
-
-    function removeVA(vaId) {
-      if (!confirm('Remover esta VA e todas as notas?')) return;
-      var ctx = getCurrentContext();
-      Store.removeVA(ctx.turma, ctx.materia, ctx.bimestre, vaId);
-      render();
-    }
-
-    function onNotaBlur(vaId, alunoNumero, el) {
-      var ctx = getCurrentContext();
-      Store.setVANota(ctx.turma, ctx.materia, ctx.bimestre, vaId, alunoNumero, el.value);
-      var normSpan = document.getElementById('norm-' + vaId + '-' + alunoNumero);
-      if (normSpan) {
-        var vas = Store.getVAs(ctx.turma, ctx.materia, ctx.bimestre);
-        var va = vas.find(function(v) { return v.id === vaId; });
-        if (va) {
-          var norm = Store.getVANormalizada(va, alunoNumero);
-          normSpan.textContent = norm.toFixed(1);
-          normSpan.style.color = norm >= 6 ? 'var(--green)' : norm > 0 ? 'var(--red)' : 'var(--gray-400)';
-        }
-      }
-      updateSummaryRow(alunoNumero);
-    }
-
-    function updateSummaryRow(alunoNumero) {
-      var ctx = getCurrentContext();
-      var vaMedia = Store.getVAMedia(ctx.turma, ctx.materia, ctx.bimestre, alunoNumero);
-      var summaryEl = document.getElementById('summary-va-' + alunoNumero);
-      if (summaryEl) {
-        summaryEl.innerHTML = '<span class="badge ' + (vaMedia >= 6 ? 'badge-green' : 'badge-red') + '">' + vaMedia.toFixed(1) + '</span>';
-      }
-      var vas = Store.getVAs(ctx.turma, ctx.materia, ctx.bimestre);
-      vas.forEach(function(va) {
-        var el = document.getElementById('summary-norm-' + va.id + '-' + alunoNumero);
-        if (el) {
-          el.textContent = Store.getVANormalizada(va, alunoNumero).toFixed(1);
-        }
-      });
     }
 
     function toggleVA(vaId) {
-      var el = document.getElementById('va-body-' + vaId);
-      var icon = document.getElementById('va-icon-' + vaId);
-      if (el.style.display === 'none') {
-        el.style.display = '';
-        icon.textContent = '\u25B2';
-      } else {
-        el.style.display = 'none';
-        icon.textContent = '\u25BC';
-      }
+      openVAs[vaId] = !openVAs[vaId];
+      render();
     }
 
-    function triggerCSVImport(vaId) {
-      var input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.csv,.txt';
-      input.onchange = function(e) {
-        var file = e.target.files[0];
-        if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function(ev) {
-          var ctx = getCurrentContext();
-          var count = Store.importVACSV(ctx.turma, ctx.materia, ctx.bimestre, vaId, ev.target.result);
-          alert(count + ' nota(s) importada(s) com sucesso!');
-          render();
-        };
-        reader.readAsText(file);
-      };
-      input.click();
+    function updateVANota(vaId, numero, valor) {
+      var ctx = getCurrentContext();
+      Store.updateVANota(ctx.turma, ctx.materia, ctx.bimestre, vaId, numero, parseFloat(valor) || 0);
+      render();
     }
 
-    function getTipoBg(tipo) {
-      switch(tipo) {
-        case 'Trabalho': return 'background:#DBEAFE;color:#1D4ED8;';
-        case 'Escrita': return 'background:#FEF3C7;color:#92400E;';
-        case 'Caderno': return 'background:#D1FAE5;color:#065F46;';
-        case 'Apresentação': return 'background:#EDE9FE;color:#5B21B6;';
-        case 'Participação': return 'background:#FCE7F3;color:#9D174D;';
-        case 'Prova': return 'background:#FEE2E2;color:#991B1B;';
-        default: return 'background:#F3F4F6;color:#374151;';
+    function buildVACard(va, students) {
+      var isOpen = openVAs[va.id];
+      var tipoClass = va.tipo === 'Trabalho' ? 'trabalho' : (va.tipo === 'Prova' ? 'prova' : 'apresentacao');
+
+      var html = '<div class="va-card">';
+      html += '<div class="va-card-head" onclick="toggleVA(\'' + va.id + '\')">';
+      html += '<div><span style="font-weight:600;font-size:15px;">' + va.nome + '</span>';
+      html += '<div style="display:flex;gap:10px;margin-top:6px;">';
+      html += '<span class="va-tipo ' + tipoClass + '">' + va.tipo.toUpperCase() + '</span>';
+      html += '<span style="font-size:12px;color:var(--muted);">Peso: ' + va.peso + '</span>';
+      html += '<span style="font-size:12px;color:var(--muted);">Máx: ' + va.max + '</span>';
+      html += '</div></div>';
+      html += '<div style="display:flex;align-items:center;gap:12px;">';
+      html += '<span style="font-family:\'Instrument Serif\',serif;font-style:italic;font-size:18px;color:var(--green-deep);">' + (isOpen ? '▲' : '▼') + '</span>';
+      html += '<button class="btn btn-sm" style="background:rgba(200,58,46,0.1);color:var(--red);border-color:transparent;" onclick="event.stopPropagation();deleteVA(\'' + va.id + '\')">Excluir</button>';
+      html += '</div></div>';
+
+      if (isOpen) {
+        html += '<div class="va-card-body">';
+        html += '<table class="editorial"><thead><tr><th style="width:60px;">Nº</th><th>Nome</th><th style="text-align:center;width:120px;">Nota (0-' + va.max + ')</th><th style="text-align:center;width:100px;">Norm.</th></tr></thead><tbody>';
+        students.forEach(function(s) {
+          var nota = (s.vas && s.vas[va.id]) || 0;
+          var norm = (nota / va.max * 10).toFixed(1);
+          html += '<tr><td class="num">' + s.numero + '</td><td style="font-weight:500;">' + s.nome + '</td>';
+          html += '<td style="text-align:center;"><input type="number" class="field-inline" style="width:70px;" min="0" max="' + va.max + '" step="0.5" value="' + nota + '" onchange="updateVANota(\'' + va.id + '\',' + s.numero + ',this.value)"></td>';
+          html += '<td style="text-align:center;color:var(--muted);">' + norm + '</td></tr>';
+        });
+        html += '</tbody></table></div>';
       }
+      html += '</div>';
+      return html;
     }
 
     function render() {
       var ctx = getCurrentContext();
       var vas = Store.getVAs(ctx.turma, ctx.materia, ctx.bimestre);
       var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
-      var container = document.getElementById('vaList');
+      var vaList = document.getElementById('vaList');
       var empty = document.getElementById('emptyState');
-      document.getElementById('vaCount').textContent = vas.length + ' VA(s)';
+
+      var totalPesos = vas.reduce(function(sum, va) { return sum + va.peso; }, 0);
+      var totalMedia = 0;
+      if (students.length > 0 && vas.length > 0) {
+        students.forEach(function(s) {
+          var weightedSum = 0, weightTotal = 0;
+          vas.forEach(function(va) {
+            var nota = (s.vas && s.vas[va.id]) || 0;
+            var norm = nota / va.max * 10;
+            weightedSum += norm * va.peso;
+            weightTotal += va.peso;
+          });
+          totalMedia += weightTotal > 0 ? weightedSum / weightTotal : 0;
+        });
+        totalMedia = totalMedia / students.length;
+      }
+
+      document.getElementById('stat-vas').textContent = vas.length;
+      document.getElementById('stat-pesos').textContent = totalPesos;
+      var avgStr = totalMedia.toFixed(1);
+      document.getElementById('stat-media').innerHTML = avgStr.split('.')[0] + '<span class="it">.' + avgStr.split('.')[1] + '</span>';
 
       if (vas.length === 0) {
-        container.innerHTML = '';
+        vaList.innerHTML = '';
         empty.style.display = '';
         return;
       }
       empty.style.display = 'none';
-
-      var html = '';
-      vas.forEach(function(va) {
-        html += '<div class="va-card">';
-        html += '<div class="va-card-head" onclick="toggleVA(' + va.id + ')">';
-        html += '<div style="display:flex;align-items:center;gap:12px;">';
-        html += '<span id="va-icon-' + va.id + '" style="font-size:0.7rem;color:var(--gray-400);">\u25BC</span>';
-        html += '<div>';
-        html += '<span style="font-weight:700;color:var(--dark);">' + va.nome + '</span>';
-        html += ' <span class="va-tipo-badge" style="' + getTipoBg(va.tipo) + '">' + va.tipo + '</span>';
-        html += '</div>';
-        html += '</div>';
-        html += '<div style="display:flex;align-items:center;gap:12px;">';
-        html += '<span style="font-size:0.8rem;font-weight:600;color:var(--gray-500);">Valor: 0 a ' + va.valorMax + '</span>';
-        html += '<span style="font-size:0.8rem;color:var(--gray-400);">|</span>';
-        html += '<span style="font-size:0.8rem;font-weight:600;color:var(--gray-500);">Peso: </span>';
-        html += '<input type="number" min="0.1" max="10" step="0.1" value="' + (va.peso || 1) + '" ';
-        html += 'onclick="event.stopPropagation()" onblur="updatePeso(' + va.id + ',this)" ';
-        html += 'style="width:50px;padding:2px 6px;border:1px solid var(--gray-200);border-radius:4px;font-size:0.8rem;text-align:center;" />';
-        html += '<button onclick="event.stopPropagation();triggerCSVImport(' + va.id + ')" class="csv-upload-btn" title="Importar CSV">';
-        html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>';
-        html += 'CSV</button>';
-        html += '<button onclick="event.stopPropagation();removeVA(' + va.id + ')" class="btn-icon-sm" style="background:#FEE2E2;color:var(--red);" title="Remover VA">';
-        html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>';
-        html += '</button>';
-        html += '</div>';
-        html += '</div>';
-
-        html += '<div class="va-card-body" id="va-body-' + va.id + '" style="display:none;">';
-
-        if (students.length === 0) {
-          html += '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Nenhum aluno cadastrado. Adicione alunos na aba Alunos.</p>';
-        } else {
-          html += '<div class="table-container"><table>';
-          html += '<thead><tr>';
-          html += '<th style="text-align:left;">Nº</th>';
-          html += '<th style="text-align:left;">Nome</th>';
-          html += '<th style="text-align:center;">Nota (0 a ' + va.valorMax + ')</th>';
-          html += '<th style="text-align:center;">Normalizada (0-10)</th>';
-          html += '</tr></thead><tbody>';
-
-          students.forEach(function(s) {
-            var bruta = va.notas[s.numero] || 0;
-            var normalizada = Store.getVANormalizada(va, s.numero);
-            var normColor = normalizada >= 6 ? 'color:var(--green);' : normalizada > 0 ? 'color:var(--red);' : 'color:var(--gray-400);';
-
-            html += '<tr>';
-            html += '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>';
-            html += '<td>' + s.nome + '</td>';
-            html += '<td style="text-align:center;">';
-            html += '<input type="number" step="0.1" min="0" max="' + va.valorMax + '" value="' + bruta + '" ';
-            html += 'onblur="onNotaBlur(' + va.id + ',' + s.numero + ',this)" ';
-            html += 'class="editable-input" style="width:80px;" />';
-            html += '</td>';
-            html += '<td style="text-align:center;">';
-            html += '<span id="norm-' + va.id + '-' + s.numero + '" style="font-weight:700;font-size:0.95rem;' + normColor + '">' + normalizada.toFixed(1) + '</span>';
-            html += '</td>';
-            html += '</tr>';
-          });
-
-          html += '</tbody></table></div>';
-        }
-
-        html += '</div>';
-        html += '</div>';
-      });
-
-      // Summary table
-      if (students.length > 0 && vas.length > 0) {
-        html += '<div class="card" style="margin-top:20px;">';
-        html += '<div class="card-header"><h3>Resumo — Média VA por Aluno</h3></div>';
-        html += '<div class="table-container"><table>';
-        html += '<thead><tr>';
-        html += '<th style="text-align:left;">Nº</th>';
-        html += '<th style="text-align:left;">Nome</th>';
-
-        vas.forEach(function(va) {
-          html += '<th style="text-align:center;font-size:0.65rem;">' + va.nome + '<br>(peso ' + (va.peso || 1) + ')</th>';
-        });
-
-        html += '<th style="text-align:center;background:var(--dark);">Média VA</th>';
-        html += '</tr></thead><tbody>';
-
-        students.forEach(function(s) {
-          html += '<tr>';
-          html += '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>';
-          html += '<td>' + s.nome + '</td>';
-
-          vas.forEach(function(va) {
-            var norm = Store.getVANormalizada(va, s.numero);
-            html += '<td style="text-align:center;font-size:0.85rem;" id="summary-norm-' + va.id + '-' + s.numero + '">' + norm.toFixed(1) + '</td>';
-          });
-
-          var vaMedia = Store.getVAMedia(ctx.turma, ctx.materia, ctx.bimestre, s.numero);
-          var vmColor = vaMedia >= 6 ? 'badge-green' : 'badge-red';
-          html += '<td style="text-align:center;" id="summary-va-' + s.numero + '"><span class="badge ' + vmColor + '">' + vaMedia.toFixed(1) + '</span></td>';
-          html += '</tr>';
-        });
-
-        html += '</tbody></table></div>';
-        var somaPesos = vas.reduce(function(sum, va) { return sum + (va.peso || 1); }, 0);
-        html += '<p style="padding:12px 20px;font-size:0.72rem;color:var(--gray-400);">Média VA = (' +
-          vas.map(function(va) { return '(' + va.nome + ' × ' + (va.peso || 1) + ')'; }).join(' + ') +
-          ') / ' + somaPesos.toFixed(1) + '</p>';
-        html += '</div>';
-      }
-
-      container.innerHTML = html;
+      vaList.innerHTML = vas.map(function(va) { return buildVACard(va, students); }).join('');
     }
-
-    document.getElementById('inputVANome').addEventListener('keydown', function(e) { if (e.key === 'Enter') addVA(); });
 
     render();
     Store.loadFromCloud(function(success) { if (success) render(); });

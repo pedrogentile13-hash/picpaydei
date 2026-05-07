@@ -1,90 +1,169 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alunos — Lidara</title>
-  <link rel="stylesheet" href="../assets/css/style.css" />
-</head>
-<body>
-  <!-- Firebase SDK -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
   <script src="../assets/js/firebase-config.js"></script>
   <script src="../assets/js/store.js"></script>
-  <script src="../assets/js/components.js"></script>
   <script src="../assets/js/auth-guard.js"></script>
 
-  <div id="app" style="visibility:hidden;"></div>
+  <div class="tape">
+    <div class="tape-track">
+      <span>Cadastro de Alunos</span><span>Gestão de Turmas</span><span>Lidara</span>
+      <span>Cadastro de Alunos</span><span>Gestão de Turmas</span><span>Lidara</span>
+    </div>
+  </div>
+
+  <nav class="app-nav">
+    <a href="../index.html" class="brand"><span class="brand-mark">Lidara</span><span class="brand-asterisk">✦</span></a>
+    <div class="app-nav-links">
+      <a href="dashboard.html" class="app-nav-link">Painel</a>
+      <a href="alunos.html" class="app-nav-link active">Alunos</a>
+      <a href="negativos.html" class="app-nav-link">Negativos</a>
+      <a href="positivos.html" class="app-nav-link">Positivos</a>
+      <a href="pb.html" class="app-nav-link">PB</a>
+      <a href="va.html" class="app-nav-link">VA</a>
+      <a href="boletim.html" class="app-nav-link">Boletim</a>
+      <a href="coordenacao.html" class="app-nav-link">Coordenação</a>
+    </div>
+    <div class="app-nav-right">
+      <button class="user-pill" onclick="toggleUserMenu()">
+        <div class="user-avatar" id="userAvatar">P</div>
+        <span id="userName">Professor</span>
+      </button>
+    </div>
+  </nav>
+
+  <header class="page-head">
+    <div class="num">Gestão de Alunos</div>
+    <h1>Cadastro de <span class="it">alunos</span></h1>
+    <p class="sub">Adicione, edite e gerencie os alunos de cada turma.</p>
+  </header>
+
+  <div class="filters">
+    <span class="filters-label">Filtros</span>
+    <div class="pill-select">
+      <select id="selectBimestre" onchange="handleBimestreChange()"></select>
+    </div>
+    <div class="pill-select">
+      <select id="selectTurma" onchange="handleTurmaChange()"></select>
+    </div>
+    <div class="pill-select">
+      <select id="selectMateria" onchange="handleMateriaChange()"></select>
+    </div>
+    <div style="flex:1;"></div>
+    <span class="eyebrow" id="countLabel">0 alunos</span>
+  </div>
+
+  <main class="content">
+    <div class="grid-12">
+      <!-- Add Student Card -->
+      <div class="card span-12">
+        <div class="card-num">→ Cadastrar Novo Aluno</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-top:16px;">
+          <div class="field" style="width:100px;margin-bottom:0;">
+            <label>Nº Chamada</label>
+            <input type="number" id="inputNumero" min="1" placeholder="Nº" style="text-align:center;">
+          </div>
+          <div class="field" style="flex:1;min-width:200px;margin-bottom:0;">
+            <label>Nome Completo</label>
+            <input type="text" id="inputNome" placeholder="Nome do aluno">
+          </div>
+          <button class="btn btn-pri" onclick="addAluno()">+ Adicionar</button>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;align-items:center;">
+          <label class="btn btn-sec btn-sm" style="cursor:pointer;">
+            ↑ Importar CSV
+            <input type="file" accept=".csv" onchange="importCSV(event)" style="display:none;">
+          </label>
+          <span style="font-size:11px;color:var(--muted);">Formato: numero,nome</span>
+          <div style="flex:1;"></div>
+          <button class="btn btn-sec btn-sm" onclick="copyFromPrevBim()">Copiar do Bim. Anterior</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAllStudents()">Apagar Todos</button>
+        </div>
+      </div>
+
+      <!-- Students Table -->
+      <div class="span-12">
+        <div class="tbl-wrap">
+          <table class="editorial">
+            <thead>
+              <tr>
+                <th style="width:80px;">Nº</th>
+                <th>Nome</th>
+                <th style="text-align:center;width:100px;">Positivos</th>
+                <th style="text-align:center;width:100px;">Negativos</th>
+                <th style="text-align:center;width:100px;">Média</th>
+                <th style="text-align:center;width:80px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyAlunos"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" style="text-align:center;padding:60px 20px;color:var(--muted);font-style:italic;">
+          Nenhum aluno cadastrado. Adicione acima ou importe um CSV.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <span>Lidara © 2026</span>
+    <span>Sincronizado</span>
+  </footer>
 
   <script>
-    document.getElementById('app').innerHTML =
-      Components.sidebar('alunos') +
-      '<div class="main-content">' +
-        Components.topbar('Alunos') +
-        '<div class="page-container">' +
+    function toggleUserMenu() {}
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('userName').textContent = user.displayName || user.email;
+        document.getElementById('userAvatar').textContent = (user.displayName || user.email || 'P').charAt(0).toUpperCase();
+      }
+    });
 
-          '<div class="card" style="margin-bottom:20px;">' +
-            '<div class="card-header"><h3>Cadastrar Aluno</h3></div>' +
-            '<div class="card-body">' +
-              '<div class="form-row">' +
-                '<div class="form-group" style="width:120px;">' +
-                  '<label>Nº Chamada</label>' +
-                  '<input type="number" id="inputNumero" min="1" placeholder="Nº" />' +
-                '</div>' +
-                '<div class="form-group" style="flex:1;min-width:200px;">' +
-                  '<label>Nome Completo</label>' +
-                  '<input type="text" id="inputNome" placeholder="Nome do aluno" />' +
-                '</div>' +
-                '<button class="btn btn-primary" onclick="addAluno()" style="align-self:flex-end;">+ Adicionar</button>' +
-              '</div>' +
+    var settings = Store.getSettings();
 
-              '<div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">' +
-                '<label class="btn btn-dark" style="cursor:pointer;">' +
-                  '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12"/></svg>' +
-                  ' Importar CSV' +
-                  '<input type="file" accept=".csv" onchange="importCSV(event)" style="display:none;" />' +
-                '</label>' +
-                '<span style="font-size:0.75rem;color:var(--gray-400);">Formato: numero,nome</span>' +
-                '<button class="btn btn-outline" onclick="copyFromPrevBim()" style="margin-left:auto;font-size:0.78rem;">Copiar do Bim. Anterior</button>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
+    // Initialize selects
+    var bimEl = document.getElementById('selectBimestre');
+    bimEl.innerHTML = Store.BIMESTRES.map(function(b) {
+      return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>';
+    }).join('');
 
-          '<div class="card">' +
-            '<div class="card-header">' +
-              '<h3>Lista de Alunos</h3>' +
-              '<div style="display:flex;align-items:center;gap:12px;">' +
-                '<span style="font-size:0.8rem;color:var(--gray-400);font-weight:600;" id="countLabel">0 alunos</span>' +
-                '<button class="btn btn-danger" onclick="clearAllStudents()" style="font-size:0.75rem;padding:6px 12px;">Apagar Todos</button>' +
-              '</div>' +
-            '</div>' +
-            '<div class="table-container">' +
-              '<table>' +
-                '<thead>' +
-                  '<tr>' +
-                    '<th style="text-align:left;">Nº</th>' +
-                    '<th style="text-align:left;">Nome</th>' +
-                    '<th style="text-align:center;">Positivos</th>' +
-                    '<th style="text-align:center;">Negativos</th>' +
-                    '<th style="text-align:center;">Média</th>' +
-                    '<th style="text-align:center;">Ações</th>' +
-                  '</tr>' +
-                '</thead>' +
-                '<tbody id="tbodyAlunos"></tbody>' +
-              '</table>' +
-              '<div id="emptyState" class="empty-state">Nenhum aluno cadastrado. Adicione acima ou importe um CSV.</div>' +
-            '</div>' +
-          '</div>' +
+    var turmaEl = document.getElementById('selectTurma');
+    turmaEl.innerHTML = Store.TURMAS.map(function(t) {
+      return '<option value="' + t + '"' + (t === settings.turma ? ' selected' : '') + '>' + Store.formatTurma(t) + '</option>';
+    }).join('');
 
-        '</div>' +
-        Components.footer() +
-      '</div>';
+    function updateMateriaSelect() {
+      var turma = document.getElementById('selectTurma').value;
+      var materiaEl = document.getElementById('selectMateria');
+      var mats = Store.getMaterias(turma);
+      materiaEl.innerHTML = mats.map(function(m) {
+        return '<option value="' + m + '"' + (m === settings.materia ? ' selected' : '') + '>' + m + '</option>';
+      }).join('');
+    }
+    updateMateriaSelect();
 
-    initSelects();
+    function handleBimestreChange() { settings.bimestre = document.getElementById('selectBimestre').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function handleTurmaChange() { settings.turma = document.getElementById('selectTurma').value; updateMateriaSelect(); Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function handleMateriaChange() { settings.materia = document.getElementById('selectMateria').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
 
-    function onContextChange() { render(); }
+    function getCurrentContext() {
+      return {
+        turma: document.getElementById('selectTurma').value,
+        materia: document.getElementById('selectMateria').value,
+        bimestre: document.getElementById('selectBimestre').value
+      };
+    }
 
     function addAluno() {
       var ctx = getCurrentContext();
@@ -133,31 +212,24 @@
       var ctx = getCurrentContext();
       var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
       if (students.length === 0) return alert('Não há alunos para apagar.');
-      if (!confirm('Apagar TODOS os ' + students.length + ' alunos da turma ' + ctx.turma + ' (' + Store.BIMESTRE_LABELS[ctx.bimestre] + ') de TODAS as matérias?')) return;
-      var materias = Store.getMaterias(ctx.turma);
-      materias.forEach(function(mat) {
-        Store.setStudents(ctx.turma, mat, ctx.bimestre, []);
-      });
+      if (!confirm('Apagar TODOS os ' + students.length + ' alunos?')) return;
+      Store.setStudents(ctx.turma, ctx.materia, ctx.bimestre, []);
       render();
     }
 
     function buildRow(s) {
       var media = Store.calcMedia(s);
-      var colorClass = media >= 6 ? 'badge-green' : 'badge-red';
+      var tagClass = media >= 6 ? 'tag-green' : (media >= 5 ? 'tag-amber' : 'tag-red');
       var positivos = s.positivos || 0;
-      var posColor = positivos > 0 ? 'var(--green)' : 'var(--gray-400)';
-      var negColor = s.negativos > 0 ? 'var(--red)' : 'var(--gray-400)';
 
       return '<tr>' +
-        '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>' +
-        '<td>' + s.nome + '</td>' +
-        '<td style="text-align:center;"><span style="font-weight:700;color:' + posColor + ';">+' + positivos + '</span></td>' +
-        '<td style="text-align:center;"><span style="font-weight:700;color:' + negColor + ';">-' + s.negativos + '</span></td>' +
-        '<td style="text-align:center;"><span class="badge ' + colorClass + '">' + media + '</span></td>' +
+        '<td class="num">' + s.numero + '</td>' +
+        '<td style="font-weight:500;">' + s.nome + '</td>' +
+        '<td style="text-align:center;"><span style="color:var(--green-deep);font-weight:600;">+' + positivos + '</span></td>' +
+        '<td style="text-align:center;"><span style="color:var(--red);font-weight:600;">−' + s.negativos + '</span></td>' +
+        '<td style="text-align:center;"><span class="tag ' + tagClass + '">' + media + '</span></td>' +
         '<td style="text-align:center;">' +
-          '<button onclick="removeAluno(' + s.numero + ')" class="btn-icon-sm" style="background:#FEE2E2;color:var(--red);" title="Remover">' +
-            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
-          '</button>' +
+          '<button onclick="removeAluno(' + s.numero + ')" class="btn btn-sm" style="padding:4px 10px;background:rgba(200,58,46,0.1);color:var(--red);border-color:transparent;">✕</button>' +
         '</td>' +
       '</tr>';
     }
@@ -175,7 +247,6 @@
         return;
       }
       empty.style.display = 'none';
-
       tbody.innerHTML = students.map(buildRow).join('');
     }
 

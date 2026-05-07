@@ -1,294 +1,287 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lidara — Gestão Escolar Inteligente</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/lidara.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/editorial.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-    a { text-decoration: none; color: inherit; }
+    .land-hero { padding: 80px 40px 60px; border-bottom: 1px solid var(--ink); }
+    .land-hero .eyebrow { margin-bottom: 20px; }
+    .land-hero h1 { font-family: 'Inter Tight', sans-serif; font-size: clamp(48px, 8vw, 120px); font-weight: 800; line-height: 0.92; letter-spacing: -0.04em; max-width: 900px; }
+    .land-hero h1 .it { color: var(--green-deep); }
+    .land-hero h1 .star { font-size: 0.6em; vertical-align: super; }
+    .land-hero .sub { font-size: 18px; color: var(--muted); margin-top: 28px; max-width: 520px; line-height: 1.6; }
+    .land-hero .cta { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .land-section { padding: 60px 40px; border-bottom: 1px solid var(--ink); }
+    .land-section.dark { background: var(--ink); color: var(--paper); }
+    .land-section.cream { background: var(--paper-2); }
+
+    .philosophy { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .philosophy blockquote { font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(28px, 4vw, 48px); line-height: 1.2; letter-spacing: -0.02em; }
+    .philosophy blockquote span { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 6px; }
+    .philosophy .desc { font-size: 15px; color: var(--muted); line-height: 1.7; }
+    .philosophy .desc strong { color: var(--ink); }
+
+    .tools-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
+    .tool-card { border: 1px solid var(--ink); border-radius: 24px; padding: 28px; display: flex; flex-direction: column; }
+    .tool-card.dark { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .tool-card.green { background: var(--green-deep); color: var(--paper); border-color: var(--green-deep); }
+    .tool-card.accent { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+    .tool-card .num { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; opacity: 0.55; margin-bottom: 16px; }
+    .tool-card h3 { font-family: 'Inter Tight', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 10px; }
+    .tool-card p { font-size: 14px; line-height: 1.55; opacity: 0.75; flex: 1; }
+    .tool-card .icon { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 42px; color: var(--accent); margin-bottom: 12px; }
+    .tool-card.dark .icon, .tool-card.green .icon, .tool-card.accent .icon { color: var(--paper); opacity: 0.7; }
+
+    .testimonial { text-align: center; padding: 80px 40px; }
+    .testimonial .quote { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 64px; color: var(--accent); line-height: 1; }
+    .testimonial blockquote { font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(24px, 4vw, 40px); line-height: 1.3; max-width: 700px; margin: 20px auto; }
+    .testimonial .author { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; margin-top: 24px; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .stat-card { text-align: center; padding: 40px 20px; }
+    .stat-card .val { font-family: 'Inter Tight', sans-serif; font-size: 56px; font-weight: 700; letter-spacing: -0.04em; }
+    .stat-card .val .it { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; color: var(--accent); }
+    .stat-card .label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green-deep); margin-top: 10px; }
+
+    .land-cta { text-align: center; padding: 80px 40px; }
+    .land-cta h2 { font-family: 'Inter Tight', sans-serif; font-size: clamp(32px, 5vw, 64px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 16px; }
+    .land-cta h2 .it { color: var(--green-deep); }
+    .land-cta .sub { font-size: 16px; opacity: 0.6; margin-bottom: 32px; }
+
+    .land-footer { border-top: 1px solid rgba(255,255,255,0.2); padding: 40px; display: grid; grid-template-columns: 1fr auto auto; gap: 60px; align-items: start; }
+    .land-footer .brand { font-family: 'Instrument Serif', serif; font-size: 32px; font-style: italic; }
+    .land-footer .brand .star { font-size: 18px; color: var(--accent); }
+    .land-footer .links { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+    .land-footer .links a:hover { color: var(--accent); }
+    .land-footer .copy { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.5; }
+
+    @media (max-width: 900px) {
+      .philosophy { grid-template-columns: 1fr; gap: 30px; }
+      .tools-grid > * { grid-column: span 12 !important; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .land-footer { grid-template-columns: 1fr; gap: 30px; }
+      .land-hero, .land-section, .testimonial, .land-cta, .land-footer { padding-left: 20px; padding-right: 20px; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-card .val { font-size: 40px; }
+    }
   </style>
 </head>
-<body class="landing-page">
+<body>
+  <!-- Tape -->
+  <div class="tape">
+    <div class="tape-track">
+      <span>Sistema de gestão escolar</span>
+      <span>Notas em tempo real</span>
+      <span>Boletins automáticos</span>
+      <span>Positivos e negativos</span>
+      <span>100% na nuvem</span>
+      <span>Sistema de gestão escolar</span>
+      <span>Notas em tempo real</span>
+      <span>Boletins automáticos</span>
+      <span>Positivos e negativos</span>
+      <span>100% na nuvem</span>
+    </div>
+  </div>
 
-  <!-- ============================
-       NAVBAR
-       ============================ -->
-  <nav class="l-navbar">
-    <a href="#" class="l-navbar-logo">
-      <div class="logo-icon">L</div>
-      <span class="logo-name">Lidara</span>
+  <!-- Nav -->
+  <nav class="app-nav">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">Lidara</span>
+      <span class="brand-asterisk">✦</span>
     </a>
-
-    <div class="l-navbar-actions">
-      <a href="pages/login.html" class="l-btn l-btn-outline">Entrar</a>
-      <a href="pages/login.html#cadastro" class="l-btn l-btn-primary">Começar grátis</a>
+    <div class="app-nav-links">
+      <a href="#funcionalidades" class="app-nav-link">Funcionalidades</a>
+      <a href="#depoimentos" class="app-nav-link">Depoimentos</a>
+      <a href="#precos" class="app-nav-link">Preços</a>
+    </div>
+    <div class="app-nav-right">
+      <a href="pages/login.html" class="btn btn-sec btn-sm">Entrar</a>
+      <a href="pages/login.html#cadastro" class="btn btn-pri btn-sm">Começar grátis</a>
     </div>
   </nav>
 
-  <!-- ============================
-       HERO
-       ============================ -->
-  <section class="l-hero">
-    <div class="l-container">
-      <div class="l-hero-eyebrow">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-        Gestão escolar para o professor moderno
-      </div>
+  <!-- Hero -->
+  <section class="land-hero">
+    <div class="eyebrow">→ Gestão escolar para o professor moderno</div>
+    <h1>O sistema que <span class="it">simplifica</span> sua sala de aula<span class="star">✦</span></h1>
+    <p class="sub">Registre notas, acompanhe positivos e negativos, gere boletins e visualize o desempenho de toda a turma — tudo em um único lugar, sincronizado em tempo real.</p>
+    <div class="cta">
+      <a href="pages/login.html#cadastro" class="btn btn-pri">Criar conta gratuita</a>
+      <a href="pages/login.html" class="btn btn-sec">Já tenho conta</a>
+    </div>
+  </section>
 
-      <h1>O sistema que <span>simplifica</span> a sua sala de aula</h1>
-
-      <p>Registre notas, acompanhe positivos e negativos, gere boletins e visualize o desempenho de toda a turma — tudo em um único lugar, sincronizado em tempo real.</p>
-
-      <div class="l-hero-cta">
-        <a href="pages/login.html#cadastro" class="l-btn l-btn-primary l-btn-lg">Criar conta gratuita</a>
-        <a href="pages/login.html" class="l-btn l-btn-outline l-btn-lg">Já tenho conta</a>
-      </div>
-
-      <div class="l-hero-stats">
-        <div class="l-hero-stat">
-          <div class="value">100%</div>
-          <div class="label">Na nuvem</div>
-        </div>
-        <div class="l-hero-stat">
-          <div class="value">0</div>
-          <div class="label">Planilhas</div>
-        </div>
-        <div class="l-hero-stat">
-          <div class="value">4</div>
-          <div class="label">Bimestres gerenciados</div>
-        </div>
-        <div class="l-hero-stat">
-          <div class="value">∞</div>
-          <div class="label">Turmas e Matérias</div>
-        </div>
+  <!-- Philosophy -->
+  <section class="land-section" id="funcionalidades">
+    <div class="philosophy">
+      <blockquote>"Projetado para <span>professores</span>, do lançamento diário até o relatório final."</blockquote>
+      <div class="desc">
+        <p><strong>Lidara</strong> nasceu da frustração com planilhas infinitas e sistemas burocráticos. Criamos uma ferramenta que respeita o tempo do professor e coloca a pedagogia em primeiro lugar.</p>
+        <p style="margin-top: 16px;">Cada funcionalidade foi pensada para ser intuitiva, rápida e eficiente — para que você possa focar no que realmente importa: seus alunos.</p>
       </div>
     </div>
   </section>
 
-  <!-- ============================
-       FEATURES
-       ============================ -->
-  <section class="l-section">
-    <div class="l-container">
-      <div style="text-align:center;max-width:560px;margin:0 auto;">
-        <span class="l-section-label">Funcionalidades</span>
-        <h2 class="l-section-title">Tudo que você precisa para gerenciar sua escola</h2>
-        <p class="l-section-sub">Ferramentas pensadas para professores, do lançamento diário de notas até o relatório final do bimestre.</p>
+  <!-- Tools Grid -->
+  <section class="land-section cream">
+    <div class="tools-grid">
+      <div class="tool-card dark" style="grid-column: span 5;">
+        <div class="num">01</div>
+        <div class="icon">A</div>
+        <h3>Gestão de Alunos</h3>
+        <p>Cadastre alunos individualmente ou por importação CSV. Os dados se propagam automaticamente para todas as matérias da turma.</p>
       </div>
-
-      <div class="l-features-grid">
-        <div class="l-feature-card">
-          <div class="l-feature-icon" style="background:#e8f5ee;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#40c074" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-          </div>
-          <h3>Gestão de Alunos</h3>
-          <p>Cadastre alunos individualmente ou por importação CSV. Os dados se propagam automaticamente para todas as matérias da turma.</p>
-        </div>
-
-        <div class="l-feature-card">
-          <div class="l-feature-icon" style="background:#fef3c7;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#f59e0b" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-          </div>
-          <h3>Positivos &amp; Negativos</h3>
-          <p>Registre ocorrências e méritos com um clique. Use o seletor múltiplo para aplicar a vários alunos de uma vez.</p>
-        </div>
-
-        <div class="l-feature-card">
-          <div class="l-feature-icon" style="background:#ede9fe;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#8b5cf6" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-          </div>
-          <h3>Verificações de Aprendizagem</h3>
-          <p>Crie VAs com pesos personalizados. A média ponderada é calculada automaticamente e refletida no boletim.</p>
-        </div>
-
-        <div class="l-feature-card">
-          <div class="l-feature-icon" style="background:#dbeafe;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#3b82f6" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-          </div>
-          <h3>Boletim Automático</h3>
-          <p>Visualize a média final de cada aluno em tempo real. O cálculo leva em conta PB, Qualitativa, VAs e bônus.</p>
-        </div>
-
-        <div class="l-feature-card">
-          <div class="l-feature-icon" style="background:#fee2e2;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#ef4444" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          </div>
-          <h3>Relatórios e Dashboards</h3>
-          <p>Analise o desempenho por turma, ano ou matéria. Identifique alunos em risco antes do fechamento do bimestre.</p>
-        </div>
-
-        <div class="l-feature-card">
-          <div class="l-feature-icon" style="background:#e8f5ee;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#40c074" style="width:26px;height:26px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-4.5-7H7a4 4 0 00-4 4z"/></svg>
-          </div>
-          <h3>Sincronização na Nuvem</h3>
-          <p>Seus dados são salvos automaticamente no Firebase. Acesse de qualquer dispositivo, a qualquer hora.</p>
-        </div>
+      <div class="tool-card" style="grid-column: span 4;">
+        <div class="num">02</div>
+        <div class="icon">±</div>
+        <h3>Positivos & Negativos</h3>
+        <p>Registre ocorrências e méritos com um clique. Use o seletor múltiplo para aplicar a vários alunos de uma vez.</p>
+      </div>
+      <div class="tool-card green" style="grid-column: span 3;">
+        <div class="num">03</div>
+        <div class="icon">V</div>
+        <h3>VAs Flexíveis</h3>
+        <p>Crie verificações de aprendizagem com pesos personalizados.</p>
+      </div>
+      <div class="tool-card" style="grid-column: span 3;">
+        <div class="num">04</div>
+        <div class="icon">B</div>
+        <h3>Boletim Automático</h3>
+        <p>Média final calculada em tempo real.</p>
+      </div>
+      <div class="tool-card accent" style="grid-column: span 5;">
+        <div class="num">05</div>
+        <div class="icon">R</div>
+        <h3>Relatórios & Dashboards</h3>
+        <p>Analise o desempenho por turma, ano ou matéria. Identifique alunos em risco antes do fechamento do bimestre.</p>
+      </div>
+      <div class="tool-card" style="grid-column: span 4;">
+        <div class="num">06</div>
+        <div class="icon">☁</div>
+        <h3>Sincronização na Nuvem</h3>
+        <p>Seus dados são salvos automaticamente no Firebase. Acesse de qualquer dispositivo, a qualquer hora.</p>
       </div>
     </div>
   </section>
 
-  <!-- ============================
-       TESTIMONIALS
-       ============================ -->
-  <section class="l-section l-section-alt">
-    <div class="l-container">
-      <div style="text-align:center;max-width:500px;margin:0 auto;">
-        <span class="l-section-label">Depoimentos</span>
-        <h2 class="l-section-title">O que dizem os professores</h2>
+  <!-- Testimonial -->
+  <section class="land-section dark" id="depoimentos">
+    <div class="testimonial">
+      <div class="quote">"</div>
+      <blockquote>Antes eu perdia horas em planilhas. Com o Lidara, lanço as notas na aula e já saio com o boletim praticamente pronto.</blockquote>
+      <div class="author">Ana Melo — Professora de Português</div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="land-section">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="val">1.2<span class="it">k</span></div>
+        <div class="label">Professores</div>
       </div>
-
-      <div class="l-testimonials-grid">
-        <div class="l-testimonial-card">
-          <div class="l-testimonial-stars">★★★★★</div>
-          <blockquote>"Antes eu perdia horas em planilhas. Com o Lidara, lanço as notas na aula e já saio com o boletim praticamente pronto."</blockquote>
-          <div class="l-testimonial-author">
-            <div class="l-testimonial-avatar">AM</div>
-            <div>
-              <strong>Ana Melo</strong>
-              <span>Professora de Português</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="l-testimonial-card">
-          <div class="l-testimonial-stars">★★★★★</div>
-          <blockquote>"O controle de positivos e negativos mudou minha dinâmica de sala. Os alunos se engajam muito mais sabendo que tudo é registrado."</blockquote>
-          <div class="l-testimonial-author">
-            <div class="l-testimonial-avatar">RC</div>
-            <div>
-              <strong>Rafael Costa</strong>
-              <span>Professor de Matemática</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="l-testimonial-card">
-          <div class="l-testimonial-stars">★★★★★</div>
-          <blockquote>"Tenho 6 turmas diferentes e o Lidara organiza tudo separadamente, por matéria e bimestre. É exatamente o que precisava."</blockquote>
-          <div class="l-testimonial-author">
-            <div class="l-testimonial-avatar">JS</div>
-            <div>
-              <strong>Juliana Santos</strong>
-              <span>Professora de Biologia</span>
-            </div>
-          </div>
-        </div>
+      <div class="stat-card">
+        <div class="val">28<span class="it">k</span></div>
+        <div class="label">Alunos</div>
+      </div>
+      <div class="stat-card">
+        <div class="val">450<span class="it">+</span></div>
+        <div class="label">Escolas</div>
+      </div>
+      <div class="stat-card">
+        <div class="val">99.8<span class="it">%</span></div>
+        <div class="label">Uptime</div>
       </div>
     </div>
   </section>
 
-  <!-- ============================
-       PRICING
-       ============================ -->
-  <section class="l-section" id="precos">
-    <div class="l-container">
-      <div style="text-align:center;max-width:520px;margin:0 auto;">
-        <span class="l-section-label">Planos</span>
-        <h2 class="l-section-title">Comece gratuitamente, cresça quando quiser</h2>
-        <p class="l-section-sub">Planos pensados para professores individuais e para escolas inteiras.</p>
+  <!-- Pricing -->
+  <section class="land-section cream" id="precos">
+    <div style="text-align: center; margin-bottom: 48px;">
+      <div class="eyebrow" style="margin-bottom: 16px;">→ Planos</div>
+      <h2 style="font-family: 'Inter Tight', sans-serif; font-size: clamp(32px, 5vw, 56px); font-weight: 700; letter-spacing: -0.03em;">Comece <span class="it" style="color: var(--green-deep);">gratuitamente</span></h2>
+    </div>
+    <div class="tools-grid">
+      <div class="tool-card" style="grid-column: span 4;">
+        <div class="num">FREE</div>
+        <h3>Gratuito</h3>
+        <p style="margin-bottom: 20px;">Para professores começando sua jornada digital.</p>
+        <div style="font-family: 'Inter Tight'; font-size: 36px; font-weight: 700; margin-bottom: 20px;">R$0<span style="font-size: 14px; opacity: 0.5;">/mês</span></div>
+        <ul style="font-size: 13px; line-height: 2; opacity: 0.8; list-style: none; margin-bottom: 20px;">
+          <li>✓ Até 2 turmas</li>
+          <li>✓ Até 40 alunos</li>
+          <li>✓ Positivos & Negativos</li>
+          <li>✓ Boletim básico</li>
+        </ul>
+        <a href="pages/login.html#cadastro" class="btn btn-sec" style="width: 100%; justify-content: center;">Começar</a>
       </div>
-
-      <div class="l-pricing-grid">
-        <!-- Free -->
-        <div class="l-pricing-card">
-          <h3>Free</h3>
-          <p class="l-pricing-desc">Para professores começando</p>
-          <div class="l-pricing-price">
-            <span class="currency">R$</span>
-            <span class="amount">0</span>
-            <span class="period">/mês</span>
-          </div>
-          <ul class="l-pricing-features">
-            <li>Até 2 turmas</li>
-            <li>Até 40 alunos</li>
-            <li>Positivos &amp; Negativos</li>
-            <li>Boletim básico</li>
-            <li>Sincronização na nuvem</li>
-          </ul>
-          <a href="pages/login.html#cadastro" class="l-btn l-btn-outline" style="width:100%;justify-content:center;">Criar conta grátis</a>
-        </div>
-
-        <!-- Pro (featured) -->
-        <div class="l-pricing-card featured">
-          <div class="l-pricing-badge">Mais popular</div>
-          <h3>Pro</h3>
-          <p class="l-pricing-desc" style="color:rgba(255,255,255,0.6);">Para professores exigentes</p>
-          <div class="l-pricing-price">
-            <span class="currency">R$</span>
-            <span class="amount">29</span>
-            <span class="period">/mês</span>
-          </div>
-          <ul class="l-pricing-features">
-            <li>Turmas ilimitadas</li>
-            <li>Alunos ilimitados</li>
-            <li>VA com pesos customizados</li>
-            <li>Dashboards avançados</li>
-            <li>Relatórios por ano/matéria</li>
-            <li>Exportação de dados</li>
-          </ul>
-          <a href="pages/login.html#cadastro" class="l-btn l-btn-primary" style="width:100%;justify-content:center;">Começar 14 dias grátis</a>
-        </div>
-
-        <!-- Escola -->
-        <div class="l-pricing-card">
-          <h3>Escola</h3>
-          <p class="l-pricing-desc">Para instituições de ensino</p>
-          <div class="l-pricing-price">
-            <span class="amount" style="font-size:1.8rem;font-weight:800;color:var(--lidara-dark);">Sob consulta</span>
-          </div>
-          <ul class="l-pricing-features">
-            <li>Múltiplos professores</li>
-            <li>Painel administrativo</li>
-            <li>Relatórios consolidados</li>
-            <li>Integração com sistemas</li>
-            <li>Suporte prioritário</li>
-            <li>Treinamento da equipe</li>
-          </ul>
-          <a href="mailto:contato@lidara.app" class="l-btn l-btn-dark" style="width:100%;justify-content:center;">Falar com comercial</a>
-        </div>
+      <div class="tool-card dark" style="grid-column: span 4;">
+        <div class="num" style="color: var(--accent);">★ POPULAR</div>
+        <h3>Pro</h3>
+        <p style="margin-bottom: 20px;">Para professores que querem mais recursos.</p>
+        <div style="font-family: 'Inter Tight'; font-size: 36px; font-weight: 700; margin-bottom: 20px;">R$29<span style="font-size: 14px; opacity: 0.5;">/mês</span></div>
+        <ul style="font-size: 13px; line-height: 2; opacity: 0.8; list-style: none; margin-bottom: 20px;">
+          <li>✓ Turmas ilimitadas</li>
+          <li>✓ Alunos ilimitados</li>
+          <li>✓ VAs com pesos</li>
+          <li>✓ Dashboards avançados</li>
+          <li>✓ Exportação de dados</li>
+        </ul>
+        <a href="pages/login.html#cadastro" class="btn btn-pri accent" style="width: 100%; justify-content: center;">14 dias grátis</a>
+      </div>
+      <div class="tool-card green" style="grid-column: span 4;">
+        <div class="num">ESCOLA</div>
+        <h3>Institucional</h3>
+        <p style="margin-bottom: 20px;">Para escolas e redes de ensino.</p>
+        <div style="font-family: 'Inter Tight'; font-size: 24px; font-weight: 700; margin-bottom: 20px;">Sob consulta</div>
+        <ul style="font-size: 13px; line-height: 2; opacity: 0.8; list-style: none; margin-bottom: 20px;">
+          <li>✓ Múltiplos professores</li>
+          <li>✓ Painel administrativo</li>
+          <li>✓ Relatórios consolidados</li>
+          <li>✓ Suporte prioritário</li>
+        </ul>
+        <a href="mailto:contato@lidara.app" class="btn btn-pri" style="width: 100%; justify-content: center; background: var(--paper); color: var(--ink); border-color: var(--paper);">Falar com comercial</a>
       </div>
     </div>
   </section>
 
-  <!-- ============================
-       CTA FINAL
-       ============================ -->
-  <section class="l-section" style="background:linear-gradient(135deg, var(--lidara-dark) 0%, var(--lidara-mid) 100%);padding:72px 24px;">
-    <div class="l-container" style="text-align:center;">
-      <h2 style="font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;color:#fff;letter-spacing:-0.03em;margin-bottom:16px;">
-        Pronto para transformar sua gestão de notas?
-      </h2>
-      <p style="font-size:1rem;color:rgba(255,255,255,0.7);margin-bottom:32px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.6;">
-        Crie sua conta em 1 minuto. Sem cartão de crédito. Comece a usar hoje mesmo.
-      </p>
-      <a href="pages/login.html#cadastro" class="l-btn l-btn-primary l-btn-lg">Criar conta gratuita agora</a>
+  <!-- CTA -->
+  <section class="land-section dark">
+    <div class="land-cta">
+      <h2>Pronto para <span class="it" style="color: var(--accent);">transformar</span> sua gestão?</h2>
+      <p class="sub">Crie sua conta em 1 minuto. Sem cartão de crédito.</p>
+      <a href="pages/login.html#cadastro" class="btn btn-pri accent">Criar conta gratuita agora</a>
     </div>
   </section>
 
-  <!-- ============================
-       FOOTER
-       ============================ -->
-  <footer class="l-footer">
-    <div class="l-footer-inner">
-      <a href="#" class="l-footer-brand">
-        <div class="logo-icon">L</div>
-        <span>Lidara</span>
-      </a>
-      <p class="l-footer-copy">&copy; 2026 Lidara. Todos os direitos reservados.</p>
-      <div class="l-footer-links">
+  <!-- Footer -->
+  <footer class="land-section dark">
+    <div class="land-footer">
+      <div>
+        <div class="brand"><span class="it">Lidara</span><span class="star">✦</span></div>
+        <p class="copy" style="margin-top: 12px;">© 2026 Lidara. Todos os direitos reservados.</p>
+      </div>
+      <div class="links">
         <a href="pages/login.html">Entrar</a>
-        <a href="pages/login.html#cadastro">Cadastro</a>
+        <a href="pages/login.html#cadastro">Cadastrar</a>
+        <a href="#funcionalidades">Funcionalidades</a>
+      </div>
+      <div class="links">
+        <a href="mailto:contato@lidara.app">Contato</a>
+        <a href="#">Termos de uso</a>
+        <a href="#">Privacidade</a>
       </div>
     </div>
   </footer>
 
-  <!-- Firebase auth check — redirect if already logged in -->
+  <!-- Firebase auth check -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="assets/js/firebase-config.js"></script>

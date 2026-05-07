@@ -1,245 +1,215 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prova Bimestral — Lidara</title>
-  <link rel="stylesheet" href="../assets/css/style.css" />
-  <style>
-    .pb-section { background:#fff; border-radius:1.25rem; border:1px solid var(--gray-100); margin-bottom:20px; overflow:hidden; }
-    .pb-section-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--gray-50); border-bottom:1px solid var(--gray-100); }
-    .pb-section-body { padding:16px 20px; }
-    .peso-badge { display:inline-block; padding:3px 12px; border-radius:20px; font-size:0.7rem; font-weight:700; }
-    .csv-upload-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:8px; font-size:0.72rem; font-weight:600; border:1px solid var(--gray-200); background:#fff; color:var(--gray-600); cursor:pointer; transition:all 0.15s; }
-    .csv-upload-btn:hover { border-color:var(--green); color:var(--green); }
-    .warning-box { background:#FEF3C7; border:1px solid #FDE68A; border-radius:12px; padding:20px; text-align:center; color:#92400E; }
-  </style>
-</head>
-<body>
-  <!-- Firebase SDK -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
   <script src="../assets/js/firebase-config.js"></script>
   <script src="../assets/js/store.js"></script>
-  <script src="../assets/js/components.js"></script>
   <script src="../assets/js/auth-guard.js"></script>
 
-  <div id="app" style="visibility:hidden;"></div>
+  <div class="tape">
+    <div class="tape-track">
+      <span>Prova Bimestral</span><span>Lançamento de Notas</span><span>Lidara</span>
+      <span>Prova Bimestral</span><span>Lançamento de Notas</span><span>Lidara</span>
+    </div>
+  </div>
+
+  <nav class="app-nav">
+    <a href="../index.html" class="brand"><span class="brand-mark">Lidara</span><span class="brand-asterisk">✦</span></a>
+    <div class="app-nav-links">
+      <a href="dashboard.html" class="app-nav-link">Painel</a>
+      <a href="alunos.html" class="app-nav-link">Alunos</a>
+      <a href="negativos.html" class="app-nav-link">Negativos</a>
+      <a href="positivos.html" class="app-nav-link">Positivos</a>
+      <a href="pb.html" class="app-nav-link active">PB</a>
+      <a href="va.html" class="app-nav-link">VA</a>
+      <a href="boletim.html" class="app-nav-link">Boletim</a>
+      <a href="coordenacao.html" class="app-nav-link">Coordenação</a>
+    </div>
+    <div class="app-nav-right">
+      <button class="user-pill"><div class="user-avatar" id="userAvatar">P</div><span id="userName">Professor</span></button>
+    </div>
+  </nav>
+
+  <header class="page-head">
+    <div class="num">Lançamentos → Prova Bimestral</div>
+    <h1>Prova <span class="it">Bimestral</span></h1>
+    <p class="sub">Lance as notas da prova bimestral. Fórmula: M = (Anglo × 1 + Prova × 5) / 6</p>
+  </header>
+
+  <div class="filters">
+    <span class="filters-label">Filtros</span>
+    <div class="pill-select"><select id="selectBimestre" onchange="handleBimestreChange()"></select></div>
+    <div class="pill-select"><select id="selectTurma" onchange="handleTurmaChange()"></select></div>
+    <div class="pill-select"><select id="selectMateria" onchange="handleMateriaChange()"></select></div>
+  </div>
+
+  <main class="content">
+    <div class="grid-12">
+      <!-- Formula Card -->
+      <div class="card span-12" style="background:var(--paper-2);">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+          <div>
+            <div class="card-num">→ Fórmula de Cálculo</div>
+            <p style="font-family:'JetBrains Mono',monospace;font-size:14px;margin-top:8px;">M<sub>PB</sub> = (Anglo × 1 + Prova × 5) / 6</p>
+            <p style="font-size:12px;color:var(--muted);margin-top:6px;">Notas normalizadas para 0-10 antes do cálculo.</p>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <div style="text-align:center;padding:12px 18px;background:var(--paper);border:1px solid var(--ink);border-radius:12px;">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;color:var(--green-deep);">ANGLO</div>
+              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:28px;">1</div>
+            </div>
+            <div style="text-align:center;padding:12px 18px;background:var(--ink);color:var(--paper);border-radius:12px;">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;color:var(--accent);">PROVA</div>
+              <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:28px;">5</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat span-3">
+        <div class="label">Alunos</div>
+        <div class="val" id="stat-total">0</div>
+      </div>
+      <div class="stat span-3">
+        <div class="label">Média Anglo</div>
+        <div class="val" id="stat-anglo">0<span class="it">.0</span></div>
+      </div>
+      <div class="stat span-3">
+        <div class="label">Média Prova</div>
+        <div class="val" id="stat-prova">0<span class="it">.0</span></div>
+      </div>
+      <div class="stat span-3" style="background:var(--green-deep);color:var(--paper);">
+        <div class="label" style="color:rgba(255,255,255,0.7);">Média Final PB</div>
+        <div class="val" id="stat-media">0<span class="it">.0</span></div>
+      </div>
+
+      <!-- Warning for non-PB subjects -->
+      <div class="span-12" id="warningBox" style="display:none;">
+        <div class="card" style="background:var(--amber);color:var(--paper);text-align:center;padding:40px;">
+          <h3 style="margin-bottom:8px;">Esta matéria não possui PB</h3>
+          <p style="opacity:0.8;">Somente Português e Produção de Texto utilizam Prova Bimestral.</p>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="span-12" id="tableContainer">
+        <div class="tbl-wrap">
+          <table class="editorial">
+            <thead>
+              <tr>
+                <th style="width:60px;">Nº</th>
+                <th>Nome</th>
+                <th style="text-align:center;width:120px;">Anglo (0-20)</th>
+                <th style="text-align:center;width:120px;">Prova (0-40)</th>
+                <th style="text-align:center;width:100px;">Média PB</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPB"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" style="text-align:center;padding:60px 20px;color:var(--muted);font-style:italic;">
+          Nenhum aluno cadastrado. Vá em <a href="alunos.html" style="color:var(--accent);">Alunos</a> para adicionar.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer"><span>Lidara © 2026</span><span>Sincronizado</span></footer>
 
   <script>
-    document.getElementById('app').innerHTML =
-      Components.sidebar('pb') +
-      '<div class="main-content">' +
-        Components.topbar('Prova Bimestral') +
-        '<div class="page-container">' +
-
-          // Formula card
-          '<div class="card" style="margin-bottom:20px;">' +
-            '<div class="card-body" style="padding:16px 20px;">' +
-              '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">' +
-                '<div>' +
-                  '<h3 style="font-size:0.85rem;font-weight:700;color:var(--dark);margin-bottom:4px;">F\u00f3rmula da Prova Bimestral</h3>' +
-                  '<p style="font-size:0.8rem;color:var(--gray-500);font-family:monospace;">M<sub>PB</sub> = (Anglo \u00d7 1 + Prova \u00d7 5) / 6</p>' +
-                  '<p style="font-size:0.7rem;color:var(--gray-400);margin-top:4px;">Notas normalizadas para 0-10 antes do c\u00e1lculo. Dispon\u00edvel apenas para Portugu\u00eas e Produ\u00e7\u00e3o de Texto.</p>' +
-                '</div>' +
-                '<div style="display:flex;gap:10px;">' +
-                  '<div style="text-align:center;padding:8px 14px;background:#DBEAFE;border-radius:10px;"><div style="font-size:0.65rem;color:#1D4ED8;font-weight:700;">ANGLO</div><div style="font-size:1.1rem;font-weight:800;color:#1D4ED8;">1</div></div>' +
-                  '<div style="text-align:center;padding:8px 14px;background:#FEE2E2;border-radius:10px;"><div style="font-size:0.65rem;color:#991B1B;font-weight:700;">PROVA</div><div style="font-size:1.1rem;font-weight:800;color:#991B1B;">5</div></div>' +
-                '</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-
-          // Warning / content area
-          '<div id="pbWarning"></div>' +
-          '<div id="pbContent"></div>' +
-
-        '</div>' +
-        Components.footer() +
-      '</div>';
-
-    initSelects();
-
-    function onContextChange() { render(); }
-
-    function onPBNotaBlur(tipo, alunoNumero, el) {
-      var ctx = getCurrentContext();
-      Store.setPBNota(ctx.turma, ctx.materia, ctx.bimestre, tipo, alunoNumero, el.value);
-      // Update normalized value inline
-      var pb = Store.getPB(ctx.turma, ctx.materia, ctx.bimestre);
-      var normSpan = document.getElementById('pbnorm-' + tipo + '-' + alunoNumero);
-      if (normSpan) {
-        var norm = Store.getPBNormalizada(pb[tipo], alunoNumero);
-        normSpan.textContent = norm.toFixed(1);
-        normSpan.style.color = norm >= 6 ? 'var(--green)' : norm > 0 ? 'var(--red)' : 'var(--gray-400)';
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('userName').textContent = user.displayName || user.email;
+        document.getElementById('userAvatar').textContent = (user.displayName || user.email || 'P').charAt(0).toUpperCase();
       }
-      // Update summary row
-      var summaryEl = document.getElementById('pb-summary-' + alunoNumero);
-      if (summaryEl) {
-        var media = Store.getPBMedia(ctx.turma, ctx.materia, ctx.bimestre, alunoNumero);
-        summaryEl.innerHTML = '<span class="badge ' + (media >= 6 ? 'badge-green' : 'badge-red') + '">' + media.toFixed(1) + '</span>';
-      }
-      // Update individual norm in summary
-      var summaryNormEl = document.getElementById('pb-snorm-' + tipo + '-' + alunoNumero);
-      if (summaryNormEl) {
-        var norm2 = Store.getPBNormalizada(pb[tipo], alunoNumero);
-        summaryNormEl.textContent = norm2.toFixed(1);
-      }
+    });
+
+    var settings = Store.getSettings();
+    document.getElementById('selectBimestre').innerHTML = Store.BIMESTRES.map(function(b) { return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>'; }).join('');
+    document.getElementById('selectTurma').innerHTML = Store.TURMAS.map(function(t) { return '<option value="' + t + '"' + (t === settings.turma ? ' selected' : '') + '>' + Store.formatTurma(t) + '</option>'; }).join('');
+    function updateMateriaSelect() {
+      var turma = document.getElementById('selectTurma').value;
+      document.getElementById('selectMateria').innerHTML = Store.getMaterias(turma).map(function(m) { return '<option value="' + m + '"' + (m === settings.materia ? ' selected' : '') + '>' + m + '</option>'; }).join('');
     }
+    updateMateriaSelect();
+    function handleBimestreChange() { settings.bimestre = document.getElementById('selectBimestre').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function handleTurmaChange() { settings.turma = document.getElementById('selectTurma').value; updateMateriaSelect(); Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function handleMateriaChange() { settings.materia = document.getElementById('selectMateria').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function getCurrentContext() { return { turma: document.getElementById('selectTurma').value, materia: document.getElementById('selectMateria').value, bimestre: document.getElementById('selectBimestre').value }; }
 
-    function onValorMaxChange(tipo, el) {
+    function updatePB(numero, field, value) {
       var ctx = getCurrentContext();
-      var val = parseFloat(el.value);
-      if (!val || val <= 0) return;
-      Store.setPBValorMax(ctx.turma, ctx.materia, ctx.bimestre, tipo, val);
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      var student = students.find(function(s) { return s.numero === numero; });
+      if (!student) return;
+      if (!student.pb) student.pb = { anglo: 0, prova: 0 };
+      student.pb[field] = parseFloat(value) || 0;
+      Store.setStudents(ctx.turma, ctx.materia, ctx.bimestre, students);
       render();
     }
 
-    function triggerPBCSV(tipo) {
-      var input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.csv,.txt';
-      input.onchange = function(e) {
-        var file = e.target.files[0];
-        if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function(ev) {
-          var ctx = getCurrentContext();
-          var count = Store.importPBCSV(ctx.turma, ctx.materia, ctx.bimestre, tipo, ev.target.result);
-          alert(count + ' nota(s) importada(s) com sucesso!');
-          render();
-        };
-        reader.readAsText(file);
-      };
-      input.click();
+    function calcPBMedia(s) {
+      if (!s.pb) return 0;
+      var angloNorm = (s.pb.anglo || 0) / 2;
+      var provaNorm = (s.pb.prova || 0) / 4;
+      return ((angloNorm * 1) + (provaNorm * 5)) / 6;
     }
 
-    function buildPBSection(tipo, label, pesoLabel, bgColor, textColor, pb, students) {
-      var pbTipo = pb[tipo];
-      var html = '';
-      html += '<div class="pb-section">';
-
-      // Header
-      html += '<div class="pb-section-head">';
-      html += '<div style="display:flex;align-items:center;gap:12px;">';
-      html += '<span style="font-weight:700;color:var(--dark);font-size:0.95rem;">' + label + '</span>';
-      html += '<span class="peso-badge" style="background:' + bgColor + ';color:' + textColor + ';">Peso ' + pesoLabel + '</span>';
-      html += '</div>';
-      html += '<div style="display:flex;align-items:center;gap:12px;">';
-      html += '<div style="display:flex;align-items:center;gap:6px;">';
-      html += '<span style="font-size:0.75rem;font-weight:600;color:var(--gray-500);">Valor m\u00e1x:</span>';
-      html += '<input type="number" min="1" max="100" step="0.1" value="' + pbTipo.valorMax + '" ';
-      html += 'onblur="onValorMaxChange(\'' + tipo + '\',this)" class="editable-input" style="width:70px;" />';
-      html += '</div>';
-      html += '<button onclick="triggerPBCSV(\'' + tipo + '\')" class="csv-upload-btn" title="Importar CSV">';
-      html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>';
-      html += 'CSV</button>';
-      html += '</div>';
-      html += '</div>';
-
-      // Body
-      html += '<div class="pb-section-body">';
-      if (students.length === 0) {
-        html += '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Nenhum aluno cadastrado. Adicione alunos na aba Alunos.</p>';
-      } else {
-        html += '<div class="table-container"><table>';
-        html += '<thead><tr>';
-        html += '<th style="text-align:left;">N\u00ba</th>';
-        html += '<th style="text-align:left;">Nome</th>';
-        html += '<th style="text-align:center;">Nota (0 a ' + pbTipo.valorMax + ')</th>';
-        html += '<th style="text-align:center;">Normalizada (0-10)</th>';
-        html += '</tr></thead><tbody>';
-
-        students.forEach(function(s) {
-          var bruta = pbTipo.notas[s.numero] || 0;
-          var normalizada = Store.getPBNormalizada(pbTipo, s.numero);
-          var normColor = normalizada >= 6 ? 'color:var(--green);' : normalizada > 0 ? 'color:var(--red);' : 'color:var(--gray-400);';
-
-          html += '<tr>';
-          html += '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>';
-          html += '<td>' + s.nome + '</td>';
-          html += '<td style="text-align:center;">';
-          html += '<input type="number" step="0.1" min="0" max="' + pbTipo.valorMax + '" value="' + bruta + '" ';
-          html += 'onblur="onPBNotaBlur(\'' + tipo + '\',' + s.numero + ',this)" ';
-          html += 'class="editable-input" style="width:80px;" />';
-          html += '</td>';
-          html += '<td style="text-align:center;">';
-          html += '<span id="pbnorm-' + tipo + '-' + s.numero + '" style="font-weight:700;font-size:0.95rem;' + normColor + '">' + normalizada.toFixed(1) + '</span>';
-          html += '</td>';
-          html += '</tr>';
-        });
-
-        html += '</tbody></table></div>';
-      }
-      html += '</div>';
-      html += '</div>';
-      return html;
+    function buildRow(s) {
+      var media = calcPBMedia(s).toFixed(1);
+      var tagClass = parseFloat(media) >= 6 ? 'tag-green' : (parseFloat(media) >= 5 ? 'tag-amber' : 'tag-red');
+      return '<tr>' +
+        '<td class="num">' + s.numero + '</td>' +
+        '<td style="font-weight:500;">' + s.nome + '</td>' +
+        '<td style="text-align:center;"><input type="number" class="field-inline" style="width:70px;" min="0" max="20" step="0.5" value="' + ((s.pb && s.pb.anglo) || 0) + '" onchange="updatePB(' + s.numero + ',\'anglo\',this.value)"></td>' +
+        '<td style="text-align:center;"><input type="number" class="field-inline" style="width:70px;" min="0" max="40" step="0.5" value="' + ((s.pb && s.pb.prova) || 0) + '" onchange="updatePB(' + s.numero + ',\'prova\',this.value)"></td>' +
+        '<td style="text-align:center;"><span class="tag ' + tagClass + '">' + media + '</span></td>' +
+      '</tr>';
     }
 
     function render() {
       var ctx = getCurrentContext();
-      var warning = document.getElementById('pbWarning');
-      var content = document.getElementById('pbContent');
+      var hasPB = Store.MATERIAS_COM_PB.indexOf(ctx.materia) !== -1;
 
-      // Check if matéria has PB
-      if (!Store.hasPB(ctx.materia)) {
-        warning.innerHTML = '<div class="warning-box">' +
-          '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:40px;height:40px;margin:0 auto 12px;display:block;color:#92400E;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>' +
-          '<h3 style="font-size:1rem;font-weight:700;margin-bottom:8px;">Prova Bimestral n\u00e3o dispon\u00edvel para ' + ctx.materia + '</h3>' +
-          '<p style="font-size:0.85rem;">A Prova Bimestral \u00e9 aplicada apenas para <strong>Portugu\u00eas</strong> e <strong>Produ\u00e7\u00e3o de Texto</strong>.</p>' +
-          '<p style="font-size:0.8rem;margin-top:8px;">Para LEM, a m\u00e9dia \u00e9 calculada com: M = (Quali\u00d730 + VA\u00d735) / 65</p>' +
-          '</div>';
-        content.innerHTML = '';
-        return;
-      }
+      document.getElementById('warningBox').style.display = hasPB ? 'none' : '';
+      document.getElementById('tableContainer').style.display = hasPB ? '' : 'none';
 
-      warning.innerHTML = '';
-      var pb = Store.getPB(ctx.turma, ctx.materia, ctx.bimestre);
+      if (!hasPB) return;
+
       var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      var tbody = document.getElementById('tbodyPB');
+      var empty = document.getElementById('emptyState');
 
-      var html = '';
+      var totalAnglo = 0, totalProva = 0, totalMedia = 0;
+      students.forEach(function(s) {
+        totalAnglo += (s.pb && s.pb.anglo) || 0;
+        totalProva += (s.pb && s.pb.prova) || 0;
+        totalMedia += calcPBMedia(s);
+      });
 
-      // Anglo section
-      html += buildPBSection('anglo', 'Anglo', '1', '#DBEAFE', '#1D4ED8', pb, students);
+      var avgAnglo = students.length ? (totalAnglo / students.length / 2).toFixed(1) : '0.0';
+      var avgProva = students.length ? (totalProva / students.length / 4).toFixed(1) : '0.0';
+      var avgMedia = students.length ? (totalMedia / students.length).toFixed(1) : '0.0';
 
-      // Prova Bimestral section
-      html += buildPBSection('prova', 'Prova Bimestral', '5', '#FEE2E2', '#991B1B', pb, students);
+      document.getElementById('stat-total').textContent = students.length;
+      document.getElementById('stat-anglo').innerHTML = avgAnglo.split('.')[0] + '<span class="it">.' + avgAnglo.split('.')[1] + '</span>';
+      document.getElementById('stat-prova').innerHTML = avgProva.split('.')[0] + '<span class="it">.' + avgProva.split('.')[1] + '</span>';
+      document.getElementById('stat-media').innerHTML = avgMedia.split('.')[0] + '<span class="it">.' + avgMedia.split('.')[1] + '</span>';
 
-      // Summary table
-      if (students.length > 0) {
-        html += '<div class="card" style="margin-top:4px;">';
-        html += '<div class="card-header"><h3>Resumo \u2014 M\u00e9dia PB por Aluno</h3></div>';
-        html += '<div class="table-container"><table>';
-        html += '<thead><tr>';
-        html += '<th style="text-align:left;">N\u00ba</th>';
-        html += '<th style="text-align:left;">Nome</th>';
-        html += '<th style="text-align:center;font-size:0.7rem;">Anglo<br>(norm.)</th>';
-        html += '<th style="text-align:center;font-size:0.7rem;">Prova<br>(norm.)</th>';
-        html += '<th style="text-align:center;background:var(--dark);">M\u00e9dia PB</th>';
-        html += '</tr></thead><tbody>';
-
-        students.forEach(function(s) {
-          var angloNorm = Store.getPBNormalizada(pb.anglo, s.numero);
-          var provaNorm = Store.getPBNormalizada(pb.prova, s.numero);
-          var media = Store.getPBMedia(ctx.turma, ctx.materia, ctx.bimestre, s.numero);
-          var mColor = media >= 6 ? 'badge-green' : 'badge-red';
-
-          html += '<tr>';
-          html += '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>';
-          html += '<td>' + s.nome + '</td>';
-          html += '<td style="text-align:center;font-size:0.85rem;" id="pb-snorm-anglo-' + s.numero + '">' + angloNorm.toFixed(1) + '</td>';
-          html += '<td style="text-align:center;font-size:0.85rem;" id="pb-snorm-prova-' + s.numero + '">' + provaNorm.toFixed(1) + '</td>';
-          html += '<td style="text-align:center;" id="pb-summary-' + s.numero + '"><span class="badge ' + mColor + '">' + media.toFixed(1) + '</span></td>';
-          html += '</tr>';
-        });
-
-        html += '</tbody></table></div>';
-        html += '<p style="padding:12px 20px;font-size:0.72rem;color:var(--gray-400);">M\u00e9dia PB = (Anglo<sub>norm</sub> \u00d7 1 + Prova<sub>norm</sub> \u00d7 5) / 6</p>';
-        html += '</div>';
-      }
-
-      content.innerHTML = html;
+      if (students.length === 0) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+      empty.style.display = 'none';
+      tbody.innerHTML = students.map(buildRow).join('');
     }
 
     render();

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendário — Lidara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-header { padding: 12px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--green-deep); background: var(--paper-2); border-radius: 8px; }
+    .cal-day { min-height: 100px; padding: 10px; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); transition: all 0.15s; }
+    .cal-day:hover { border-color: var(--ink); }
+    .cal-day.other-month { opacity: 0.4; }
+    .cal-day.today { border-color: var(--accent); border-width: 2px; }
+    .cal-day .num { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 18px; margin-bottom: 6px; }
+    .cal-event { font-size: 10px; padding: 4px 8px; border-radius: 6px; margin-bottom: 4px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cal-event.prova { background: var(--accent); color: var(--paper); }
+    .cal-event.trabalho { background: var(--green-deep); color: var(--paper); }
+    .cal-event.reuniao { background: var(--ink); color: var(--paper); }
+    .cal-event.feriado { background: var(--amber); color: var(--paper); }
+    .bimestre-bar { display: flex; margin-bottom: 20px; }
+    .bimestre-seg { flex: 1; padding: 16px; text-align: center; border: 1px solid var(--ink); cursor: pointer; transition: all 0.15s; }
+    .bimestre-seg:first-child { border-radius: 12px 0 0 12px; }
+    .bimestre-seg:last-child { border-radius: 0 12px 12px 0; }
+    .bimestre-seg:not(:last-child) { border-right: none; }
+    .bimestre-seg.active { background: var(--ink); color: var(--paper); }
+    .bimestre-seg .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; opacity: 0.6; }
+    .bimestre-seg .dates { font-size: 12px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+
+  <div class="tape">
+    <div class="tape-track">
+      <span>Calendário Letivo</span><span>Organização Anual</span><span>Lidara</span>
+      <span>Calendário Letivo</span><span>Organização Anual</span><span>Lidara</span>
+    </div>
+  </div>
+
+  <nav class="app-nav">
+    <a href="../index.html" class="brand"><span class="brand-mark">Lidara</span><span class="brand-asterisk">✦</span></a>
+    <div class="app-nav-links">
+      <a href="dashboard.html" class="app-nav-link">Painel</a>
+      <a href="alunos.html" class="app-nav-link">Alunos</a>
+      <a href="caderneta.html" class="app-nav-link">Caderneta</a>
+      <a href="plano.html" class="app-nav-link">Plano de Aula</a>
+      <a href="calendario.html" class="app-nav-link active">Calendário</a>
+      <a href="boletim.html" class="app-nav-link">Boletim</a>
+      <a href="coordenacao.html" class="app-nav-link">Coordenação</a>
+    </div>
+    <div class="app-nav-right">
+      <button class="user-pill"><div class="user-avatar" id="userAvatar">P</div><span id="userName">Professor</span></button>
+    </div>
+  </nav>
+
+  <header class="page-head">
+    <div class="num">Gestão → Calendário</div>
+    <h1>Calendário <span class="it">Letivo</span></h1>
+    <p class="sub">Visualize e organize os eventos do ano letivo por bimestre.</p>
+  </header>
+
+  <main class="content">
+    <div class="grid-12">
+      <!-- Bimestre Bar -->
+      <div class="span-12">
+        <div class="bimestre-bar">
+          <div class="bimestre-seg active" onclick="setBimestre(1)">
+            <div class="label">1º BIMESTRE</div>
+            <div class="dates">Fev — Abr</div>
+          </div>
+          <div class="bimestre-seg" onclick="setBimestre(2)">
+            <div class="label">2º BIMESTRE</div>
+            <div class="dates">Abr — Jun</div>
+          </div>
+          <div class="bimestre-seg" onclick="setBimestre(3)">
+            <div class="label">3º BIMESTRE</div>
+            <div class="dates">Ago — Set</div>
+          </div>
+          <div class="bimestre-seg" onclick="setBimestre(4)">
+            <div class="label">4º BIMESTRE</div>
+            <div class="dates">Out — Dez</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Month Navigation -->
+      <div class="span-12" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <button class="btn btn-sec" onclick="prevMonth()">← Anterior</button>
+        <h2 id="monthLabel" style="font-family:'Inter Tight',sans-serif;font-size:28px;font-weight:700;letter-spacing:-0.02em;"></h2>
+        <button class="btn btn-sec" onclick="nextMonth()">Próximo →</button>
+      </div>
+
+      <!-- Calendar Grid -->
+      <div class="span-12">
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </div>
+
+      <!-- Legend & Add Event -->
+      <div class="card span-6">
+        <div class="card-num">→ Legenda</div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;">
+          <div style="display:flex;align-items:center;gap:8px;"><div style="width:16px;height:16px;border-radius:4px;background:var(--accent);"></div><span style="font-size:13px;">Prova</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><div style="width:16px;height:16px;border-radius:4px;background:var(--green-deep);"></div><span style="font-size:13px;">Trabalho/VA</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><div style="width:16px;height:16px;border-radius:4px;background:var(--ink);"></div><span style="font-size:13px;">Reunião</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><div style="width:16px;height:16px;border-radius:4px;background:var(--amber);"></div><span style="font-size:13px;">Feriado</span></div>
+        </div>
+      </div>
+
+      <div class="card span-6">
+        <div class="card-num">→ Adicionar Evento</div>
+        <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;">
+          <div class="field" style="flex:1;min-width:150px;margin-bottom:0;">
+            <label>Evento</label>
+            <input type="text" id="eventTitle" placeholder="Nome do evento">
+          </div>
+          <div class="field" style="width:130px;margin-bottom:0;">
+            <label>Data</label>
+            <input type="date" id="eventDate">
+          </div>
+          <div class="field" style="width:120px;margin-bottom:0;">
+            <label>Tipo</label>
+            <select id="eventType">
+              <option value="prova">Prova</option>
+              <option value="trabalho">Trabalho/VA</option>
+              <option value="reuniao">Reunião</option>
+              <option value="feriado">Feriado</option>
+            </select>
+          </div>
+          <button class="btn btn-pri" style="align-self:flex-end;" onclick="addEvent()">+</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer"><span>Lidara © 2026</span><span>Sincronizado</span></footer>
+
+  <script>
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('userName').textContent = user.displayName || user.email;
+        document.getElementById('userAvatar').textContent = (user.displayName || user.email || 'P').charAt(0).toUpperCase();
+      }
+    });
+
+    var currentMonth = new Date().getMonth();
+    var currentYear = new Date().getFullYear();
+    var currentBimestre = 1;
+    var MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    var DAYS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+
+    function getEvents() {
+      return JSON.parse(localStorage.getItem('calendario_eventos') || '[]');
+    }
+
+    function setEvents(events) {
+      localStorage.setItem('calendario_eventos', JSON.stringify(events));
+    }
+
+    function addEvent() {
+      var title = document.getElementById('eventTitle').value.trim();
+      var date = document.getElementById('eventDate').value;
+      var type = document.getElementById('eventType').value;
+      if (!title || !date) return alert('Preencha todos os campos.');
+      var events = getEvents();
+      events.push({ id: Date.now().toString(), title: title, date: date, type: type });
+      setEvents(events);
+      document.getElementById('eventTitle').value = '';
+      document.getElementById('eventDate').value = '';
+      render();
+    }
+
+    function deleteEvent(id) {
+      if (!confirm('Excluir este evento?')) return;
+      var events = getEvents().filter(function(e) { return e.id !== id; });
+      setEvents(events);
+      render();
+    }
+
+    function setBimestre(b) {
+      currentBimestre = b;
+      document.querySelectorAll('.bimestre-seg').forEach(function(el, i) {
+        el.className = 'bimestre-seg' + (i + 1 === b ? ' active' : '');
+      });
+      var monthMap = { 1: 1, 2: 3, 3: 7, 4: 9 };
+      currentMonth = monthMap[b];
+      render();
+    }
+
+    function prevMonth() {
+      currentMonth--;
+      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      render();
+    }
+
+    function nextMonth() {
+      currentMonth++;
+      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+      render();
+    }
+
+    function render() {
+      document.getElementById('monthLabel').textContent = MONTHS[currentMonth] + ' ' + currentYear;
+
+      var firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      var daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      var daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+      var today = new Date();
+      var events = getEvents();
+
+      var html = DAYS.map(function(d) { return '<div class="cal-header">' + d + '</div>'; }).join('');
+
+      var day = 1, nextDay = 1;
+      for (var i = 0; i < 42; i++) {
+        var isOtherMonth = false, dayNum;
+        if (i < firstDay) {
+          dayNum = daysInPrevMonth - firstDay + i + 1;
+          isOtherMonth = true;
+        } else if (day > daysInMonth) {
+          dayNum = nextDay++;
+          isOtherMonth = true;
+        } else {
+          dayNum = day++;
+        }
+
+        var dateStr = currentYear + '-' + String(currentMonth + 1).padStart(2, '0') + '-' + String(isOtherMonth ? (i < firstDay ? dayNum : dayNum) : dayNum).padStart(2, '0');
+        if (i < firstDay) {
+          var pm = currentMonth === 0 ? 11 : currentMonth - 1;
+          var py = currentMonth === 0 ? currentYear - 1 : currentYear;
+          dateStr = py + '-' + String(pm + 1).padStart(2, '0') + '-' + String(dayNum).padStart(2, '0');
+        } else if (day - 1 > daysInMonth) {
+          var nm = currentMonth === 11 ? 0 : currentMonth + 1;
+          var ny = currentMonth === 11 ? currentYear + 1 : currentYear;
+          dateStr = ny + '-' + String(nm + 1).padStart(2, '0') + '-' + String(dayNum).padStart(2, '0');
+        } else {
+          dateStr = currentYear + '-' + String(currentMonth + 1).padStart(2, '0') + '-' + String(dayNum).padStart(2, '0');
+        }
+
+        var isToday = !isOtherMonth && dayNum === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
+        var cls = 'cal-day' + (isOtherMonth ? ' other-month' : '') + (isToday ? ' today' : '');
+
+        var dayEvents = events.filter(function(e) { return e.date === dateStr; });
+        var eventsHtml = dayEvents.map(function(e) {
+          return '<div class="cal-event ' + e.type + '" onclick="deleteEvent(\'' + e.id + '\')" title="Clique para excluir">' + e.title + '</div>';
+        }).join('');
+
+        html += '<div class="' + cls + '"><div class="num">' + dayNum + '</div>' + eventsHtml + '</div>';
+
+        if (i >= 34 && day > daysInMonth) break;
+      }
+
+      document.getElementById('calendarGrid').innerHTML = html;
+    }
+
+    render();
+  </script>
+</body>
+</html>

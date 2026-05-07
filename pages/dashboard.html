@@ -1,149 +1,184 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — Lidara</title>
-  <link rel="stylesheet" href="../assets/css/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel — Lidara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <style>
-    .filter-btn { padding:8px 16px; border-radius:10px; font-size:0.78rem; font-weight:600; border:1px solid var(--gray-200); background:#fff; color:var(--gray-700); cursor:pointer; transition:all 0.15s; }
-    .filter-btn:hover { border-color:var(--green); color:var(--green); }
-    .filter-btn.active { background:var(--green); color:#fff; border-color:var(--green); }
-    .stat-highlight { background:linear-gradient(135deg, var(--dark), #007755); color:#fff; }
-    .stat-highlight .label { color:rgba(255,255,255,0.6); }
-    .stat-highlight .value { color:#fff; }
-    .filter-select { padding:8px 12px; border-radius:10px; font-size:0.78rem; font-weight:600; border:1px solid var(--gray-200); background:#fff; color:var(--gray-700); cursor:pointer; outline:none; transition:all 0.15s; }
-    .filter-select:focus { border-color:var(--green); }
+    .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+    .rank-item:last-child { border-bottom: none; }
+    .rank-left { display: flex; align-items: center; gap: 14px; }
+    .rank-medal { font-size: 20px; width: 32px; text-align: center; }
+    .rank-name { font-weight: 600; font-size: 14px; }
+    .rank-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .rank-val { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 20px; }
+    .rank-val.green { color: var(--green-deep); }
+    .rank-val.red { color: var(--red); }
+    .rank-val.amber { color: var(--amber); }
   </style>
 </head>
 <body>
   <script src="../assets/js/firebase-config.js"></script>
   <script src="../assets/js/store.js"></script>
-  <script src="../assets/js/components.js"></script>
   <script src="../assets/js/auth-guard.js"></script>
 
-  <div id="app" style="visibility:hidden;"></div>
+  <div class="tape">
+    <div class="tape-track">
+      <span>Painel do Professor</span><span>Ano Letivo 2026</span><span>Gestão de Notas</span><span>Lidara</span>
+      <span>Painel do Professor</span><span>Ano Letivo 2026</span><span>Gestão de Notas</span><span>Lidara</span>
+    </div>
+  </div>
+
+  <nav class="app-nav">
+    <a href="../index.html" class="brand"><span class="brand-mark">Lidara</span><span class="brand-asterisk">✦</span></a>
+    <div class="app-nav-links">
+      <a href="dashboard.html" class="app-nav-link active">Painel</a>
+      <a href="alunos.html" class="app-nav-link">Alunos</a>
+      <a href="negativos.html" class="app-nav-link">Negativos</a>
+      <a href="positivos.html" class="app-nav-link">Positivos</a>
+      <a href="pb.html" class="app-nav-link">PB</a>
+      <a href="va.html" class="app-nav-link">VA</a>
+      <a href="boletim.html" class="app-nav-link">Boletim</a>
+      <a href="coordenacao.html" class="app-nav-link">Coordenação</a>
+    </div>
+    <div class="app-nav-right">
+      <button class="user-pill" onclick="toggleUserMenu()">
+        <div class="user-avatar" id="userAvatar">P</div>
+        <span id="userName">Professor</span>
+      </button>
+      <div id="userMenu" style="display:none;position:absolute;top:60px;right:32px;background:var(--paper);border:1px solid var(--ink);border-radius:12px;padding:8px;z-index:200;">
+        <a href="configuracoes.html" style="display:block;padding:10px 16px;font-size:13px;border-radius:8px;">Configurações</a>
+        <a href="perfil.html" style="display:block;padding:10px 16px;font-size:13px;border-radius:8px;">Perfil</a>
+        <button onclick="doLogout()" style="display:block;width:100%;text-align:left;padding:10px 16px;font-size:13px;border-radius:8px;color:var(--red);">Sair</button>
+      </div>
+    </div>
+  </nav>
+
+  <header class="page-head">
+    <div class="num">Painel Principal</div>
+    <h1>Visão <span class="it">geral</span></h1>
+    <p class="sub">Acompanhe o desempenho das suas turmas em tempo real.</p>
+  </header>
+
+  <div class="filters">
+    <span class="filters-label">Filtros</span>
+    <div class="pill-select">
+      <select id="dashBimestre" onchange="onFilterChange()"></select>
+    </div>
+    <div class="pill-select">
+      <select id="salaDropdown" onchange="onSalaDropdownChange()">
+        <option value="">Todas as turmas</option>
+      </select>
+    </div>
+    <div style="flex:1;"></div>
+    <button class="btn btn-sec btn-sm" onclick="setFilter('geral','')" id="fbtn-geral">Visão Geral</button>
+  </div>
+
+  <main class="content">
+    <div class="grid-12">
+      <!-- Stats Row -->
+      <div class="stat span-3">
+        <div class="label">Total de Alunos</div>
+        <div class="val" id="c-total">0</div>
+      </div>
+      <div class="stat span-3">
+        <div class="label">Total Negativos</div>
+        <div class="val" style="color:var(--red);" id="c-negs">0</div>
+      </div>
+      <div class="stat span-3">
+        <div class="label">Média Geral</div>
+        <div class="val" id="c-media">0<span class="it">.0</span></div>
+      </div>
+      <div class="stat span-3" style="background:var(--ink);color:var(--paper);">
+        <div class="label" style="color:var(--accent);">Melhor Nota</div>
+        <div class="val" id="c-melhor">0<span class="it">.0</span></div>
+        <div class="delta" id="c-melhor-nome">—</div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="card span-5">
+        <div class="card-num">→ Aprovados vs Reprovados</div>
+        <div style="display:flex;justify-content:center;padding:20px 0;">
+          <div style="max-width:220px;width:100%;"><canvas id="chartDoughnut"></canvas></div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:24px;font-size:12px;">
+          <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--green-deep);"></span>Aprovados: <strong id="leg-ap">0</strong></span>
+          <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--red);"></span>Reprovados: <strong id="leg-rp">0</strong></span>
+        </div>
+      </div>
+      <div class="card span-7">
+        <div class="card-num">→ Distribuição de Médias</div>
+        <div style="padding:20px 0;"><canvas id="chartBar"></canvas></div>
+      </div>
+
+      <!-- Rankings Row -->
+      <div class="card span-6">
+        <div class="card-num">→ Top 5 — Melhores Notas</div>
+        <div id="rankMelhores" style="padding-top:10px;">
+          <p style="color:var(--muted);font-style:italic;font-size:13px;">Sem dados.</p>
+        </div>
+      </div>
+      <div class="card span-6">
+        <div class="card-num">→ Top 5 — Menos Negativos</div>
+        <div id="rankNegativos" style="padding-top:10px;">
+          <p style="color:var(--muted);font-style:italic;font-size:13px;">Sem dados.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <span>Lidara © 2026</span>
+    <span id="syncIndicator">Sincronizado</span>
+  </footer>
 
   <script>
+    function toggleUserMenu() {
+      var m = document.getElementById('userMenu');
+      m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+    function doLogout() {
+      firebase.auth().signOut().then(function() { window.location.href = 'login.html'; });
+    }
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('userName').textContent = user.displayName || user.email;
+        document.getElementById('userAvatar').textContent = (user.displayName || user.email || 'P').charAt(0).toUpperCase();
+      }
+    });
+
     var settings = Store.getSettings();
-    var bimOpts = Store.BIMESTRES.map(function(b) {
+    var bimEl = document.getElementById('dashBimestre');
+    bimEl.innerHTML = Store.BIMESTRES.map(function(b) {
       return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>';
     }).join('');
 
-    // Build sala dropdown options
-    var salaOpts = '<option value="">Escolha a sala...</option>' +
-      Store.TURMAS.map(function(t) {
-        return '<option value="' + t + '">' + t.replace(/(\d)(\w)/, '$1\u00ba$2') + '</option>';
-      }).join('');
-
-    document.getElementById('app').innerHTML =
-      Components.sidebar('dashboard') +
-      '<div class="main-content">' +
-        '<header class="topbar">' +
-          '<div style="display:flex;align-items:center;gap:12px;">' +
-            '<button class="hamburger" onclick="toggleSidebar()">' +
-              '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>' +
-            '</button>' +
-            '<div><h2 class="topbar-title">Dashboard</h2>' +
-            '<span style="font-size:0.65rem;color:var(--gray-400);font-weight:600;">Ano Letivo ' + Store.ANO_LETIVO + '</span></div>' +
-          '</div>' +
-          '<div class="topbar-controls">' +
-            '<div class="topbar-select">' +
-              '<label>Bimestre</label>' +
-              '<select id="dashBimestre" onchange="onFilterChange()">' + bimOpts + '</select>' +
-            '</div>' +
-          '</div>' +
-        '</header>' +
-        '<div class="page-container">' +
-
-          '<div class="card" style="margin-bottom:20px;">' +
-            '<div class="card-body" style="padding:16px 20px;">' +
-              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
-                '<span style="font-size:0.72rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-right:8px;">Filtro:</span>' +
-                '<button class="filter-btn active" onclick="setFilter(\'geral\',\'\')" id="fbtn-geral">Geral</button>' +
-                '<select class="filter-select" id="salaDropdown" onchange="onSalaDropdownChange()">' + salaOpts + '</select>' +
-              '</div>' +
-              '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;">' +
-                '<span style="font-size:0.72rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-right:8px;">Por Ano:</span>' +
-                '<button class="filter-btn" onclick="setFilter(\'ano\',\'6\')" id="fbtn-ano-6">6\u00ba Ano</button>' +
-                '<button class="filter-btn" onclick="setFilter(\'ano\',\'8\')" id="fbtn-ano-8">8\u00ba Ano</button>' +
-                '<button class="filter-btn" onclick="setFilter(\'ano\',\'9\')" id="fbtn-ano-9">9\u00ba Ano</button>' +
-                '<span style="font-size:0.72rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.05em;margin-left:16px;margin-right:8px;">Por Mat\u00e9ria:</span>' +
-                Store.getAllMaterias().map(function(m) {
-                  return '<button class="filter-btn" onclick="setFilter(\'materia\',\'' + m + '\')" id="fbtn-materia-' + m.replace(/\s/g,'_') + '">' + m + '</button>';
-                }).join('') +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-
-          '<div class="summary-grid" style="grid-template-columns:repeat(5,1fr);">' +
-            '<div class="summary-card"><div class="label">Total de Alunos</div><div class="value dark" id="c-total">0</div></div>' +
-            '<div class="summary-card"><div class="label">Total Negativos</div><div class="value red" id="c-negs">0</div></div>' +
-            '<div class="summary-card"><div class="label">M\u00e9dia Geral</div><div class="value green" id="c-media">0.0</div></div>' +
-            '<div class="summary-card"><div class="label">Abaixo da M\u00e9dia</div><div class="value orange" id="c-abaixo">0</div></div>' +
-            '<div class="summary-card stat-highlight"><div class="label">Melhor Nota</div><div class="value" id="c-melhor">0.0</div><div style="font-size:0.7rem;opacity:0.7;margin-top:2px;" id="c-melhor-nome">\u2014</div></div>' +
-          '</div>' +
-
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">' +
-            '<div class="card"><div class="card-header"><h3>Aprovados vs Reprovados</h3></div>' +
-              '<div class="card-body" style="display:flex;justify-content:center;"><div style="max-width:260px;width:100%;"><canvas id="chartDoughnut"></canvas></div></div>' +
-              '<div style="display:flex;justify-content:center;gap:24px;padding:0 20px 16px;font-size:0.75rem;font-weight:600;">' +
-                '<span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block;"></span>Aprovados: <span id="leg-ap">0</span></span>' +
-                '<span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#F87171;display:inline-block;"></span>Reprovados: <span id="leg-rp">0</span></span>' +
-              '</div>' +
-            '</div>' +
-            '<div class="card"><div class="card-header"><h3>Distribui\u00e7\u00e3o de M\u00e9dias</h3></div>' +
-              '<div class="card-body"><canvas id="chartBar"></canvas></div>' +
-            '</div>' +
-          '</div>' +
-
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">' +
-            '<div class="card"><div class="card-header"><h3>Top 5 \u2014 Melhores Notas</h3></div>' +
-              '<div class="card-body" id="rankMelhores"><p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p></div></div>' +
-            '<div class="card"><div class="card-header"><h3>Top 5 \u2014 Menos Negativos</h3></div>' +
-              '<div class="card-body" id="rankNegativos"><p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p></div></div>' +
-          '</div>' +
-
-        '</div>' +
-        Components.footer() +
-      '</div>';
+    var salaEl = document.getElementById('salaDropdown');
+    salaEl.innerHTML = '<option value="">Todas as turmas</option>' + Store.TURMAS.map(function(t) {
+      return '<option value="' + t + '">' + Store.formatTurma(t) + '</option>';
+    }).join('');
 
     var currentFilter = { mode: 'geral', value: '', bimestre: settings.bimestre || '1' };
-    var chartDoughnut = null;
-    var chartBar = null;
+    var chartDoughnut = null, chartBar = null;
 
     function setFilter(mode, value) {
       currentFilter.mode = mode;
       currentFilter.value = value;
-      // Reset all filter buttons
-      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
-      // Reset sala dropdown
       document.getElementById('salaDropdown').value = '';
-
-      var id = '';
-      if (mode === 'geral') id = 'fbtn-geral';
-      else if (mode === 'ano') id = 'fbtn-ano-' + value;
-      else if (mode === 'materia') id = 'fbtn-materia-' + value.replace(/\s/g,'_');
-      var el = document.getElementById(id);
-      if (el) el.classList.add('active');
       render();
     }
 
     function onSalaDropdownChange() {
       var val = document.getElementById('salaDropdown').value;
-      if (!val) {
-        setFilter('geral', '');
-        return;
-      }
-      currentFilter.mode = 'sala';
+      currentFilter.mode = val ? 'sala' : 'geral';
       currentFilter.value = val;
-      // Reset all filter buttons
-      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
       render();
     }
 
@@ -153,34 +188,27 @@
     }
 
     function buildRankItem(item, idx, field) {
-      var medals = ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49', '4\u00ba', '5\u00ba'];
-      var valueText = field === 'media' ? item.media.toFixed(1) : item.negativos + ' neg.';
-      var valueColor = field === 'media'
-        ? (item.media >= 6 ? 'color:var(--green);' : 'color:var(--red);')
-        : (item.negativos === 0 ? 'color:var(--green);' : 'color:var(--orange);');
-      return '<div class="ranking-item" style="margin-bottom:8px;">' +
-        '<div class="left"><span class="medal">' + medals[idx] + '</span>' +
-          '<div><div class="name">' + item.nome + '</div><div class="sub">' + (item.turma || '') + ' \u2014 ' + (item.materia || '') + '</div></div>' +
-        '</div>' +
-        '<span style="font-weight:700;font-size:0.85rem;' + valueColor + '">' + valueText + '</span></div>';
+      var medals = ['🥇', '🥈', '🥉', '4º', '5º'];
+      var val = field === 'media' ? item.media.toFixed(1) : item.negativos;
+      var cls = field === 'media' ? (item.media >= 6 ? 'green' : 'red') : (item.negativos === 0 ? 'green' : 'amber');
+      return '<div class="rank-item"><div class="rank-left"><span class="rank-medal">' + medals[idx] + '</span><div><div class="rank-name">' + item.nome + '</div><div class="rank-sub">' + (item.turma || '') + ' — ' + (item.materia || '') + '</div></div></div><span class="rank-val ' + cls + '">' + val + '</span></div>';
     }
 
     function render() {
       var stats = Store.getFilteredStats(currentFilter);
       document.getElementById('c-total').textContent = stats.totalAlunos;
       document.getElementById('c-negs').textContent = stats.totalNegativos;
-      document.getElementById('c-media').textContent = stats.media;
-      document.getElementById('c-abaixo').textContent = stats.abaixo;
-      document.getElementById('c-melhor').textContent = stats.melhorNota.toFixed(1);
-      document.getElementById('c-melhor-nome').textContent = stats.melhorAluno ? stats.melhorAluno.nome : '\u2014';
+      document.getElementById('c-media').innerHTML = Math.floor(stats.media) + '<span class="it">.' + (stats.media % 1).toFixed(1).slice(2) + '</span>';
+      document.getElementById('c-melhor').innerHTML = Math.floor(stats.melhorNota) + '<span class="it">.' + (stats.melhorNota % 1).toFixed(1).slice(2) + '</span>';
+      document.getElementById('c-melhor-nome').textContent = stats.melhorAluno ? stats.melhorAluno.nome : '—';
       document.getElementById('leg-ap').textContent = stats.aprovados;
       document.getElementById('leg-rp').textContent = stats.abaixo;
 
       if (chartDoughnut) chartDoughnut.destroy();
       chartDoughnut = new Chart(document.getElementById('chartDoughnut'), {
         type: 'doughnut',
-        data: { labels: ['Aprovados', 'Reprovados'], datasets: [{ data: [stats.aprovados, stats.abaixo], backgroundColor: ['#11C76F', '#F87171'], borderWidth: 0, hoverOffset: 8 }] },
-        options: { cutout: '65%', responsive: true, plugins: { legend: { display: false } } },
+        data: { labels: ['Aprovados', 'Reprovados'], datasets: [{ data: [stats.aprovados, stats.abaixo], backgroundColor: ['#14543a', '#c83a2e'], borderWidth: 0, hoverOffset: 8 }] },
+        options: { cutout: '65%', responsive: true, plugins: { legend: { display: false } } }
       });
 
       var filtered = Store.getFilteredStudents(currentFilter);
@@ -196,19 +224,15 @@
       if (chartBar) chartBar.destroy();
       chartBar = new Chart(document.getElementById('chartBar'), {
         type: 'bar',
-        data: { labels: Object.keys(ranges), datasets: [{ label: 'Alunos', data: Object.values(ranges), backgroundColor: ['#FCA5A5', '#FDBA74', '#FDE68A', '#86EFAC', '#11C76F'], borderRadius: 6, borderSkipped: false }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } },
+        data: { labels: Object.keys(ranges), datasets: [{ data: Object.values(ranges), backgroundColor: ['#c83a2e', '#d4892a', '#d4892a', '#2c8a55', '#14543a'], borderRadius: 6 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
       });
 
       var rm = document.getElementById('rankMelhores');
-      rm.innerHTML = stats.topMelhores.length > 0
-        ? stats.topMelhores.map(function(item, i) { return buildRankItem(item, i, 'media'); }).join('')
-        : '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p>';
+      rm.innerHTML = stats.topMelhores.length > 0 ? stats.topMelhores.map(function(item, i) { return buildRankItem(item, i, 'media'); }).join('') : '<p style="color:var(--muted);font-style:italic;font-size:13px;">Sem dados.</p>';
 
       var rn = document.getElementById('rankNegativos');
-      rn.innerHTML = stats.topMenosNegativos.length > 0
-        ? stats.topMenosNegativos.map(function(item, i) { return buildRankItem(item, i, 'negativos'); }).join('')
-        : '<p style="color:var(--gray-400);font-style:italic;font-size:0.85rem;">Sem dados.</p>';
+      rn.innerHTML = stats.topMenosNegativos.length > 0 ? stats.topMenosNegativos.map(function(item, i) { return buildRankItem(item, i, 'negativos'); }).join('') : '<p style="color:var(--muted);font-style:italic;font-size:13px;">Sem dados.</p>';
     }
 
     render();

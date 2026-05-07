@@ -1,124 +1,149 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login — Lidara</title>
-  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
   <style>
-    body { background: var(--bg); display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; }
-    .login-container { width:100%; max-width:420px; padding:20px; }
-    .login-card {
-      background:#fff; border-radius:var(--radius-lg); box-shadow:var(--shadow-lg);
-      padding:40px 32px; text-align:center;
+    body { display: flex; min-height: 100vh; }
+
+    .login-left {
+      flex: 1;
+      background: var(--ink);
+      color: var(--paper);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
     }
-    .login-logo {
-      width:72px; height:72px; background:var(--green); border-radius:20px;
-      display:inline-flex; align-items:center; justify-content:center;
-      margin-bottom:20px; box-shadow:0 8px 30px rgba(17,199,111,0.3);
+    .login-left::before {
+      content: "✦";
+      position: absolute;
+      right: -80px;
+      bottom: -80px;
+      font-family: 'Instrument Serif', serif;
+      font-size: 400px;
+      color: var(--accent);
+      opacity: 0.15;
+      pointer-events: none;
     }
-    .login-logo span { font-size:2rem; font-weight:900; color:#fff; }
-    .login-card h1 { font-size:1.8rem; font-weight:900; color:var(--dark); margin:0 0 4px; letter-spacing:-0.03em; }
-    .login-card p.sub { font-size:0.85rem; color:var(--gray-400); margin:0 0 28px; font-weight:500; }
-    .login-tabs {
-      display:flex; background:var(--gray-100); border-radius:10px; padding:4px; margin-bottom:24px;
+    .login-brand { font-family: 'Instrument Serif', serif; font-size: 32px; font-style: italic; display: flex; align-items: baseline; gap: 4px; }
+    .login-brand .star { font-size: 18px; color: var(--accent); }
+    .login-tagline { max-width: 400px; }
+    .login-tagline h1 { font-family: 'Inter Tight', sans-serif; font-size: clamp(36px, 5vw, 56px); font-weight: 700; line-height: 1; letter-spacing: -0.03em; margin-bottom: 20px; }
+    .login-tagline h1 .it { color: var(--accent); }
+    .login-tagline p { font-size: 15px; opacity: 0.6; line-height: 1.6; }
+    .login-footer { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.4; }
+
+    .login-right {
+      width: 480px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px;
+      background: var(--paper);
     }
-    .login-tab {
-      flex:1; padding:10px; border:none; background:transparent; border-radius:8px;
-      font-weight:700; font-size:0.85rem; color:var(--gray-400); cursor:pointer; transition:all 0.2s;
-    }
-    .login-tab.active { background:#fff; color:var(--dark); box-shadow:var(--shadow-sm); }
-    .login-field { margin-bottom:16px; text-align:left; }
-    .login-field label { display:block; font-size:0.78rem; font-weight:700; color:var(--gray-500); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em; }
-    .login-field input {
-      width:100%; padding:12px 14px; border:2px solid var(--gray-200); border-radius:10px;
-      font-size:0.95rem; font-weight:500; outline:none; transition:border-color 0.2s;
-      box-sizing:border-box;
-    }
-    .login-field input:focus { border-color:var(--green); }
-    .login-btn {
-      width:100%; padding:14px; border:none; border-radius:10px;
-      background:var(--green); color:#fff; font-size:1rem; font-weight:800;
-      cursor:pointer; transition:background 0.2s; margin-top:8px;
-    }
-    .login-btn:hover { background:var(--green-hover); }
-    .login-btn:disabled { opacity:0.6; cursor:not-allowed; }
-    .login-error {
-      background:#FEF2F2; color:var(--red); padding:10px 14px; border-radius:8px;
-      font-size:0.8rem; font-weight:600; margin-bottom:16px; display:none;
-    }
-    .login-success {
-      background:var(--light); color:var(--dark); padding:10px 14px; border-radius:8px;
-      font-size:0.8rem; font-weight:600; margin-bottom:16px; display:none;
+    .login-right h2 { font-family: 'Inter Tight', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .login-right .sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+
+    .login-tabs { display: flex; background: var(--paper-2); border-radius: 12px; padding: 4px; margin-bottom: 28px; }
+    .login-tab { flex: 1; padding: 10px 16px; border: none; background: none; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+    .login-tab.active { background: var(--paper); color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+    .login-error { background: rgba(200,58,46,0.1); color: var(--red); padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; margin-bottom: 20px; display: none; border: 1px solid var(--red); }
+    .login-success { background: rgba(44,138,85,0.1); color: var(--green-deep); padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; margin-bottom: 20px; display: none; border: 1px solid var(--green-deep); }
+
+    .login-copy { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; margin-top: 32px; }
+
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .login-left { min-height: 200px; padding: 30px; }
+      .login-left::before { font-size: 200px; right: -40px; bottom: -40px; }
+      .login-tagline h1 { font-size: 28px; }
+      .login-right { width: 100%; padding: 40px 24px; }
     }
   </style>
 </head>
 <body>
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="../assets/js/firebase-config.js"></script>
 
-  <div class="login-container">
-    <div class="login-card">
-      <div class="login-logo"><span>L</span></div>
-      <h1>Lidara</h1>
-      <p class="sub">Sistema de Gestão Escolar</p>
-
-      <div class="login-tabs">
-        <button class="login-tab active" onclick="switchTab('login')">Entrar</button>
-        <button class="login-tab" onclick="switchTab('register')">Cadastrar</button>
-      </div>
-
-      <div id="errorMsg" class="login-error"></div>
-      <div id="successMsg" class="login-success"></div>
-
-      <!-- Login Form -->
-      <div id="loginForm">
-        <div class="login-field">
-          <label>E-mail</label>
-          <input type="email" id="loginEmail" placeholder="seu@email.com" />
-        </div>
-        <div class="login-field">
-          <label>Senha</label>
-          <input type="password" id="loginPassword" placeholder="Sua senha" />
-        </div>
-        <button class="login-btn" onclick="doLogin()" id="btnLogin">Entrar</button>
-      </div>
-
-      <!-- Register Form -->
-      <div id="registerForm" style="display:none;">
-        <div class="login-field">
-          <label>Nome de Usuário</label>
-          <input type="text" id="regUsername" placeholder="Professor Silva" />
-        </div>
-        <div class="login-field">
-          <label>E-mail</label>
-          <input type="email" id="regEmail" placeholder="seu@email.com" />
-        </div>
-        <div class="login-field">
-          <label>Senha</label>
-          <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" />
-        </div>
-        <div class="login-field">
-          <label>Confirmar Senha</label>
-          <input type="password" id="regPasswordConfirm" placeholder="Repita a senha" />
-        </div>
-        <button class="login-btn" onclick="doRegister()" id="btnRegister">Criar Conta</button>
-      </div>
-
-      <p style="margin-top:20px;font-size:0.75rem;color:var(--gray-400);">Lidara &copy; 2026</p>
+  <div class="login-left">
+    <a href="../index.html" class="login-brand"><span>Lidara</span><span class="star">✦</span></a>
+    <div class="login-tagline">
+      <h1>Gestão escolar <span class="it">simplificada</span></h1>
+      <p>Registre notas, acompanhe positivos e negativos, gere boletins — tudo sincronizado em tempo real.</p>
     </div>
+    <div class="login-footer">Sistema de Gestão Escolar</div>
+  </div>
+
+  <div class="login-right">
+    <h2>Bem-vindo</h2>
+    <p class="sub">Entre na sua conta ou crie uma nova</p>
+
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchTab('login')">Entrar</button>
+      <button class="login-tab" onclick="switchTab('register')">Cadastrar</button>
+    </div>
+
+    <div id="errorMsg" class="login-error"></div>
+    <div id="successMsg" class="login-success"></div>
+
+    <!-- Login Form -->
+    <div id="loginForm">
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" id="loginEmail" placeholder="seu@email.com">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="loginPassword" placeholder="Sua senha">
+      </div>
+      <button class="btn btn-pri" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="doLogin()" id="btnLogin">Entrar</button>
+    </div>
+
+    <!-- Register Form -->
+    <div id="registerForm" style="display: none;">
+      <div class="field">
+        <label>Nome de Usuário</label>
+        <input type="text" id="regUsername" placeholder="Professor Silva">
+      </div>
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" id="regEmail" placeholder="seu@email.com">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="field">
+        <label>Confirmar Senha</label>
+        <input type="password" id="regPasswordConfirm" placeholder="Repita a senha">
+      </div>
+      <button class="btn btn-pri" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="doRegister()" id="btnRegister">Criar Conta</button>
+    </div>
+
+    <p class="login-copy">Lidara © 2026</p>
   </div>
 
   <script>
-    // Check if already logged in
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
-        window.location.href = '../index.html';
+        window.location.href = 'dashboard.html';
       }
     });
+
+    // Check URL hash for tab
+    if (window.location.hash === '#cadastro') {
+      switchTab('register');
+    }
 
     function switchTab(tab) {
       var tabs = document.querySelectorAll('.login-tab');
@@ -173,11 +198,9 @@
 
       firebase.auth().signInWithEmailAndPassword(email, password)
         .then(function(result) {
-          console.log('Login success:', result.user.email);
-          window.location.href = '../index.html';
+          window.location.href = 'dashboard.html';
         })
         .catch(function(err) {
-          console.error('Login error:', err);
           showError(translateError(err.code));
           btn.disabled = false;
           btn.textContent = 'Entrar';
@@ -199,15 +222,9 @@
       btn.disabled = true;
       btn.textContent = 'Criando conta...';
 
-      console.log('Starting registration for:', email);
-
       firebase.auth().createUserWithEmailAndPassword(email, password)
         .then(function(result) {
-          console.log('User created:', result.user.uid);
-          // Update display name
           return result.user.updateProfile({ displayName: username }).then(function() {
-            console.log('Profile updated with username:', username);
-            // Save to Firestore
             return db.collection('users').doc(result.user.uid).set({
               username: username,
               email: email,
@@ -216,21 +233,18 @@
           });
         })
         .then(function() {
-          console.log('User data saved to Firestore');
           showSuccess('Conta criada com sucesso! Redirecionando...');
           setTimeout(function() {
-            window.location.href = '../index.html';
+            window.location.href = 'setup.html';
           }, 1000);
         })
         .catch(function(err) {
-          console.error('Register error:', err);
           showError(translateError(err.code));
           btn.disabled = false;
           btn.textContent = 'Criar Conta';
         });
     }
 
-    // Enter key support
     document.getElementById('loginPassword').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
     document.getElementById('loginEmail').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
     document.getElementById('regPasswordConfirm').addEventListener('keydown', function(e) { if (e.key === 'Enter') doRegister(); });

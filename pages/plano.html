@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plano de Aula — Lidara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    .plano-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+    .aula-list { display: flex; flex-direction: column; gap: 8px; }
+    .aula-item { padding: 14px 16px; border: 1px solid var(--rule); border-radius: 12px; cursor: pointer; transition: all 0.15s; }
+    .aula-item:hover { border-color: var(--ink); }
+    .aula-item.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .aula-item .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; opacity: 0.6; }
+    .aula-item .title { font-weight: 600; font-size: 14px; margin-top: 4px; }
+    .aula-item .date { font-size: 12px; opacity: 0.6; margin-top: 2px; }
+    .editor-area { min-height: 400px; }
+    .editor-area textarea { width: 100%; min-height: 300px; padding: 20px; border: 1px solid var(--ink); border-radius: 12px; font-family: 'Instrument Serif', serif; font-style: italic; font-size: 16px; line-height: 1.8; resize: vertical; background: var(--paper); }
+    .editor-area textarea:focus { outline: none; border-color: var(--accent); }
+    @media (max-width: 900px) { .plano-layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+
+  <div class="tape">
+    <div class="tape-track">
+      <span>Plano de Aula</span><span>Planejamento Pedagógico</span><span>Lidara</span>
+      <span>Plano de Aula</span><span>Planejamento Pedagógico</span><span>Lidara</span>
+    </div>
+  </div>
+
+  <nav class="app-nav">
+    <a href="../index.html" class="brand"><span class="brand-mark">Lidara</span><span class="brand-asterisk">✦</span></a>
+    <div class="app-nav-links">
+      <a href="dashboard.html" class="app-nav-link">Painel</a>
+      <a href="alunos.html" class="app-nav-link">Alunos</a>
+      <a href="caderneta.html" class="app-nav-link">Caderneta</a>
+      <a href="plano.html" class="app-nav-link active">Plano de Aula</a>
+      <a href="calendario.html" class="app-nav-link">Calendário</a>
+      <a href="boletim.html" class="app-nav-link">Boletim</a>
+      <a href="coordenacao.html" class="app-nav-link">Coordenação</a>
+    </div>
+    <div class="app-nav-right">
+      <button class="user-pill"><div class="user-avatar" id="userAvatar">P</div><span id="userName">Professor</span></button>
+    </div>
+  </nav>
+
+  <header class="page-head">
+    <div class="num">Gestão → Plano de Aula</div>
+    <h1>Plano de <span class="it">Aula</span></h1>
+    <p class="sub">Organize o conteúdo de cada aula. Selecione uma aula na lista e edite o plano.</p>
+  </header>
+
+  <div class="filters">
+    <span class="filters-label">Filtros</span>
+    <div class="pill-select"><select id="selectBimestre" onchange="handleBimestreChange()"></select></div>
+    <div class="pill-select"><select id="selectTurma" onchange="handleTurmaChange()"></select></div>
+    <div class="pill-select"><select id="selectMateria" onchange="handleMateriaChange()"></select></div>
+    <div style="flex:1;"></div>
+    <button class="btn btn-pri btn-sm" onclick="addAula()">+ Nova Aula</button>
+  </div>
+
+  <main class="content">
+    <div class="plano-layout">
+      <!-- Aulas Sidebar -->
+      <div>
+        <div class="card">
+          <div class="card-num">→ Aulas do Bimestre</div>
+          <div id="aulaList" class="aula-list" style="margin-top:16px;"></div>
+          <div id="emptyAulas" style="text-align:center;padding:30px 10px;color:var(--muted);font-style:italic;font-size:13px;">
+            Nenhuma aula criada. Clique em "+ Nova Aula".
+          </div>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <div>
+        <div class="card editor-area" id="editorCard" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div>
+              <div class="card-num" id="editorNum">→ Aula 1</div>
+              <input type="text" id="editorTitle" placeholder="Título da aula" style="border:none;font-size:20px;font-weight:600;background:transparent;width:100%;margin-top:8px;outline:none;">
+            </div>
+            <button class="btn btn-sm" style="background:rgba(200,58,46,0.1);color:var(--red);border-color:transparent;" onclick="deleteAula()">Excluir</button>
+          </div>
+          <div class="field" style="margin-bottom:16px;">
+            <label>Data da Aula</label>
+            <input type="date" id="editorDate">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Conteúdo / Objetivos</label>
+            <textarea id="editorContent" placeholder="Descreva o conteúdo, objetivos e atividades da aula..."></textarea>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:20px;">
+            <button class="btn btn-pri" onclick="saveAula()">Salvar Alterações</button>
+          </div>
+        </div>
+        <div id="noSelection" class="card" style="text-align:center;padding:80px 20px;color:var(--muted);">
+          <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:48px;margin-bottom:16px;">✎</div>
+          <p>Selecione uma aula na lista ou crie uma nova.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer"><span>Lidara © 2026</span><span>Sincronizado</span></footer>
+
+  <script>
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('userName').textContent = user.displayName || user.email;
+        document.getElementById('userAvatar').textContent = (user.displayName || user.email || 'P').charAt(0).toUpperCase();
+      }
+    });
+
+    var settings = Store.getSettings();
+    document.getElementById('selectBimestre').innerHTML = Store.BIMESTRES.map(function(b) { return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>'; }).join('');
+    document.getElementById('selectTurma').innerHTML = Store.TURMAS.map(function(t) { return '<option value="' + t + '"' + (t === settings.turma ? ' selected' : '') + '>' + Store.formatTurma(t) + '</option>'; }).join('');
+    function updateMateriaSelect() {
+      var turma = document.getElementById('selectTurma').value;
+      document.getElementById('selectMateria').innerHTML = Store.getMaterias(turma).map(function(m) { return '<option value="' + m + '"' + (m === settings.materia ? ' selected' : '') + '>' + m + '</option>'; }).join('');
+    }
+    updateMateriaSelect();
+    function handleBimestreChange() { settings.bimestre = document.getElementById('selectBimestre').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); selectedAula = null; render(); }
+    function handleTurmaChange() { settings.turma = document.getElementById('selectTurma').value; updateMateriaSelect(); Store.saveSettings(settings.turma, settings.materia, settings.bimestre); selectedAula = null; render(); }
+    function handleMateriaChange() { settings.materia = document.getElementById('selectMateria').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); selectedAula = null; render(); }
+    function getCurrentContext() { return { turma: document.getElementById('selectTurma').value, materia: document.getElementById('selectMateria').value, bimestre: document.getElementById('selectBimestre').value }; }
+
+    var selectedAula = null;
+
+    function getAulas() {
+      var ctx = getCurrentContext();
+      var key = 'planos_' + ctx.turma + '_' + ctx.materia + '_' + ctx.bimestre;
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    }
+
+    function setAulas(aulas) {
+      var ctx = getCurrentContext();
+      var key = 'planos_' + ctx.turma + '_' + ctx.materia + '_' + ctx.bimestre;
+      localStorage.setItem(key, JSON.stringify(aulas));
+    }
+
+    function addAula() {
+      var aulas = getAulas();
+      var newAula = { id: Date.now().toString(), num: aulas.length + 1, title: 'Aula ' + (aulas.length + 1), date: '', content: '' };
+      aulas.push(newAula);
+      setAulas(aulas);
+      selectedAula = newAula.id;
+      render();
+    }
+
+    function selectAula(id) {
+      selectedAula = id;
+      render();
+    }
+
+    function deleteAula() {
+      if (!confirm('Excluir esta aula?')) return;
+      var aulas = getAulas().filter(function(a) { return a.id !== selectedAula; });
+      aulas.forEach(function(a, i) { a.num = i + 1; });
+      setAulas(aulas);
+      selectedAula = null;
+      render();
+    }
+
+    function saveAula() {
+      var aulas = getAulas();
+      var aula = aulas.find(function(a) { return a.id === selectedAula; });
+      if (!aula) return;
+      aula.title = document.getElementById('editorTitle').value.trim() || 'Aula ' + aula.num;
+      aula.date = document.getElementById('editorDate').value;
+      aula.content = document.getElementById('editorContent').value;
+      setAulas(aulas);
+      alert('Aula salva com sucesso!');
+      render();
+    }
+
+    function render() {
+      var aulas = getAulas();
+      var list = document.getElementById('aulaList');
+      var empty = document.getElementById('emptyAulas');
+      var editor = document.getElementById('editorCard');
+      var noSel = document.getElementById('noSelection');
+
+      if (aulas.length === 0) {
+        list.innerHTML = '';
+        empty.style.display = '';
+      } else {
+        empty.style.display = 'none';
+        list.innerHTML = aulas.map(function(a) {
+          var cls = a.id === selectedAula ? 'aula-item active' : 'aula-item';
+          return '<div class="' + cls + '" onclick="selectAula(\'' + a.id + '\')">' +
+            '<div class="num">AULA ' + String(a.num).padStart(2, '0') + '</div>' +
+            '<div class="title">' + a.title + '</div>' +
+            (a.date ? '<div class="date">' + new Date(a.date + 'T00:00').toLocaleDateString('pt-BR') + '</div>' : '') +
+          '</div>';
+        }).join('');
+      }
+
+      if (selectedAula) {
+        var aula = aulas.find(function(a) { return a.id === selectedAula; });
+        if (aula) {
+          editor.style.display = '';
+          noSel.style.display = 'none';
+          document.getElementById('editorNum').textContent = '→ Aula ' + aula.num;
+          document.getElementById('editorTitle').value = aula.title;
+          document.getElementById('editorDate').value = aula.date || '';
+          document.getElementById('editorContent').value = aula.content || '';
+        }
+      } else {
+        editor.style.display = 'none';
+        noSel.style.display = '';
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

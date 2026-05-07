@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coordenação — Lidara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    .alert-card { display: flex; align-items: flex-start; gap: 14px; padding: 16px; border: 1px solid var(--rule); border-radius: 12px; margin-bottom: 10px; }
+    .alert-card.critical { border-color: var(--red); background: rgba(200,58,46,0.05); }
+    .alert-card.warning { border-color: var(--amber); background: rgba(212,137,42,0.05); }
+    .alert-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .alert-icon.critical { background: var(--red); color: var(--paper); }
+    .alert-icon.warning { background: var(--amber); color: var(--paper); }
+    .alert-content { flex: 1; }
+    .alert-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .alert-desc { font-size: 12px; color: var(--muted); }
+    .heatmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 6px; }
+    .heatmap-cell { aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Instrument Serif', serif; font-style: italic; font-size: 18px; cursor: pointer; transition: transform 0.15s; }
+    .heatmap-cell:hover { transform: scale(1.1); }
+    .heatmap-cell.low { background: var(--green-deep); color: var(--paper); }
+    .heatmap-cell.medium { background: var(--amber); color: var(--paper); }
+    .heatmap-cell.high { background: var(--red); color: var(--paper); }
+    .professor-card { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid var(--rule); border-radius: 12px; margin-bottom: 8px; }
+    .professor-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--ink); color: var(--paper); display: flex; align-items: center; justify-content: center; font-family: 'Instrument Serif', serif; font-style: italic; font-size: 18px; }
+    .professor-info { flex: 1; }
+    .professor-name { font-weight: 600; font-size: 14px; }
+    .professor-subject { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <script src="../assets/js/firebase-config.js"></script>
+  <script src="../assets/js/store.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+
+  <div class="tape" style="background:var(--accent);">
+    <div class="tape-track">
+      <span>Modo Coordenação</span><span>Visão Institucional</span><span>Lidara</span>
+      <span>Modo Coordenação</span><span>Visão Institucional</span><span>Lidara</span>
+    </div>
+  </div>
+
+  <nav class="app-nav">
+    <a href="../index.html" class="brand"><span class="brand-mark">Lidara</span><span class="brand-asterisk">✦</span></a>
+    <div class="app-nav-links">
+      <a href="dashboard.html" class="app-nav-link">Painel</a>
+      <a href="alunos.html" class="app-nav-link">Alunos</a>
+      <a href="caderneta.html" class="app-nav-link">Caderneta</a>
+      <a href="plano.html" class="app-nav-link">Plano de Aula</a>
+      <a href="calendario.html" class="app-nav-link">Calendário</a>
+      <a href="boletim.html" class="app-nav-link">Boletim</a>
+      <a href="coordenacao.html" class="app-nav-link active" style="background:var(--accent);color:var(--paper);">Coordenação</a>
+    </div>
+    <div class="app-nav-right">
+      <button class="user-pill"><div class="user-avatar" id="userAvatar">C</div><span id="userName">Coordenador</span></button>
+    </div>
+  </nav>
+
+  <header class="page-head" style="background:var(--accent);color:var(--paper);border-color:var(--accent);">
+    <div class="num" style="color:rgba(255,255,255,0.7);">Modo Coordenação</div>
+    <h1>Painel do <span class="it" style="color:var(--paper);">Coordenador</span></h1>
+    <p class="sub" style="color:rgba(255,255,255,0.7);">Visão consolidada de todas as turmas, professores e alertas institucionais.</p>
+  </header>
+
+  <div class="filters" style="background:var(--paper-3);">
+    <span class="filters-label">Filtros</span>
+    <div class="pill-select"><select id="selectBimestre" onchange="render()"></select></div>
+    <div class="pill-select"><select id="selectAno" onchange="render()">
+      <option value="">Todos os Anos</option>
+      <option value="6">6º Ano</option>
+      <option value="7">7º Ano</option>
+      <option value="8">8º Ano</option>
+      <option value="9">9º Ano</option>
+    </select></div>
+  </div>
+
+  <main class="content">
+    <div class="grid-12">
+      <!-- Stats Row -->
+      <div class="stat span-3">
+        <div class="label">Total Alunos</div>
+        <div class="val" id="stat-alunos">0</div>
+      </div>
+      <div class="stat span-3">
+        <div class="label">Total Turmas</div>
+        <div class="val" id="stat-turmas">0</div>
+      </div>
+      <div class="stat span-3" style="background:var(--red);color:var(--paper);">
+        <div class="label" style="color:rgba(255,255,255,0.7);">Alunos em Risco</div>
+        <div class="val" id="stat-risco">0</div>
+      </div>
+      <div class="stat span-3" style="background:var(--green-deep);color:var(--paper);">
+        <div class="label" style="color:rgba(255,255,255,0.7);">Média Geral</div>
+        <div class="val" id="stat-media">0<span class="it">.0</span></div>
+      </div>
+
+      <!-- Alerts -->
+      <div class="card span-6">
+        <div class="card-num">→ Alertas Institucionais</div>
+        <div id="alertsList" style="margin-top:16px;"></div>
+      </div>
+
+      <!-- Heatmap -->
+      <div class="card span-6">
+        <div class="card-num">→ Mapa de Negativos por Turma</div>
+        <p style="font-size:12px;color:var(--muted);margin:8px 0 16px;">Cores indicam concentração de negativos. Clique para detalhes.</p>
+        <div id="heatmap" class="heatmap"></div>
+      </div>
+
+      <!-- Charts -->
+      <div class="card span-6">
+        <div class="card-num">→ Desempenho por Turma</div>
+        <div style="padding:20px 0;"><canvas id="chartTurmas"></canvas></div>
+      </div>
+
+      <div class="card span-6">
+        <div class="card-num">→ Evolução por Bimestre</div>
+        <div style="padding:20px 0;"><canvas id="chartEvolucao"></canvas></div>
+      </div>
+
+      <!-- Professors -->
+      <div class="card span-6">
+        <div class="card-num">→ Professores</div>
+        <div id="professorList" style="margin-top:16px;"></div>
+      </div>
+
+      <!-- Agenda -->
+      <div class="card span-6">
+        <div class="card-num">→ Agenda Institucional</div>
+        <div style="margin-top:16px;">
+          <div class="alert-card">
+            <div class="alert-icon" style="background:var(--accent);">📅</div>
+            <div class="alert-content">
+              <div class="alert-title">Conselho de Classe</div>
+              <div class="alert-desc">Sexta-feira, 15/03 às 14h — Sala de Reuniões</div>
+            </div>
+          </div>
+          <div class="alert-card">
+            <div class="alert-icon" style="background:var(--green-deep);">📋</div>
+            <div class="alert-content">
+              <div class="alert-title">Fechamento do 1º Bimestre</div>
+              <div class="alert-desc">Prazo: 28/04 — Lançar todas as notas</div>
+            </div>
+          </div>
+          <div class="alert-card">
+            <div class="alert-icon" style="background:var(--ink);">👥</div>
+            <div class="alert-content">
+              <div class="alert-title">Reunião de Pais</div>
+              <div class="alert-desc">Sábado, 20/04 às 9h — Auditório</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer"><span>Lidara © 2026</span><span>Modo Coordenação</span></footer>
+
+  <script>
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('userName').textContent = 'Coordenador';
+        document.getElementById('userAvatar').textContent = 'C';
+      }
+    });
+
+    var settings = Store.getSettings();
+    document.getElementById('selectBimestre').innerHTML = Store.BIMESTRES.map(function(b) {
+      return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>';
+    }).join('');
+
+    var chartTurmas = null, chartEvolucao = null;
+
+    function render() {
+      var bimestre = document.getElementById('selectBimestre').value;
+      var anoFilter = document.getElementById('selectAno').value;
+
+      var turmas = Store.TURMAS;
+      if (anoFilter) {
+        turmas = turmas.filter(function(t) { return t.charAt(0) === anoFilter; });
+      }
+
+      var totalAlunos = 0, totalNegativos = 0, totalMedias = 0, alunosEmRisco = 0;
+      var turmaData = [];
+
+      turmas.forEach(function(turma) {
+        var materias = Store.getMaterias(turma);
+        var turmaNegs = 0, turmaAlunos = 0, turmaMediaSum = 0;
+
+        materias.forEach(function(materia) {
+          var students = Store.getStudents(turma, materia, bimestre);
+          students.forEach(function(s) {
+            totalAlunos++;
+            turmaAlunos++;
+            turmaNegs += s.negativos || 0;
+            totalNegativos += s.negativos || 0;
+            var media = parseFloat(Store.calcMedia(s));
+            turmaMediaSum += media;
+            totalMedias += media;
+            if (media < 5) alunosEmRisco++;
+          });
+        });
+
+        turmaData.push({
+          turma: turma,
+          negs: turmaNegs,
+          alunos: turmaAlunos,
+          media: turmaAlunos > 0 ? turmaMediaSum / turmaAlunos : 0
+        });
+      });
+
+      var avgMedia = totalAlunos > 0 ? (totalMedias / totalAlunos).toFixed(1) : '0.0';
+
+      document.getElementById('stat-alunos').textContent = totalAlunos;
+      document.getElementById('stat-turmas').textContent = turmas.length;
+      document.getElementById('stat-risco').textContent = alunosEmRisco;
+      document.getElementById('stat-media').innerHTML = avgMedia.split('.')[0] + '<span class="it">.' + avgMedia.split('.')[1] + '</span>';
+
+      // Alerts
+      var alerts = [];
+      turmaData.forEach(function(td) {
+        if (td.negs > 10) alerts.push({ type: 'critical', title: td.turma + ' com alto índice de negativos', desc: td.negs + ' negativos registrados neste bimestre' });
+        if (td.media < 5 && td.alunos > 0) alerts.push({ type: 'warning', title: 'Média baixa em ' + td.turma, desc: 'Média da turma: ' + td.media.toFixed(1) });
+      });
+      if (alunosEmRisco > 5) alerts.unshift({ type: 'critical', title: alunosEmRisco + ' alunos em situação crítica', desc: 'Média abaixo de 5.0 — ação imediata recomendada' });
+
+      document.getElementById('alertsList').innerHTML = alerts.length > 0
+        ? alerts.slice(0, 5).map(function(a) {
+            return '<div class="alert-card ' + a.type + '"><div class="alert-icon ' + a.type + '">' + (a.type === 'critical' ? '⚠' : '⚡') + '</div><div class="alert-content"><div class="alert-title">' + a.title + '</div><div class="alert-desc">' + a.desc + '</div></div></div>';
+          }).join('')
+        : '<p style="color:var(--muted);font-style:italic;font-size:13px;">Nenhum alerta no momento.</p>';
+
+      // Heatmap
+      var maxNegs = Math.max.apply(null, turmaData.map(function(t) { return t.negs; })) || 1;
+      document.getElementById('heatmap').innerHTML = turmaData.map(function(td) {
+        var intensity = td.negs / maxNegs;
+        var cls = intensity > 0.6 ? 'high' : (intensity > 0.3 ? 'medium' : 'low');
+        return '<div class="heatmap-cell ' + cls + '" title="' + Store.formatTurma(td.turma) + ': ' + td.negs + ' negativos">' + td.negs + '</div>';
+      }).join('');
+
+      // Professors list
+      var professors = [
+        { name: 'Ana Silva', subject: 'Português', initials: 'AS' },
+        { name: 'Carlos Oliveira', subject: 'Matemática', initials: 'CO' },
+        { name: 'Maria Santos', subject: 'História', initials: 'MS' },
+        { name: 'João Pereira', subject: 'Ciências', initials: 'JP' }
+      ];
+      document.getElementById('professorList').innerHTML = professors.map(function(p) {
+        return '<div class="professor-card"><div class="professor-avatar">' + p.initials + '</div><div class="professor-info"><div class="professor-name">' + p.name + '</div><div class="professor-subject">' + p.subject + '</div></div><span class="tag tag-green">Ativo</span></div>';
+      }).join('');
+
+      // Charts
+      if (chartTurmas) chartTurmas.destroy();
+      chartTurmas = new Chart(document.getElementById('chartTurmas'), {
+        type: 'bar',
+        data: {
+          labels: turmaData.map(function(t) { return Store.formatTurma(t.turma); }),
+          datasets: [{ label: 'Média', data: turmaData.map(function(t) { return t.media.toFixed(1); }), backgroundColor: turmaData.map(function(t) { return t.media >= 6 ? '#14543a' : (t.media >= 5 ? '#d4892a' : '#c83a2e'); }), borderRadius: 6 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 10 } } }
+      });
+
+      if (chartEvolucao) chartEvolucao.destroy();
+      chartEvolucao = new Chart(document.getElementById('chartEvolucao'), {
+        type: 'line',
+        data: {
+          labels: ['1º Bim', '2º Bim', '3º Bim', '4º Bim'],
+          datasets: [{ label: 'Média Geral', data: [6.2, 6.5, parseFloat(avgMedia), 0], borderColor: '#14543a', backgroundColor: 'rgba(20,84,58,0.1)', fill: true, tension: 0.3 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 10 } } }
+      });
+    }
+
+    render();
+    Store.loadFromCloud(function(success) { if (success) render(); });
+  </script>
+</body>
+</html>

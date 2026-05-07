@@ -1,239 +1,261 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Boletim — Lidara</title>
-  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/editorial.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-</head>
-<body>
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    .export-card { border: 1px solid var(--ink); border-radius: 14px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.15s; }
+    .export-card:hover { background: var(--ink); color: var(--paper); }
+    .export-card .icon { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 32px; margin-bottom: 8px; }
+    .export-card .label { font-size: 12px; font-weight: 600; }
+  </style>
+</head>
+<body>
   <script src="../assets/js/firebase-config.js"></script>
   <script src="../assets/js/store.js"></script>
-  <script src="../assets/js/components.js"></script>
   <script src="../assets/js/auth-guard.js"></script>
 
-  <div id="app" style="visibility:hidden;"></div>
+  <div class="tape">
+    <div class="tape-track">
+      <span>Boletim Escolar</span><span>Notas Consolidadas</span><span>Lidara</span>
+      <span>Boletim Escolar</span><span>Notas Consolidadas</span><span>Lidara</span>
+    </div>
+  </div>
+
+  <nav class="app-nav">
+    <a href="../index.html" class="brand"><span class="brand-mark">Lidara</span><span class="brand-asterisk">✦</span></a>
+    <div class="app-nav-links">
+      <a href="dashboard.html" class="app-nav-link">Painel</a>
+      <a href="alunos.html" class="app-nav-link">Alunos</a>
+      <a href="negativos.html" class="app-nav-link">Negativos</a>
+      <a href="positivos.html" class="app-nav-link">Positivos</a>
+      <a href="pb.html" class="app-nav-link">PB</a>
+      <a href="va.html" class="app-nav-link">VA</a>
+      <a href="boletim.html" class="app-nav-link active">Boletim</a>
+      <a href="coordenacao.html" class="app-nav-link">Coordenação</a>
+    </div>
+    <div class="app-nav-right">
+      <button class="user-pill"><div class="user-avatar" id="userAvatar">P</div><span id="userName">Professor</span></button>
+    </div>
+  </nav>
+
+  <header class="page-head">
+    <div class="num">Visualização → Boletim</div>
+    <h1>Boletim <span class="it">Escolar</span></h1>
+    <p class="sub">Visualize as notas consolidadas e exporte em diversos formatos.</p>
+  </header>
+
+  <div class="filters">
+    <span class="filters-label">Filtros</span>
+    <div class="pill-select"><select id="selectBimestre" onchange="handleBimestreChange()"></select></div>
+    <div class="pill-select"><select id="selectTurma" onchange="handleTurmaChange()"></select></div>
+    <div class="pill-select"><select id="selectMateria" onchange="handleMateriaChange()"></select></div>
+    <div style="flex:1;"></div>
+    <span class="eyebrow" id="countLabel">0 alunos</span>
+  </div>
+
+  <main class="content">
+    <div class="grid-12">
+      <!-- Formula Card -->
+      <div class="card span-12" style="background:var(--paper-2);" id="formulaCard"></div>
+
+      <!-- Stats -->
+      <div class="stat span-3">
+        <div class="label">Total Alunos</div>
+        <div class="val" id="stat-total">0</div>
+      </div>
+      <div class="stat span-3" style="background:var(--green-deep);color:var(--paper);">
+        <div class="label" style="color:rgba(255,255,255,0.7);">Aprovados</div>
+        <div class="val" id="stat-ap">0</div>
+      </div>
+      <div class="stat span-3" style="background:var(--amber);color:var(--paper);">
+        <div class="label" style="color:rgba(255,255,255,0.7);">Recuperação</div>
+        <div class="val" id="stat-rec">0</div>
+      </div>
+      <div class="stat span-3" style="background:var(--red);color:var(--paper);">
+        <div class="label" style="color:rgba(255,255,255,0.7);">Reprovados</div>
+        <div class="val" id="stat-rep">0</div>
+      </div>
+
+      <!-- Table -->
+      <div class="span-12">
+        <div class="tbl-wrap">
+          <table class="editorial">
+            <thead id="theadBoletim"></thead>
+            <tbody id="tbodyBoletim"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" style="text-align:center;padding:60px 20px;color:var(--muted);font-style:italic;">
+          Nenhum aluno cadastrado nesta turma.
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="card span-6">
+        <div class="card-num">→ Distribuição de Notas</div>
+        <div style="padding:20px 0;"><canvas id="chartBar"></canvas></div>
+      </div>
+      <div class="card span-6">
+        <div class="card-num">→ Aprovados vs Reprovados</div>
+        <div style="display:flex;justify-content:center;padding:20px 0;">
+          <div style="max-width:200px;width:100%;"><canvas id="chartDoughnut"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Export Options -->
+      <div class="span-12">
+        <div class="card-num" style="margin-bottom:16px;">→ Exportar Boletim</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;">
+          <div class="export-card" onclick="exportPDF()"><div class="icon">P</div><div class="label">PDF</div></div>
+          <div class="export-card" onclick="exportExcel()"><div class="icon">X</div><div class="label">Excel</div></div>
+          <div class="export-card" onclick="exportCSV()"><div class="icon">C</div><div class="label">CSV</div></div>
+          <div class="export-card" onclick="exportJSON()"><div class="icon">J</div><div class="label">JSON</div></div>
+          <div class="export-card" onclick="window.print()"><div class="icon">🖨</div><div class="label">Imprimir</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer"><span>Lidara © 2026</span><span>Sincronizado</span></footer>
 
   <script>
-    document.getElementById('app').innerHTML =
-      Components.sidebar('boletim') +
-      '<div class="main-content">' +
-        Components.topbar('Boletim') +
-        '<div class="page-container">' +
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        document.getElementById('userName').textContent = user.displayName || user.email;
+        document.getElementById('userAvatar').textContent = (user.displayName || user.email || 'P').charAt(0).toUpperCase();
+      }
+    });
 
-          // Formula card (dynamic based on matéria)
-          '<div id="formulaCard"></div>' +
+    var settings = Store.getSettings();
+    document.getElementById('selectBimestre').innerHTML = Store.BIMESTRES.map(function(b) { return '<option value="' + b + '"' + (b === settings.bimestre ? ' selected' : '') + '>' + Store.BIMESTRE_LABELS[b] + '</option>'; }).join('');
+    document.getElementById('selectTurma').innerHTML = Store.TURMAS.map(function(t) { return '<option value="' + t + '"' + (t === settings.turma ? ' selected' : '') + '>' + Store.formatTurma(t) + '</option>'; }).join('');
+    function updateMateriaSelect() {
+      var turma = document.getElementById('selectTurma').value;
+      document.getElementById('selectMateria').innerHTML = Store.getMaterias(turma).map(function(m) { return '<option value="' + m + '"' + (m === settings.materia ? ' selected' : '') + '>' + m + '</option>'; }).join('');
+    }
+    updateMateriaSelect();
+    function handleBimestreChange() { settings.bimestre = document.getElementById('selectBimestre').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function handleTurmaChange() { settings.turma = document.getElementById('selectTurma').value; updateMateriaSelect(); Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function handleMateriaChange() { settings.materia = document.getElementById('selectMateria').value; Store.saveSettings(settings.turma, settings.materia, settings.bimestre); render(); }
+    function getCurrentContext() { return { turma: document.getElementById('selectTurma').value, materia: document.getElementById('selectMateria').value, bimestre: document.getElementById('selectBimestre').value }; }
 
-          // VA info
-          '<div id="vaInfo" style="margin-bottom:12px;"></div>' +
+    var chartBar = null, chartDoughnut = null;
 
-          // Table
-          '<div class="card">' +
-            '<div class="card-header"><h3>Lan\u00e7amento de Notas</h3><span style="font-size:0.78rem;color:var(--gray-400);font-weight:600;" id="countLabel">0 aluno(s)</span></div>' +
-            '<div class="table-container">' +
-              '<table>' +
-                '<thead id="theadBoletim"></thead>' +
-                '<tbody id="tbodyBoletim"></tbody>' +
-              '</table>' +
-              '<div id="emptyState" class="empty-state">Nenhum aluno cadastrado nesta turma/mat\u00e9ria/bimestre.</div>' +
-            '</div>' +
-          '</div>' +
-
-          // Charts
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;">' +
-            '<div class="card">' +
-              '<div class="card-header"><h3>Composi\u00e7\u00e3o da M\u00e9dia</h3></div>' +
-              '<div class="card-body" style="display:flex;justify-content:center;"><div style="max-width:240px;width:100%;"><canvas id="chartPie"></canvas></div></div>' +
-            '</div>' +
-            '<div class="card">' +
-              '<div class="card-header"><h3>M\u00e9dias por Aluno</h3></div>' +
-              '<div class="card-body"><canvas id="chartMedias"></canvas></div>' +
-            '</div>' +
-          '</div>' +
-
-        '</div>' +
-        Components.footer() +
-      '</div>';
-
-    initSelects();
-    var chartPie = null;
-    var chartMedias = null;
-
-    function onContextChange() { render(); }
-
-    function onNotaChange(numero, field, value) {
-      var ctx = getCurrentContext();
-      Store.updateNota(ctx.turma, ctx.materia, ctx.bimestre, numero, field, value);
-      render();
+    function getStatus(media) {
+      if (media >= 6) return { text: 'Aprovado', class: 'tag-green' };
+      if (media >= 5) return { text: 'Recuperação', class: 'tag-amber' };
+      return { text: 'Reprovado', class: 'tag-red' };
     }
 
-    function buildRow(s, ctx, hasPB) {
-      var qualiEf = Store.getQualiAjustada(s);
-      var vaMedia = Store.getVAMedia(ctx.turma, ctx.materia, ctx.bimestre, s.numero);
-      var media = Store.calcMediaFull(ctx.turma, ctx.materia, ctx.bimestre, s);
-      var mediaColor = media >= 6 ? 'badge-green' : 'badge-red';
-      var negLabel = s.negativos > 0
-        ? '<span style="display:block;font-size:0.65rem;color:var(--red);">(-' + (s.negativos * 0.1).toFixed(1) + ')</span><span style="display:block;font-size:0.65rem;color:var(--gray-400);">Efetiva: ' + qualiEf.toFixed(1) + '</span>'
-        : '';
-      var vaCount = Store.getVAs(ctx.turma, ctx.materia, ctx.bimestre).length;
-      var vaDisplay = vaCount > 0
-        ? '<span style="font-weight:600;font-size:0.9rem;">' + vaMedia.toFixed(1) + '</span><span style="display:block;font-size:0.65rem;color:var(--gray-400);">' + vaCount + ' VA(s)</span>'
-        : '<span style="font-size:0.75rem;color:var(--gray-400);font-style:italic;">Nenhuma VA</span>';
+    function buildRow(s) {
+      var media = Store.calcMedia(s);
+      var status = getStatus(parseFloat(media));
+      var hasPB = Store.MATERIAS_COM_PB.indexOf(settings.materia) !== -1;
+      var pbMedia = hasPB && s.pb ? (((s.pb.anglo || 0) / 2 * 1 + (s.pb.prova || 0) / 4 * 5) / 6).toFixed(1) : '-';
+      var quali = (s.qualitativa || 0).toFixed(1);
+      var va = Store.calcVAMedia(s).toFixed(1);
 
-      var row = '<tr>' +
-        '<td style="font-weight:700;color:var(--dark);">' + s.numero + '</td>' +
-        '<td>' + s.nome + '</td>' +
-        '<td style="text-align:center;">' +
-          '<input type="number" step="0.1" min="0" max="10" value="' + s.quali + '" onchange="onNotaChange(' + s.numero + ',\'quali\',this.value)" class="editable-input" />' +
-          negLabel +
-        '</td>';
-
-      if (hasPB) {
-        var pbMedia = Store.getPBMedia(ctx.turma, ctx.materia, ctx.bimestre, s.numero);
-        row += '<td style="text-align:center;">' +
-          '<span style="font-weight:600;font-size:0.9rem;">' + pbMedia.toFixed(1) + '</span>' +
-          '<span style="display:block;font-size:0.65rem;color:var(--gray-400);"><a href="pb.html" style="color:var(--green);text-decoration:underline;">Editar PB</a></span>' +
-        '</td>';
-      }
-
-      row += '<td style="text-align:center;">' + vaDisplay + '</td>' +
-        '<td style="text-align:center;"><span class="badge ' + mediaColor + '">' + media + '</span></td>' +
+      return '<tr>' +
+        '<td class="num">' + s.numero + '</td>' +
+        '<td style="font-weight:500;">' + s.nome + '</td>' +
+        (hasPB ? '<td style="text-align:center;">' + pbMedia + '</td>' : '') +
+        '<td style="text-align:center;">' + quali + '</td>' +
+        '<td style="text-align:center;">' + va + '</td>' +
+        '<td style="text-align:center;font-family:\'Instrument Serif\',serif;font-style:italic;font-size:18px;">' + media + '</td>' +
+        '<td style="text-align:center;"><span class="tag ' + status.class + '">' + status.text + '</span></td>' +
       '</tr>';
-      return row;
     }
 
     function render() {
       var ctx = getCurrentContext();
-      var hasPB = Store.hasPB(ctx.materia);
       var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
-      var vas = Store.getVAs(ctx.turma, ctx.materia, ctx.bimestre);
-      var thead = document.getElementById('theadBoletim');
-      var tbody = document.getElementById('tbodyBoletim');
-      var empty = document.getElementById('emptyState');
+      var hasPB = Store.MATERIAS_COM_PB.indexOf(ctx.materia) !== -1;
+
+      // Formula card
+      var formulaHtml = '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">';
+      formulaHtml += '<div><div class="card-num">→ Fórmula de Cálculo</div>';
+      if (hasPB) {
+        formulaHtml += '<p style="font-family:\'JetBrains Mono\',monospace;font-size:13px;margin-top:8px;">Média = (PB × 35% + Quali × 30% + VA × 35%) + Bônus</p>';
+      } else {
+        formulaHtml += '<p style="font-family:\'JetBrains Mono\',monospace;font-size:13px;margin-top:8px;">Média = (Quali × 30% + VA × 70%) + Bônus</p>';
+      }
+      formulaHtml += '<p style="font-size:11px;color:var(--muted);margin-top:4px;">Bônus = (Positivos - Negativos) × 0.1</p></div></div>';
+      document.getElementById('formulaCard').innerHTML = formulaHtml;
+
+      // Table header
+      var thead = '<tr><th style="width:60px;">Nº</th><th>Nome</th>';
+      if (hasPB) thead += '<th style="text-align:center;width:80px;">PB</th>';
+      thead += '<th style="text-align:center;width:80px;">Quali</th><th style="text-align:center;width:80px;">VA</th><th style="text-align:center;width:100px;">Média</th><th style="text-align:center;width:120px;">Status</th></tr>';
+      document.getElementById('theadBoletim').innerHTML = thead;
+
+      // Stats
+      var ap = 0, rec = 0, rep = 0;
+      students.forEach(function(s) {
+        var m = parseFloat(Store.calcMedia(s));
+        if (m >= 6) ap++; else if (m >= 5) rec++; else rep++;
+      });
+      document.getElementById('stat-total').textContent = students.length;
+      document.getElementById('stat-ap').textContent = ap;
+      document.getElementById('stat-rec').textContent = rec;
+      document.getElementById('stat-rep').textContent = rep;
       document.getElementById('countLabel').textContent = students.length + ' aluno(s)';
 
-      // Update formula card
-      var formulaCard = document.getElementById('formulaCard');
-      if (hasPB) {
-        formulaCard.innerHTML =
-          '<div class="card" style="margin-bottom:20px;">' +
-            '<div class="card-body" style="padding:16px 20px;">' +
-              '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">' +
-                '<div>' +
-                  '<h3 style="font-size:0.85rem;font-weight:700;color:var(--dark);margin-bottom:4px;">F\u00f3rmula da M\u00e9dia \u2014 ' + ctx.materia + '</h3>' +
-                  '<p style="font-size:0.8rem;color:var(--gray-500);font-family:monospace;">M = (PB \u00d7 35 + Quali* \u00d7 30 + VA \u00d7 35) / 100</p>' +
-                  '<p style="font-size:0.7rem;color:var(--gray-400);margin-top:4px;">* Quali = Nota Qualitativa - (Negativos \u00d7 0.1) | PB = (Anglo\u00d71 + Prova\u00d75) / 6 | VA = m\u00e9dia das VAs normalizadas</p>' +
-                '</div>' +
-                '<div style="display:flex;gap:10px;">' +
-                  '<div style="text-align:center;padding:8px 14px;background:#DBEAFE;border-radius:10px;"><div style="font-size:0.65rem;color:#1D4ED8;font-weight:700;">PB</div><div style="font-size:1.1rem;font-weight:800;color:#1D4ED8;">35</div></div>' +
-                  '<div style="text-align:center;padding:8px 14px;background:#FEE2E2;border-radius:10px;"><div style="font-size:0.65rem;color:#991B1B;font-weight:700;">QUALI</div><div style="font-size:1.1rem;font-weight:800;color:#991B1B;">30</div></div>' +
-                  '<div style="text-align:center;padding:8px 14px;background:#FEF3C7;border-radius:10px;"><div style="font-size:0.65rem;color:#92400E;font-weight:700;">VA</div><div style="font-size:1.1rem;font-weight:800;color:#92400E;">35</div></div>' +
-                '</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>';
-      } else {
-        formulaCard.innerHTML =
-          '<div class="card" style="margin-bottom:20px;">' +
-            '<div class="card-body" style="padding:16px 20px;">' +
-              '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">' +
-                '<div>' +
-                  '<h3 style="font-size:0.85rem;font-weight:700;color:var(--dark);margin-bottom:4px;">F\u00f3rmula da M\u00e9dia \u2014 ' + ctx.materia + ' (sem PB)</h3>' +
-                  '<p style="font-size:0.8rem;color:var(--gray-500);font-family:monospace;">M = (Quali* \u00d7 30 + VA \u00d7 35) / 65</p>' +
-                  '<p style="font-size:0.7rem;color:var(--gray-400);margin-top:4px;">* Quali = Nota Qualitativa - (Negativos \u00d7 0.1) | VA = m\u00e9dia das VAs normalizadas</p>' +
-                '</div>' +
-                '<div style="display:flex;gap:10px;">' +
-                  '<div style="text-align:center;padding:8px 14px;background:#FEE2E2;border-radius:10px;"><div style="font-size:0.65rem;color:#991B1B;font-weight:700;">QUALI</div><div style="font-size:1.1rem;font-weight:800;color:#991B1B;">30</div></div>' +
-                  '<div style="text-align:center;padding:8px 14px;background:#FEF3C7;border-radius:10px;"><div style="font-size:0.65rem;color:#92400E;font-weight:700;">VA</div><div style="font-size:1.1rem;font-weight:800;color:#92400E;">35</div></div>' +
-                '</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>';
-      }
+      var tbody = document.getElementById('tbodyBoletim');
+      var empty = document.getElementById('emptyState');
+      if (students.length === 0) { tbody.innerHTML = ''; empty.style.display = ''; } else { empty.style.display = 'none'; tbody.innerHTML = students.map(buildRow).join(''); }
 
-      // VA info bar
-      var vaInfo = document.getElementById('vaInfo');
-      if (vas.length > 0) {
-        vaInfo.innerHTML = '<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:12px 16px;font-size:0.8rem;color:#92400E;">' +
-          '<strong>' + vas.length + ' VA(s) cadastrada(s):</strong> ' +
-          vas.map(function(v) { return v.nome + ' (0-' + v.valorMax + ')'; }).join(', ') +
-          ' \u2014 <a href="va.html" style="color:#1D4ED8;text-decoration:underline;">Gerenciar VAs</a>' +
-          '</div>';
-      } else {
-        vaInfo.innerHTML = '<div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:12px;padding:12px 16px;font-size:0.8rem;color:var(--gray-500);">' +
-          'Nenhuma VA cadastrada. <a href="va.html" style="color:var(--green);text-decoration:underline;">Criar VAs</a> para que a coluna VA seja calculada automaticamente.' +
-          '</div>';
-      }
+      // Charts
+      var ranges = { '0-2': 0, '2-4': 0, '4-6': 0, '6-8': 0, '8-10': 0 };
+      students.forEach(function(s) {
+        var m = parseFloat(Store.calcMedia(s));
+        if (m < 2) ranges['0-2']++; else if (m < 4) ranges['2-4']++; else if (m < 6) ranges['4-6']++; else if (m < 8) ranges['6-8']++; else ranges['8-10']++;
+      });
 
-      // Build table header dynamically
-      var thHtml = '<tr>' +
-        '<th style="text-align:left;">N\u00ba</th>' +
-        '<th style="text-align:left;">Nome</th>' +
-        '<th style="text-align:center;">Qualitativa<br><span style="font-weight:400;opacity:0.7;">(Peso 30)</span></th>';
+      if (chartBar) chartBar.destroy();
+      chartBar = new Chart(document.getElementById('chartBar'), {
+        type: 'bar', data: { labels: Object.keys(ranges), datasets: [{ data: Object.values(ranges), backgroundColor: ['#c83a2e', '#d4892a', '#d4892a', '#2c8a55', '#14543a'], borderRadius: 6 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
+      });
 
-      if (hasPB) {
-        thHtml += '<th style="text-align:center;">PB<br><span style="font-weight:400;opacity:0.7;">(Peso 35)</span></th>';
-      }
-
-      thHtml += '<th style="text-align:center;">VA<br><span style="font-weight:400;opacity:0.7;">(Peso 35)</span></th>' +
-        '<th style="text-align:center;">M\u00e9dia</th>' +
-      '</tr>';
-      thead.innerHTML = thHtml;
-
-      if (students.length === 0) {
-        tbody.innerHTML = '';
-        empty.style.display = '';
-        return;
-      }
-      empty.style.display = 'none';
-
-      tbody.innerHTML = students.map(function(s) { return buildRow(s, ctx, hasPB); }).join('');
-
-      // Pie chart (composition)
-      if (chartPie) chartPie.destroy();
-      if (hasPB) {
-        chartPie = new Chart(document.getElementById('chartPie'), {
-          type: 'pie',
-          data: {
-            labels: ['Prova Bimestral (35)', 'Qualitativa (30)', 'VA (35)'],
-            datasets: [{ data: [35, 30, 35], backgroundColor: ['#3B82F6', '#DC2626', '#F59E0B'], borderWidth: 2, borderColor: '#fff' }],
-          },
-          options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11, family: 'Inter' }, padding: 12 } } } },
-        });
-      } else {
-        chartPie = new Chart(document.getElementById('chartPie'), {
-          type: 'pie',
-          data: {
-            labels: ['Qualitativa (30)', 'VA (35)'],
-            datasets: [{ data: [30, 35], backgroundColor: ['#DC2626', '#F59E0B'], borderWidth: 2, borderColor: '#fff' }],
-          },
-          options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11, family: 'Inter' }, padding: 12 } } } },
-        });
-      }
-
-      // Bar chart (medias)
-      var labels = students.map(function(s) { return s.nome.split(' ')[0]; });
-      var medias = students.map(function(s) { return Store.calcMediaFull(ctx.turma, ctx.materia, ctx.bimestre, s); });
-      var colors = medias.map(function(m) { return m >= 6 ? '#11C76F' : '#F87171'; });
-
-      if (chartMedias) chartMedias.destroy();
-      chartMedias = new Chart(document.getElementById('chartMedias'), {
-        type: 'bar',
-        data: { labels: labels, datasets: [{ label: 'M\u00e9dia', data: medias, backgroundColor: colors, borderRadius: 6, borderSkipped: false }] },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-          },
-          scales: { y: { beginAtZero: true, max: 10 }, x: { grid: { display: false } } }
-        },
+      if (chartDoughnut) chartDoughnut.destroy();
+      chartDoughnut = new Chart(document.getElementById('chartDoughnut'), {
+        type: 'doughnut', data: { labels: ['Aprovados', 'Recuperação', 'Reprovados'], datasets: [{ data: [ap, rec, rep], backgroundColor: ['#14543a', '#d4892a', '#c83a2e'], borderWidth: 0 }] },
+        options: { cutout: '65%', responsive: true, plugins: { legend: { display: false } } }
       });
     }
+
+    function exportCSV() {
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre);
+      var csv = 'Nº,Nome,Média,Status\n';
+      students.forEach(function(s) {
+        var m = Store.calcMedia(s);
+        var st = getStatus(parseFloat(m)).text;
+        csv += s.numero + ',"' + s.nome + '",' + m + ',' + st + '\n';
+      });
+      var blob = new Blob([csv], { type: 'text/csv' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'boletim_' + ctx.turma + '_' + ctx.bimestre + '.csv'; a.click();
+    }
+
+    function exportJSON() {
+      var ctx = getCurrentContext();
+      var students = Store.getStudents(ctx.turma, ctx.materia, ctx.bimestre).map(function(s) {
+        return { numero: s.numero, nome: s.nome, media: Store.calcMedia(s), status: getStatus(parseFloat(Store.calcMedia(s))).text };
+      });
+      var blob = new Blob([JSON.stringify(students, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'boletim_' + ctx.turma + '_' + ctx.bimestre + '.json'; a.click();
+    }
+
+    function exportPDF() { alert('Exportação PDF requer biblioteca adicional. Use Imprimir > Salvar como PDF.'); }
+    function exportExcel() { alert('Exportação Excel requer biblioteca adicional. Use CSV no Excel.'); }
 
     render();
     Store.loadFromCloud(function(success) { if (success) render(); });
