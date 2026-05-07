@@ -47,6 +47,15 @@ input, select, textarea { font-family: inherit; color: inherit; }
 .app-nav-link { padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--ink); transition: all 0.15s; white-space: nowrap; cursor: pointer; border: none; background: none; flex-shrink: 0; }
 .app-nav-link:hover { background: var(--paper-2); }
 .app-nav-link.active { background: var(--ink); color: var(--paper); }
+.app-nav-dropdown { position: relative; }
+.app-nav-dropdown-toggle { padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--ink); transition: all 0.15s; white-space: nowrap; cursor: pointer; border: none; background: none; flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
+.app-nav-dropdown-toggle:hover { background: var(--paper-2); }
+.app-nav-dropdown-toggle.active { background: var(--ink); color: var(--paper); }
+.app-nav-dropdown-menu { position: absolute; top: 100%; left: 0; background: var(--paper); border: 1px solid var(--ink); border-radius: 12px; padding: 8px; min-width: 180px; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(13,31,21,0.1); margin-top: 4px; flex-direction: column; }
+.app-nav-dropdown-menu.open { display: flex; }
+.app-nav-dropdown-item { display: block; padding: 8px 14px; border-radius: 8px; font-size: 12px; color: var(--ink); text-decoration: none; transition: all 0.15s; }
+.app-nav-dropdown-item:hover { background: var(--paper-2); }
+.app-nav-dropdown-item.active { background: var(--ink); color: var(--paper); }
 .app-nav-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .user-pill { display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border: 1px solid var(--ink); border-radius: 999px; cursor: pointer; transition: background 0.15s; font-size: 13px; }
 .user-pill:hover { background: var(--paper-2); }

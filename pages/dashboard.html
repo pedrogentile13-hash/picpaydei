@@ -41,10 +41,18 @@
     <div class="app-nav-links">
       <a href="dashboard.html" class="app-nav-link active">Painel</a>
       <a href="alunos.html" class="app-nav-link">Alunos</a>
-      <a href="negativos.html" class="app-nav-link">Negativos</a>
-      <a href="positivos.html" class="app-nav-link">Positivos</a>
-      <a href="pb.html" class="app-nav-link">PB</a>
-      <a href="va.html" class="app-nav-link">VA</a>
+      <div class="app-nav-dropdown">
+        <button class="app-nav-dropdown-toggle" onclick="toggleDropdown(event)">Lançamentos ▼</button>
+        <div class="app-nav-dropdown-menu" id="dropdownLancamentos">
+          <a href="negativos.html" class="app-nav-dropdown-item">Negativos</a>
+          <a href="positivos.html" class="app-nav-dropdown-item">Positivos</a>
+          <a href="pb.html" class="app-nav-dropdown-item">PB</a>
+          <a href="va.html" class="app-nav-dropdown-item">VA</a>
+        </div>
+      </div>
+      <a href="caderneta.html" class="app-nav-link">Caderneta</a>
+      <a href="plano.html" class="app-nav-link">Plano de Aula</a>
+      <a href="calendario.html" class="app-nav-link">Calendário</a>
       <a href="boletim.html" class="app-nav-link">Boletim</a>
       <a href="coordenacao.html" class="app-nav-link">Coordenação</a>
     </div>
@@ -237,6 +245,25 @@
 
     render();
     Store.loadFromCloud(function(success) { if (success) render(); });
+
+    function toggleDropdown(e) {
+      e.preventDefault();
+      var menu = document.getElementById('dropdownLancamentos');
+      menu.classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.app-nav-dropdown')) {
+        var menus = document.querySelectorAll('.app-nav-dropdown-menu');
+        menus.forEach(function(m) { m.classList.remove('open'); });
+      }
+    });
+
+    var currentPage = 'dashboard';
+    var lancamentoPages = ['negativos', 'positivos', 'pb', 'va'];
+    if (lancamentoPages.some(function(p) { return window.location.pathname.includes(p); })) {
+      document.querySelector('.app-nav-dropdown-toggle').classList.add('active');
+    }
   </script>
 </body>
 </html>
