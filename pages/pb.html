@@ -222,6 +222,19 @@
 
     render();
     Store.loadFromCloud(function(success) { if (success) render(); });
+
+    function toggleDropdown(e) {
+      e.preventDefault();
+      var menu = document.getElementById('dropdownLancamentos');
+      menu.classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.app-nav-dropdown')) {
+        var menus = document.querySelectorAll('.app-nav-dropdown-menu');
+        menus.forEach(function(m) { m.classList.remove('open'); });
+      }
+    });
   </script>
 </body>
 </html>
